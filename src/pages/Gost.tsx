@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Coins, Key, Upload, CheckCircle2, Loader2, AlertCircle,
   FileText, Download, RotateCcw, ChevronDown, MessageSquare,
@@ -13,7 +13,7 @@ const API  = import.meta.env.VITE_BACKEND_URL as string
 const GOST = import.meta.env.VITE_GOST_URL    as string
 
 type Mode    = 'universal' | 'fixed_template' | 'custom_template'
-type SubMode = 'format_only' | 'minimal_edit'
+type SubMode = 'format_only' | 'minimal_edit' | 'chat'
 
 type Phase =
   | 'idle'
@@ -191,6 +191,7 @@ function UploadForm({ token, onStart }: {
   onStart: (phase: Phase, projectId?: string, result?: ProjectResult, mode?: string) => void
 }) {
   const showToast = useToast()
+  const navigate  = useNavigate()
   const [mode,        setMode]        = useState<Mode>('universal')
   const [subMode,     setSubMode]     = useState<SubMode>('format_only')
   const [templates,   setTemplates]   = useState<TemplateInfo[]>([])
@@ -215,7 +216,7 @@ function UploadForm({ token, onStart }: {
     if (mode === 'universal' && !taskFile) { showToast('Загрузите файл задания (PDF)', 'error'); return }
     if (mode === 'fixed_template' && (!taskFile || !templateId)) { showToast('Загрузите PDF задания и выберите шаблон', 'error'); return }
     if (mode === 'custom_template') {
-      if (!tplFile) { showToast('Загрузите файл шаблона (.docx)', 'error'); return }
+      if (subMode !== 'chat' && !tplFile) { showToast('Загрузите файл шаблона (.docx)', 'error'); return }
       if (subMode === 'minimal_edit' && !taskFile) { showToast('Для этого режима нужен файл задания', 'error'); return }
     }
     if (!GOST) { showToast('ГОСТ-сервис не настроен (VITE_GOST_URL)', 'error'); return }
@@ -237,6 +238,12 @@ function UploadForm({ token, onStart }: {
       const upData = await upRes.json()
       if (!upRes.ok) { showToast(upData.error ?? 'Ошибка загрузки файлов', 'error'); onStart('error'); return }
       const projectId: string = upData.project_id
+
+      // chat sub-mode: navigate straight to chat, no extraction
+      if (mode === 'custom_template' && subMode === 'chat') {
+        navigate(`/gost/chat/${projectId}`)
+        return
+      }
 
       // custom_template: extract returns final URLs directly
       if (mode === 'custom_template') {
@@ -315,7 +322,7 @@ function UploadForm({ token, onStart }: {
         <div>
           <label className="block text-sm font-medium text-ink mb-2">Что сделать с файлом</label>
           <div className="grid grid-cols-2 gap-2">
-            {([ ['format_only', 'Только форматирование'], ['minimal_edit', 'Переработать по заданию'] ] as const).map(([s, lbl]) => (
+            {([ ['format_only', 'Только форматирование'], ['minimal_edit', 'Переработать по заданию'], ['chat', 'Через чат'] ] as const).map(([s, lbl]) => (
               <button key={s} type="button" onClick={() => setSubMode(s)}
                 className={`px-3 py-2 text-sm rounded-xl border transition-colors ${
                   subMode === s
@@ -354,13 +361,25 @@ function UploadForm({ token, onStart }: {
         {mode === 'custom_template' ? (
           <>
             <FileDropZone
-              label="Шаблон документа (.docx)"
-              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              label={subMode === 'chat' ? 'Образец работы' : 'Шаблон документа (.docx)'}
+              accept={subMode === 'chat'
+                ? '.docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                : '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+              }
               file={tplFile}
               onChange={setTplFile}
+              optional={subMode === 'chat'}
             />
             {subMode === 'minimal_edit' && (
               <FileDropZone label="Новое задание (PDF)" accept="application/pdf,.pdf" file={taskFile} onChange={setTaskFile} />
+            )}
+            {subMode === 'chat' && (
+              <>
+                <FileDropZone label="Задание / вариант" accept="application/pdf,.pdf,.txt,text/plain" file={taskFile} onChange={setTaskFile} optional />
+                <p className="text-xs text-center" style={{ color: '#64748b', fontSize: '0.8rem', textAlign: 'center', marginTop: 4 }}>
+                  После создания откроется чат для интерактивного редактирования
+                </p>
+              </>
             )}
           </>
         ) : (

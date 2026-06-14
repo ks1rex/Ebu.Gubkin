@@ -12,6 +12,8 @@ import ForumCategory from './pages/ForumCategory'
 import ForumThread   from './pages/ForumThread'
 import Market        from './pages/Market'
 import Gost          from './pages/Gost'
+import GostFormat    from './pages/GostFormat'
+import GostLayout    from './components/GostLayout'
 import Wallet        from './pages/Wallet'
 import Profile       from './pages/Profile'
 import Login         from './pages/Login'
@@ -77,7 +79,10 @@ export default function App() {
               <Route path="services/:id/edit"        element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
               <Route path="users/:id"                element={<UserProfile />} />
             </Route>
-            <Route path="gost"    element={<Gost />} />
+            <Route path="gost" element={<GostLayout />}>
+              <Route index element={<Gost />} />
+              <Route path="format" element={<ProtectedRoute><GostFormat /></ProtectedRoute>} />
+            </Route>
             <Route path="gost/chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
