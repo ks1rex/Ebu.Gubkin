@@ -58,7 +58,7 @@ export default function ServicesCatalog() {
             <input style={S.searchInput} placeholder="Поиск услуги..." value={search} onChange={e => setSearch(e.target.value)} />
             <button style={S.searchBtn} type="submit"><Search size={15} />Найти</button>
           </form>
-          <Link to="/services/new" style={S.newBtn}>+ Разместить услугу</Link>
+          <Link to="/market/services/new" style={S.newBtn}>+ Разместить услугу</Link>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ export default function ServicesCatalog() {
       ) : (
         <div style={S.grid}>
           {listings.map((l: any) => (
-            <Link key={l.id} to={`/services/${l.id}`} style={S.card}>
+            <Link key={l.id} to={`/market/services/${l.id}`} style={S.card}>
               <div style={S.cardTitle}>{l.title}</div>
               <div style={S.ownerRow}>
                 <div style={S.ownerName}>{l.owner?.nickname}</div>

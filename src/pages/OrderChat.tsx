@@ -15,7 +15,7 @@ export default function OrderChat() {
 
   useEffect(() => {
     Promise.all([
-      apiCall('GET', `/orders/${orderId}`),
+      apiCall('GET', `/market/orders/${orderId}`),
       apiCall('GET', `/orders/${orderId}/conversation`),
     ]).then(([ord, conv]) => {
       setOrder(ord)
@@ -30,7 +30,7 @@ export default function OrderChat() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', maxWidth: 800, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <Link to={`/orders/${orderId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', textDecoration: 'none', fontSize: '0.85rem' }}>
+        <Link to={`/market/orders/${orderId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', textDecoration: 'none', fontSize: '0.85rem' }}>
           <ArrowLeft size={14} /> К заказу
         </Link>
         <div style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>

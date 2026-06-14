@@ -48,14 +48,14 @@ export default function AppliedOrders() {
           icon={Inbox}
           title="Откликов пока нет"
           subtitle="Перейдите на биржу заказов и откликнитесь на понравившийся заказ"
-          action={<Link to="/orders" style={{ background: '#14a89a', color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: '0.9rem' }}>Биржа заказов</Link>}
+          action={<Link to="/market/orders" style={{ background: '#14a89a', color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: '0.9rem' }}>Биржа заказов</Link>}
         />
       ) : (
         items.map((item: any) => {
           const order = item.orders
           const appMeta = APP_STATUS[item.status] ?? APP_STATUS.pending
           return (
-            <Link key={item.id} to={`/orders/${order?.id}`} style={S.row}>
+            <Link key={item.id} to={`/market/orders/${order?.id}`} style={S.row}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={S.title}>{order?.title ?? 'Заказ'}</div>
                 <div style={S.meta}>

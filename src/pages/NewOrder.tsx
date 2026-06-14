@@ -80,7 +80,7 @@ export default function NewOrder() {
         fd.append('visibility', visibility)
         await apiCall('POST', `/orders/${order.id}/attachments`, fd)
       }
-      navigate(`/orders/${order.id}`)
+      navigate(`/market/orders/${order.id}`)
     } catch (err: any) {
       if (err.data?.error === 'insufficient_balance') {
         setError(`Недостаточно средств. Нужно ${formatCurrency(err.data.required)}, на балансе ${formatCurrency(err.data.balance)}.`)

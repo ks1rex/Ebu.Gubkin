@@ -176,10 +176,10 @@ export default function OrderDetail() {
       <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <span>Заказ #{shortId} · {order.subject} · {new Date(order.created_at).toLocaleDateString('ru-RU')}</span>
         {isOwner && order.status === 'open' && (
-          <Link to={`/orders/${id}/applications`} style={S.appsLink}><Users size={14} /> Заявки исполнителей</Link>
+          <Link to={`/market/orders/${id}/applications`} style={S.appsLink}><Users size={14} /> Заявки исполнителей</Link>
         )}
         {chatStatuses.includes(order.status) && (isOwner || isExecutor || isAdmin) && (
-          <Link to={`/orders/${id}/chat`} style={{ ...S.appsLink, background: '#0d2620', color: '#14a89a', border: '1px solid #0e8a7d' }}>
+          <Link to={`/market/orders/${id}/chat`} style={{ ...S.appsLink, background: '#0d2620', color: '#14a89a', border: '1px solid #0e8a7d' }}>
             <MessageSquare size={14} /> Перейти в чат
           </Link>
         )}
@@ -299,7 +299,7 @@ export default function OrderDetail() {
               <div key={r.id} style={{ background: '#070d14', border: '1px solid #1e3a4a', borderRadius: 10, padding: '1rem', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                   <StarRating value={r.rating} size={14} gap={1} />
-                  <Link to={`/users/${r.reviewer_id}`} style={{ color: '#14a89a', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>{r.reviewer?.nickname}</Link>
+                  <Link to={`/market/users/${r.reviewer_id}`} style={{ color: '#14a89a', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>{r.reviewer?.nickname}</Link>
                   <span style={{ color: '#64748b', fontSize: '0.74rem' }}>{r.context === 'as_executor' ? '· о исполнителе' : '· о заказчике'}</span>
                   <span style={{ color: '#64748b', fontSize: '0.72rem', marginLeft: 'auto' }}>{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                 </div>
@@ -368,8 +368,8 @@ export default function OrderDetail() {
             <div style={S.metaItem}>Залог<div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}><Shield size={13} style={{ color: '#f59e0b' }} /><span style={{ color: '#f59e0b', fontWeight: 500 }}>{order.deposit_amount} ₽</span></div></div>
           )}
           <div style={S.metaItem}>Зарезервировано<div style={S.amount}>{order.reserved_amount} ₽</div></div>
-          {order.customer && <div style={S.metaItem}>Заказчик<div style={S.metaValue}><Link to={`/users/${order.customer_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.customer.nickname}</Link></div></div>}
-          {order.executor && <div style={S.metaItem}>Исполнитель<div style={S.metaValue}><Link to={`/users/${order.executor_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.executor.nickname}</Link></div></div>}
+          {order.customer && <div style={S.metaItem}>Заказчик<div style={S.metaValue}><Link to={`/market/users/${order.customer_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.customer.nickname}</Link></div></div>}
+          {order.executor && <div style={S.metaItem}>Исполнитель<div style={S.metaValue}><Link to={`/market/users/${order.executor_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.executor.nickname}</Link></div></div>}
         </div>
         <div style={S.sectionTitle}>Описание</div>
         <div style={S.desc}>{order.description}</div>

@@ -11,23 +11,20 @@ const S: Record<string, any> = {
   card: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 12, padding: '1.5rem', textDecoration: 'none', display: 'block' },
   cardTitle: { display: 'flex', alignItems: 'center', gap: 8, color: '#14a89a', fontWeight: 600, marginBottom: 8 },
   cardText: { color: '#64748b', fontSize: '0.88rem', lineHeight: 1.5 },
-  balanceCard: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 10, padding: '1rem 1.5rem', display: 'inline-block', marginBottom: '2rem' },
-  balanceLabel: { color: '#64748b', fontSize: '0.78rem', marginBottom: 4 },
-  balanceValue: { color: '#14a89a', fontSize: '1.3rem', fontWeight: 700 },
   pendingBlock: { background: '#0f1923', border: '1px solid #f59e0b44', borderRadius: 12, padding: '1.25rem', marginBottom: '1.5rem' },
 }
 
 const NAV_CARDS = [
-  { icon: Search,        title: 'Биржа заказов',    text: 'Открытые заказы от студентов — откликайтесь и предлагайте цену', to: '/orders' },
-  { icon: BookOpen,      title: 'Каталог услуг',    text: 'Готовые предложения исполнителей — выберите и закажите сразу', to: '/services' },
-  { icon: PlusCircle,    title: 'Создать заказ',    text: 'Разместите задание — репетитор, курсовая, реферат и другое', to: '/orders/new' },
-  { icon: Briefcase,     title: 'Разместить услугу', text: 'Предложите свою помощь другим студентам и зарабатывайте', to: '/services/new' },
-  { icon: ClipboardList, title: 'Мои заказы',       text: 'Отслеживайте статусы заказов и переписку с исполнителями', to: '/orders/mine' },
-  { icon: Search,        title: 'Мои отклики',      text: 'Заказы, на которые вы откликнулись, и активные работы', to: '/orders/applied' },
+  { icon: Search,        title: 'Биржа заказов',    text: 'Открытые заказы от студентов — откликайтесь и предлагайте цену', to: '/market/orders' },
+  { icon: BookOpen,      title: 'Каталог услуг',    text: 'Готовые предложения исполнителей — выберите и закажите сразу', to: '/market/services' },
+  { icon: PlusCircle,    title: 'Создать заказ',    text: 'Разместите задание — репетитор, курсовая, реферат и другое', to: '/market/orders/new' },
+  { icon: Briefcase,     title: 'Разместить услугу', text: 'Предложите свою помощь другим студентам и зарабатывайте', to: '/market/services/new' },
+  { icon: ClipboardList, title: 'Мои заказы',       text: 'Отслеживайте статусы заказов и переписку с исполнителями', to: '/market/orders/mine' },
+  { icon: Search,        title: 'Мои отклики',      text: 'Заказы, на которые вы откликнулись, и активные работы', to: '/market/orders/applied' },
 ]
 
 export default function Market() {
-  const { profile, user } = useAuth()
+  const { user } = useAuth()
   const [pendingReviews, setPendingReviews] = useState<any[]>([])
 
   useEffect(() => {
@@ -39,17 +36,8 @@ export default function Market() {
 
   return (
     <div>
-      <div style={S.heading}>
-        {profile ? `Добро пожаловать, ${profile.nickname ?? '...'}` : 'Студенческая биржа'}
-      </div>
+      <div style={S.heading}>Студенческая биржа</div>
       <div style={S.sub}>Заказывайте учебную помощь или предлагайте свои услуги другим студентам</div>
-
-      {profile && (
-        <div style={S.balanceCard}>
-          <div style={S.balanceLabel}>Баланс кошелька</div>
-          <div style={S.balanceValue}>{parseFloat(String(profile.balance ?? 0)).toFixed(2)} ₽</div>
-        </div>
-      )}
 
       {pendingReviews.length > 0 && (
         <div style={S.pendingBlock}>
@@ -58,7 +46,7 @@ export default function Market() {
             Ожидают вашего отзыва
           </div>
           {pendingReviews.map((o: any) => (
-            <Link key={o.id} to={`/orders/${o.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1e3a4a', textDecoration: 'none', color: 'inherit' }}>
+            <Link key={o.id} to={`/market/orders/${o.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #1e3a4a', textDecoration: 'none', color: 'inherit' }}>
               <div>
                 <div style={{ color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 500 }}>{o.title}</div>
                 <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: 2 }}>{o.subject} · {o.role === 'customer' ? 'Вы заказчик' : 'Вы исполнитель'}</div>
@@ -71,7 +59,7 @@ export default function Market() {
 
       <div style={S.grid}>
         {NAV_CARDS.map(({ icon: Icon, title, text, to }) => (
-          <Link key={to + title} to={to} style={S.card}>
+          <Link key={to} to={to} style={S.card}>
             <div style={S.cardTitle}><Icon size={18} />{title}</div>
             <div style={S.cardText}>{text}</div>
           </Link>

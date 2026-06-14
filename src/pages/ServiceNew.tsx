@@ -12,10 +12,10 @@ export default function ServiceNew() {
     setError(''); setLoading(true)
     try {
       const listing = await apiCall('POST', '/listings', data)
-      navigate(`/services/${listing.id}`)
+      navigate(`/market/services/${listing.id}`)
     } catch (e: any) { setError(e.message) }
     finally { setLoading(false) }
   }
 
-  return <ServiceForm title="Новая услуга" onSubmit={handleSubmit} loading={loading} error={error} cancelTo="/services/mine" />
+  return <ServiceForm title="Новая услуга" onSubmit={handleSubmit} loading={loading} error={error} cancelTo="/market/services/mine" />
 }

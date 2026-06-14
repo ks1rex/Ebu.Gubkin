@@ -59,7 +59,7 @@ export default function ServiceDetail() {
     try {
       const result = await apiCall('POST', `/listings/${id}/order`, { comment: comment.trim() || undefined })
       toast('Услуга заказана! Откройте чат с исполнителем.', 'success')
-      navigate(`/orders/${result.id}`)
+      navigate(`/market/orders/${result.id}`)
     } catch (err: any) {
       if (err.data?.error === 'insufficient_balance') {
         setError(`Недостаточно средств. Нужно ${formatCurrency(err.data.required)}, на балансе ${formatCurrency(err.data.balance)}.`)
@@ -74,7 +74,7 @@ export default function ServiceDetail() {
       <div style={S.card}>
         <div style={S.title}>{listing.title}</div>
         <div style={S.owner}>
-          <Link to={`/users/${listing.owner_id}`} style={S.ownerLink}>{listing.owner?.nickname}</Link>
+          <Link to={`/market/users/${listing.owner_id}`} style={S.ownerLink}>{listing.owner?.nickname}</Link>
           {parseFloat(listing.owner?.rating_as_executor ?? 0) > 0 && (
             <div style={S.rating}>
               <Star size={12} fill="#f59e0b" />{parseFloat(listing.owner.rating_as_executor).toFixed(1)}
@@ -125,8 +125,8 @@ export default function ServiceDetail() {
 
       {isOwner && (
         <div style={{ display: 'flex', gap: 10 }}>
-          <Link to={`/services/${id}/edit`} style={{ background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '9px 18px', color: '#e2e8f0', textDecoration: 'none', fontWeight: 500, fontSize: '0.88rem' }}>Редактировать</Link>
-          <Link to="/services/mine" style={{ color: '#64748b', fontSize: '0.85rem', padding: '9px 0', textDecoration: 'none' }}>← Мои услуги</Link>
+          <Link to={`/market/services/${id}/edit`} style={{ background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '9px 18px', color: '#e2e8f0', textDecoration: 'none', fontWeight: 500, fontSize: '0.88rem' }}>Редактировать</Link>
+          <Link to="/market/services/mine" style={{ color: '#64748b', fontSize: '0.85rem', padding: '9px 0', textDecoration: 'none' }}>← Мои услуги</Link>
         </div>
       )}
     </div>

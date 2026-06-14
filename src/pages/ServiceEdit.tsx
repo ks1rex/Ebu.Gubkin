@@ -21,7 +21,7 @@ export default function ServiceEdit() {
 
   async function handleSubmit(data: any) {
     setError(''); setSaving(true)
-    try { await apiCall('PATCH', `/listings/${id}`, data); navigate(`/services/${id}`) }
+    try { await apiCall('PATCH', `/listings/${id}`, data); navigate(`/market/services/${id}`) }
     catch (e: any) { setError(e.message) }
     finally { setSaving(false) }
   }
@@ -29,5 +29,5 @@ export default function ServiceEdit() {
   if (pageLoading) return <Spinner />
   if (!listing) return <div style={{ color: '#f87171', padding: '2rem' }}>Услуга не найдена</div>
 
-  return <ServiceForm title="Редактировать услугу" initial={listing} onSubmit={handleSubmit} loading={saving} error={error} cancelTo={`/services/${id}`} />
+  return <ServiceForm title="Редактировать услугу" initial={listing} onSubmit={handleSubmit} loading={saving} error={error} cancelTo={`/market/services/${id}`} />
 }

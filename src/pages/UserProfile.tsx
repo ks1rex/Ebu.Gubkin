@@ -64,7 +64,7 @@ export default function UserProfile() {
             <div key={r.id} style={{ borderBottom: '1px solid #1e3a4a', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <span style={{ color: '#f59e0b' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                <Link to={`/users/${r.reviewer_id}`} style={{ color: '#14a89a', fontSize: '0.8rem', textDecoration: 'none' }}>{r.reviewer?.nickname}</Link>
+                <Link to={`/market/users/${r.reviewer_id}`} style={{ color: '#14a89a', fontSize: '0.8rem', textDecoration: 'none' }}>{r.reviewer?.nickname}</Link>
                 <span style={{ color: '#64748b', fontSize: '0.74rem' }}>{r.context === 'as_executor' ? '· как исполнитель' : '· как заказчик'}</span>
                 <span style={{ color: '#64748b', fontSize: '0.72rem', marginLeft: 'auto' }}>{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
               </div>

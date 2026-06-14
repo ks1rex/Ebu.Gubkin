@@ -60,19 +60,19 @@ export default function App() {
             <Route path="forum/category/:id"   element={<ForumCategory />} />
             <Route path="forum/thread/:id"     element={<ForumThread />} />
             <Route path="market"  element={<Market />} />
-            <Route path="orders"                        element={<ProtectedRoute><OrderFeed /></ProtectedRoute>} />
-            <Route path="orders/new"                    element={<ProtectedRoute><NewOrder /></ProtectedRoute>} />
-            <Route path="orders/mine"                   element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-            <Route path="orders/applied"                element={<ProtectedRoute><AppliedOrders /></ProtectedRoute>} />
-            <Route path="orders/:id"                    element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
-            <Route path="orders/:id/applications"       element={<ProtectedRoute><Applications /></ProtectedRoute>} />
-            <Route path="orders/:id/chat"               element={<ProtectedRoute><OrderChat /></ProtectedRoute>} />
-            <Route path="services"                      element={<ServicesCatalog />} />
-            <Route path="services/new"                  element={<ProtectedRoute><ServiceNew /></ProtectedRoute>} />
-            <Route path="services/mine"                 element={<ProtectedRoute><ServicesMine /></ProtectedRoute>} />
-            <Route path="services/:id"                  element={<ServiceDetail />} />
-            <Route path="services/:id/edit"             element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
-            <Route path="users/:id"                     element={<UserProfile />} />
+            <Route path="market/orders"                        element={<ProtectedRoute><OrderFeed /></ProtectedRoute>} />
+            <Route path="market/orders/new"                    element={<ProtectedRoute><NewOrder /></ProtectedRoute>} />
+            <Route path="market/orders/mine"                   element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+            <Route path="market/orders/applied"                element={<ProtectedRoute><AppliedOrders /></ProtectedRoute>} />
+            <Route path="market/orders/:id"                    element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+            <Route path="market/orders/:id/applications"       element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+            <Route path="market/orders/:id/chat"               element={<ProtectedRoute><OrderChat /></ProtectedRoute>} />
+            <Route path="market/services"                      element={<ServicesCatalog />} />
+            <Route path="market/services/new"                  element={<ProtectedRoute><ServiceNew /></ProtectedRoute>} />
+            <Route path="market/services/mine"                 element={<ProtectedRoute><ServicesMine /></ProtectedRoute>} />
+            <Route path="market/services/:id"                  element={<ServiceDetail />} />
+            <Route path="market/services/:id/edit"             element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
+            <Route path="market/users/:id"                     element={<UserProfile />} />
             <Route path="gost"    element={<Gost />} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

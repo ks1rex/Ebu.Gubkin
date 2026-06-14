@@ -51,11 +51,11 @@ export default function Applications() {
 
   useEffect(() => {
     Promise.all([
-      apiCall('GET', `/orders/${orderId}`),
+      apiCall('GET', `/market/orders/${orderId}`),
       apiCall('GET', `/orders/${orderId}/applications`),
     ]).then(([ord, appList]) => {
       if (ord.customer_id !== user?.id) {
-        navigate(`/orders/${orderId}`, { replace: true })
+        navigate(`/market/orders/${orderId}`, { replace: true })
         return
       }
       setOrder(ord)
@@ -69,7 +69,7 @@ export default function Applications() {
     setError('')
     try {
       await apiCall('POST', `/orders/${orderId}/applications/${modal.id}/select`, {})
-      navigate(`/orders/${orderId}`)
+      navigate(`/market/orders/${orderId}`)
     } catch (e: any) {
       setError(e.message)
       setActing(false)
@@ -83,7 +83,7 @@ export default function Applications() {
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto' }}>
-      <Link to={`/orders/${orderId}`} style={S.back}><ArrowLeft size={14} /> Назад к заказу</Link>
+      <Link to={`/market/orders/${orderId}`} style={S.back}><ArrowLeft size={14} /> Назад к заказу</Link>
       <div style={S.h1}>Заявки исполнителей</div>
       <div style={S.sub}>Заказ: «{order.title}» · {pendingApps.length} активных заявок</div>
 
@@ -95,7 +95,7 @@ export default function Applications() {
         <div key={app.id} style={{ ...S.card, opacity: app.status !== 'pending' ? 0.5 : 1 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <Link to={`/users/${app.executor?.id}`} style={{ ...S.nick, color: '#14a89a', textDecoration: 'none', display: 'block' }}>{app.executor?.nickname}</Link>
+              <Link to={`/market/users/${app.executor?.id}`} style={{ ...S.nick, color: '#14a89a', textDecoration: 'none', display: 'block' }}>{app.executor?.nickname}</Link>
               <StarsRow rating={app.executor?.rating_as_executor} count={app.executor?.reviews_count_executor} />
               {app.proposed_amount && <div style={S.price}>{app.proposed_amount} ₽ — предложенная цена</div>}
               <div style={S.msg}>{app.message}</div>

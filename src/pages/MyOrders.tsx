@@ -39,7 +39,7 @@ export default function MyOrders() {
     <div style={{ maxWidth: 800, margin: '0 auto' }}>
       <div style={S.header}>
         <div style={S.h1}>Мои заказы</div>
-        <Link to="/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>
+        <Link to="/market/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>
       </div>
 
       {orders.length === 0 ? (
@@ -47,11 +47,11 @@ export default function MyOrders() {
           icon={ClipboardList}
           title="Заказов пока нет"
           subtitle="Создайте первый заказ — исполнители откликнутся уже сегодня"
-          action={<Link to="/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>}
+          action={<Link to="/market/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>}
         />
       ) : (
         orders.map((order: any) => (
-          <Link key={order.id} to={`/orders/${order.id}`} style={S.row}>
+          <Link key={order.id} to={`/market/orders/${order.id}`} style={S.row}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={S.title}>{order.title}</div>
               <div style={S.subject}>

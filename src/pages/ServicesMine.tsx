@@ -49,18 +49,18 @@ export default function ServicesMine() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: 12 }}>
         <div style={S.h1}>Мои услуги</div>
-        <Link to="/services/new" style={S.newBtn}>+ Новая услуга</Link>
+        <Link to="/market/services/new" style={S.newBtn}>+ Новая услуга</Link>
       </div>
 
       {loading ? <Spinner /> : listings.length === 0 ? (
         <EmptyState title="У вас нет услуг">
-          <Link to="/services/new" style={{ color: '#14a89a' }}>Создать первую</Link>
+          <Link to="/market/services/new" style={{ color: '#14a89a' }}>Создать первую</Link>
         </EmptyState>
       ) : (
         listings.map((l: any) => (
           <div key={l.id} style={{ ...S.card, opacity: l.is_active ? 1 : 0.6 }}>
             <div style={S.info}>
-              <Link to={`/services/${l.id}`} style={S.cardTitle}>{l.title}</Link>
+              <Link to={`/market/services/${l.id}`} style={S.cardTitle}>{l.title}</Link>
               <div style={S.meta}>
                 <span>{formatCurrency(l.price)}</span>
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span style={S.badge('#f59e0b')}><Shield size={10} />Залог {formatCurrency(l.deposit_amount)}</span>}
@@ -73,7 +73,7 @@ export default function ServicesMine() {
                 {l.is_active ? <Eye size={14} /> : <EyeOff size={14} />}
                 {l.is_active ? 'Активна' : 'Скрыта'}
               </button>
-              <Link to={`/services/${l.id}/edit`} style={S.editLink}><Edit size={13} />Изменить</Link>
+              <Link to={`/market/services/${l.id}/edit`} style={S.editLink}><Edit size={13} />Изменить</Link>
             </div>
           </div>
         ))

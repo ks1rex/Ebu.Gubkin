@@ -102,13 +102,13 @@ export default function OrderFeed() {
                     {order.customer?.nickname} · {new Date(order.created_at).toLocaleDateString('ru-RU')}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <Link to={`/orders/${order.id}`} style={S.btn('muted')}>
+                    <Link to={`/market/orders/${order.id}`} style={S.btn('muted')}>
                       <ChevronRight size={13} /> Подробнее
                     </Link>
                     {!isOwner && (
                       order.already_applied
                         ? <span style={S.btn('disabled')}>Заявка подана</span>
-                        : <Link to={`/orders/${order.id}`} style={S.btn('primary')}>Откликнуться</Link>
+                        : <Link to={`/market/orders/${order.id}`} style={S.btn('primary')}>Откликнуться</Link>
                     )}
                     {isOwner && <span style={S.btn('disabled')}>Мой заказ</span>}
                   </div>
