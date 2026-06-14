@@ -231,7 +231,7 @@ export default function Profile() {
           <div className="px-6 py-4 grid grid-cols-2 gap-4 border-b border-line">
             <div>
               <p className="text-xs text-subtle mb-0.5">Баланс</p>
-              <p className="text-lg font-semibold text-ink">{(profile.balance ?? 0).toLocaleString('ru-RU')} ₸</p>
+              <p className="text-lg font-semibold text-ink">{(profile.balance ?? 0).toLocaleString('ru-RU')} ₽</p>
             </div>
             <div>
               <p className="text-xs text-subtle mb-0.5">ГОСТ-токены</p>

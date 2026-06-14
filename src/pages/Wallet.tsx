@@ -77,7 +77,7 @@ function TxRow({ tx }: { tx: Transaction }) {
       </div>
       <div className="text-right shrink-0">
         <p className={`text-sm font-semibold ${income ? 'text-success' : 'text-error'}`}>
-          {income ? '+' : '−'}{Math.abs(tx.amount).toLocaleString('ru-RU')} ₸
+          {income ? '+' : '−'}{Math.abs(tx.amount).toLocaleString('ru-RU')} ₽
         </p>
         <div className="flex items-center gap-1.5 justify-end mt-0.5">
           <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${status.cls}`}>{status.label}</span>
@@ -105,7 +105,7 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const num = parseFloat(amount)
-    if (!num || num < 1) { toast('Минимальная сумма — 1 ₸', 'error'); return }
+    if (!num || num < 1) { toast('Минимальная сумма — 1 ₽', 'error'); return }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
     if (!backendUrl) { toast('VITE_BACKEND_URL не задан в .env.local', 'error'); return }
@@ -143,7 +143,7 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-ink mb-1">Сумма пополнения (₸)</label>
+            <label className="block text-sm font-medium text-ink mb-1">Сумма пополнения (₽)</label>
             <input
               type="number"
               min="1"
@@ -185,8 +185,8 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const num = parseFloat(amount)
-    if (!num || num < 1)       { toast('Минимальная сумма — 1 ₸', 'error'); return }
-    if (num > maxAmount)        { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₸`, 'error'); return }
+    if (!num || num < 1)       { toast('Минимальная сумма — 1 ₽', 'error'); return }
+    if (num > maxAmount)        { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
     if (!cardNumber.trim())     { toast('Введите реквизиты для вывода', 'error'); return }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
@@ -221,7 +221,7 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
     <Modal open={open} onClose={onClose} title="Вывод средств">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-ink mb-1">Сумма вывода (₸)</label>
+          <label className="block text-sm font-medium text-ink mb-1">Сумма вывода (₽)</label>
           <input
             type="number"
             min="1"
@@ -231,7 +231,7 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
             placeholder="500"
             className={INPUT}
           />
-          <p className="text-xs text-subtle mt-1">Доступно: {maxAmount.toLocaleString('ru-RU')} ₸</p>
+          <p className="text-xs text-subtle mt-1">Доступно: {maxAmount.toLocaleString('ru-RU')} ₽</p>
         </div>
         <div>
           <label className="block text-sm font-medium text-ink mb-1">Реквизиты (номер карты или телефон)</label>
@@ -349,7 +349,7 @@ export default function Wallet() {
           <Skeleton className="h-11 w-44 mb-4" />
         ) : (
           <p className="text-4xl font-bold text-ink tracking-tight mb-4">
-            {currentBalance.toLocaleString('ru-RU')} ₸
+            {currentBalance.toLocaleString('ru-RU')} ₽
           </p>
         )}
         <div className="flex flex-wrap gap-3">
@@ -378,7 +378,7 @@ export default function Wallet() {
             <h2 className="font-semibold text-ink">Реферальная программа</h2>
           </div>
           <p className="text-sm text-subtle mb-4">
-            Приглашайте друзей — получайте 5% от каждого из их первых трёх пополнений от 100 ₸.
+            Приглашайте друзей — получайте 5% от каждого из их первых трёх пополнений от 100 ₽.
           </p>
           <div className="flex items-center gap-2">
             <code className="flex-1 bg-canvas border border-line rounded-lg px-3 py-2 text-sm font-mono text-ink tracking-wide">
@@ -396,7 +396,7 @@ export default function Wallet() {
             <p className="text-xs text-subtle mt-3">
               Заработано по реферальной программе:{' '}
               <span className="text-success font-medium">
-                {(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₸
+                {(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽
               </span>
             </p>
           )}
