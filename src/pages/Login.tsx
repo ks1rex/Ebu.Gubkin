@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
-const logoV = `${import.meta.env.BASE_URL}logo-vertical.png`
+const logoV = `${import.meta.env.BASE_URL}logo-vertical-trimmed.png`
 
 export default function Login() {
   const { signIn } = useAuth()

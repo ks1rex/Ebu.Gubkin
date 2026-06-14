@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Gift } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-const logoV = `${import.meta.env.BASE_URL}logo-vertical.png`
+const logoV = `${import.meta.env.BASE_URL}logo-vertical-trimmed.png`
 
 export default function Register() {
   const { signUp } = useAuth()

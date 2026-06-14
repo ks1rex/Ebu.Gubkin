@@ -43,6 +43,19 @@ async function main() {
   await sharp(iconBuf.data).resize(32,  32,  { fit: 'contain', background: { r:0,g:0,b:0,alpha:0 } }).png().toFile(path.join(OUT_DIR, 'favicon.png'));
   await sharp(iconBuf.data).resize(180, 180, { fit: 'contain', background: { r:0,g:0,b:0,alpha:0 } }).png().toFile(path.join(OUT_DIR, 'favicon-180.png'));
   console.log('favicon.png (32×32) and favicon-180.png (180×180) saved.');
+
+  // ── Trim transparent padding from generated logos ─────────────────────────
+  const hTrimBuf = await sharp(path.join(OUT_DIR, 'logo-horizontal.png'))
+    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 10 })
+    .toBuffer({ resolveWithObject: true });
+  await sharp(hTrimBuf.data).png().toFile(path.join(OUT_DIR, 'logo-horizontal-trimmed.png'));
+  console.log(`Horizontal trimmed: ${hTrimBuf.info.width}×${hTrimBuf.info.height}px`);
+
+  const vTrimBuf = await sharp(path.join(OUT_DIR, 'logo-vertical.png'))
+    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 10 })
+    .toBuffer({ resolveWithObject: true });
+  await sharp(vTrimBuf.data).png().toFile(path.join(OUT_DIR, 'logo-vertical-trimmed.png'));
+  console.log(`Vertical trimmed:   ${vTrimBuf.info.width}×${vTrimBuf.info.height}px`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
