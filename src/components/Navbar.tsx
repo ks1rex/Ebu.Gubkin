@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { User, LogOut, Menu, X, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-const logoH = `${import.meta.env.BASE_URL}logo-horizontal.png`
+const logoH = `${import.meta.env.BASE_URL}logo-horizontal-trimmed.png`
 
 const NAV_ITEMS = [
   { label: 'Форум',            to: '/forum'  },
