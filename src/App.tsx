@@ -12,7 +12,6 @@ import ForumCategory from './pages/ForumCategory'
 import ForumThread   from './pages/ForumThread'
 import Market        from './pages/Market'
 import Gost          from './pages/Gost'
-import GostFormat    from './pages/GostFormat'
 import GostLayout    from './components/GostLayout'
 import Wallet        from './pages/Wallet'
 import Profile       from './pages/Profile'
@@ -81,7 +80,6 @@ export default function App() {
             </Route>
             <Route path="gost" element={<GostLayout />}>
               <Route index element={<Gost />} />
-              <Route path="format" element={<ProtectedRoute><GostFormat /></ProtectedRoute>} />
             </Route>
             <Route path="gost/chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
