@@ -36,8 +36,6 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
   const [price, setPrice] = useState(initial.price ?? '')
   const [hasDeposit, setHasDeposit] = useState(parseFloat(initial.deposit_amount ?? 0) > 0)
   const [depositAmt, setDepositAmt] = useState(initial.deposit_amount ?? '')
-  const [requiresCE, setRequiresCE] = useState(!!initial.requires_contact_exchange)
-  const [ceReason, setCeReason] = useState(initial.contact_exchange_reason ?? '')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -45,8 +43,6 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
       title: formTitle, description,
       price: parseFloat(String(price)),
       deposit_amount: hasDeposit ? parseFloat(String(depositAmt) || '0') : 0,
-      requires_contact_exchange: requiresCE,
-      contact_exchange_reason: requiresCE ? ceReason : '',
     })
   }
 
@@ -92,22 +88,6 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
             <div style={S.subfield}>
               <label style={S.label}>Сумма залога, ₽</label>
               <input style={{ ...S.input, maxWidth: 200 }} type="number" min="1" step="1" value={depositAmt} onChange={e => setDepositAmt(e.target.value)} placeholder="500" required={hasDeposit} />
-            </div>
-          )}
-        </div>
-
-        <div style={S.section}>
-          <div style={S.checkRow}>
-            <input id="requiresCE" type="checkbox" style={S.checkbox} checked={requiresCE} onChange={e => setRequiresCE(e.target.checked)} />
-            <div>
-              <label htmlFor="requiresCE" style={S.checkLabel}>Нужен обмен контактными данными</label>
-              <div style={S.checkDesc}>При включении в чат автоматически появится системное предупреждение</div>
-            </div>
-          </div>
-          {requiresCE && (
-            <div style={S.subfield}>
-              <label style={S.label}>Для чего нужен обмен контактами <span style={{ color: '#ef4444' }}>*</span></label>
-              <textarea style={{ ...S.textarea, minHeight: 70 }} value={ceReason} onChange={e => setCeReason(e.target.value)} placeholder="Например: выезд на дом, передача материалов..." required={requiresCE} />
             </div>
           )}
         </div>

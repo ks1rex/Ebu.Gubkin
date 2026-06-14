@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Download, FileText, Users, Send, MessageSquare, CheckCircle, AlertOctagon, Shield, AlertTriangle } from 'lucide-react'
+import { Download, FileText, Users, Send, MessageSquare, CheckCircle, AlertOctagon, Shield } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { StatusBadge } from '../lib/statusMap'
@@ -347,16 +347,6 @@ export default function OrderDetail() {
         </div>
       )}
 
-      {/* Contact exchange banner */}
-      {order.requires_contact_exchange && (
-        <div style={{ background: '#1a120a', border: '1px solid #f59e0b44', borderRadius: 10, padding: '12px 16px', marginBottom: '1rem', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-          <AlertTriangle size={16} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 2 }} />
-          <div>
-            <div style={{ color: '#f59e0b', fontWeight: 600, fontSize: '0.88rem', marginBottom: 3 }}>Обмен контактными данными разрешён</div>
-            {order.contact_exchange_reason && <div style={{ color: '#94a3b8', fontSize: '0.83rem' }}>{order.contact_exchange_reason}</div>}
-          </div>
-        </div>
-      )}
 
       {/* Order info */}
       <div style={S.card}>

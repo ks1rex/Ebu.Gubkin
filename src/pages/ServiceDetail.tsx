@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Star, Shield, AlertTriangle } from 'lucide-react'
+import { Star, Shield } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
@@ -82,15 +82,8 @@ export default function ServiceDetail() {
             </div>
           )}
         </div>
-        {listing.requires_contact_exchange && (
-          <div style={S.contactBanner}>
-            <AlertTriangle size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-            <strong>Обмен контактными данными:</strong> {listing.contact_exchange_reason}
-          </div>
-        )}
         <div>
           {deposit > 0 && <span style={S.badge('#f59e0b')}><Shield size={12} />Залог {formatCurrency(deposit)}</span>}
-          {listing.requires_contact_exchange && <span style={S.badge('#ef4444')}><AlertTriangle size={12} />Обмен контактами</span>}
         </div>
         <div style={S.desc}>{listing.description}</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>

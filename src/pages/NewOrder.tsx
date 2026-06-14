@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Upload, X, Eye, Lock, AlertCircle, AlertTriangle } from 'lucide-react'
+import { Upload, X, Eye, Lock, AlertCircle } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
@@ -30,8 +30,6 @@ export default function NewOrder() {
   const [description, setDescription] = useState('')
   const [subject, setSubject]   = useState('')
   const [baseAmount, setBaseAmount] = useState('')
-  const [requiresCE, setRequiresCE] = useState(false)
-  const [ceReason, setCeReason] = useState('')
   const [files, setFiles]       = useState<FileItem[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [error, setError]       = useState('')
@@ -64,15 +62,11 @@ export default function NewOrder() {
     if (!description.trim()) return setError('Введите описание')
     if (!subject.trim()) return setError('Введите предмет')
     if (amount <= 0) return setError('Введите корректную сумму')
-    if (requiresCE && !ceReason.trim()) return setError('Укажите, для чего нужен обмен контактами')
-
     setLoading(true)
     try {
       const order = await apiCall('POST', '/orders', {
         title: title.trim(), description: description.trim(), subject: subject.trim(),
         order_type: 'order', base_amount: amount,
-        requires_contact_exchange: requiresCE,
-        contact_exchange_reason: requiresCE ? ceReason.trim() : undefined,
       })
       for (const { file, visibility } of files) {
         const fd = new FormData()
@@ -139,25 +133,6 @@ export default function NewOrder() {
             </div>
           </div>
         )}
-
-        <div style={S.section}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <input id="requiresCE" type="checkbox" checked={requiresCE} onChange={e => setRequiresCE(e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, accentColor: '#14a89a', flexShrink: 0 }} />
-            <div>
-              <label htmlFor="requiresCE" style={{ color: '#e2e8f0', fontSize: '0.9rem', cursor: 'pointer' }}>Нужен обмен контактными данными</label>
-              <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: 3 }}>При включении в чат появится системное сообщение с предупреждением</div>
-            </div>
-          </div>
-          {requiresCE && (
-            <div style={{ marginTop: 10, paddingLeft: 28 }}>
-              <label style={S.label}>Для чего нужен обмен контактами <span style={{ color: '#ef4444' }}>*</span></label>
-              <textarea style={{ ...S.textarea, minHeight: 70 }} value={ceReason} onChange={e => setCeReason(e.target.value)} placeholder="Например: выезд на дом, очный экзамен, передача материалов..." required={requiresCE} />
-              <div style={{ color: '#f59e0b', fontSize: '0.76rem', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <AlertTriangle size={12} />Обмен контактами будет разрешён в этом чате
-              </div>
-            </div>
-          )}
-        </div>
 
         <div style={S.section}>
           <label style={S.label}>Файлы (необязательно)</label>

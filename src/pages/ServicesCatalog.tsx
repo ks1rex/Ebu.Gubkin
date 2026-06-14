@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Star, AlertTriangle, Shield, Search } from 'lucide-react'
+import { Star, Shield, Search } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import Spinner from '../components/Spinner'
@@ -79,7 +79,6 @@ export default function ServicesCatalog() {
               </div>
               <div style={S.badges}>
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span style={S.badge('#f59e0b')}><Shield size={11} />Залог {formatCurrency(l.deposit_amount)}</span>}
-                {l.requires_contact_exchange && <span style={S.badge('#ef4444')}><AlertTriangle size={11} />Обмен контактами</span>}
               </div>
               <div style={S.price}>{formatCurrency(l.price)}</div>
             </Link>

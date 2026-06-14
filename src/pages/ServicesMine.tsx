@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, AlertTriangle, Eye, EyeOff, Edit } from 'lucide-react'
+import { Shield, Eye, EyeOff, Edit } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
@@ -64,7 +64,6 @@ export default function ServicesMine() {
               <div style={S.meta}>
                 <span>{formatCurrency(l.price)}</span>
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span style={S.badge('#f59e0b')}><Shield size={10} />Залог {formatCurrency(l.deposit_amount)}</span>}
-                {l.requires_contact_exchange && <span style={S.badge('#ef4444')}><AlertTriangle size={10} />Обмен контактами</span>}
                 <span>{formatDate(l.created_at)}</span>
               </div>
             </div>

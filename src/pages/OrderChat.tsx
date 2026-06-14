@@ -41,7 +41,6 @@ export default function OrderChat() {
       <ChatWindow
         conversationId={convId}
         readOnly={false}
-        scheduledBanner={order?.requires_contact_exchange === true}
       />
     </div>
   )

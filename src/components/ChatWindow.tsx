@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Paperclip, Send, Download, AlertTriangle, X, Info } from 'lucide-react'
+import { Paperclip, Send, Download, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
@@ -33,11 +33,10 @@ const S: Record<string, any> = {
 interface Props {
   conversationId: string
   readOnly?: boolean
-  scheduledBanner?: boolean
   pollInterval?: number
 }
 
-export default function ChatWindow({ conversationId, readOnly = false, scheduledBanner = false, pollInterval = 5000 }: Props) {
+export default function ChatWindow({ conversationId, readOnly = false, pollInterval = 5000 }: Props) {
   const { user } = useAuth()
   const toast = useToast()
   const [messages, setMessages] = useState<any[]>([])
@@ -128,13 +127,6 @@ export default function ChatWindow({ conversationId, readOnly = false, scheduled
 
   return (
     <div style={S.wrap}>
-      {scheduledBanner && (
-        <div style={S.banner}>
-          <Info size={16} style={{ color: '#14a89a', flexShrink: 0, marginTop: 1 }} />
-          <div style={S.bannerText}>Для согласования времени и места вы можете обменяться контактами. Переписка проверяется модератором.</div>
-        </div>
-      )}
-
       <div style={S.messagesArea} onScroll={handleScroll}>
         {messages.length === 0 && (
           <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem', fontSize: '0.9rem' }}>Сообщений пока нет</div>
@@ -152,12 +144,6 @@ export default function ChatWindow({ conversationId, readOnly = false, scheduled
                   <button style={S.dlBtn} onClick={() => handleDownload(msg, att)}><Download size={13} /></button>
                 </div>
               ))}
-              {msg.is_contact_info && (
-                <div style={S.contactFlag}>
-                  <AlertTriangle size={11} />
-                  {scheduledBanner ? 'Контактные данные — проверяется модератором' : 'Обнаружены контактные данные'}
-                </div>
-              )}
               <div style={S.msgTime}>
                 {new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                 {' '}
