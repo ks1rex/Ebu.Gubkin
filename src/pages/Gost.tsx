@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Coins, Key, Upload, CheckCircle2, Loader2, AlertCircle,
-  FileText, Download, RotateCcw, ChevronDown,
+  FileText, Download, RotateCcw, ChevronDown, MessageSquare,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -187,7 +188,7 @@ function FileDropZone({ label, accept, file, onChange, optional }: {
 
 function UploadForm({ token, onStart }: {
   token: string
-  onStart: (phase: Phase, projectId?: string, result?: ProjectResult) => void
+  onStart: (phase: Phase, projectId?: string, result?: ProjectResult, mode?: string) => void
 }) {
   const showToast = useToast()
   const [mode,        setMode]        = useState<Mode>('universal')
@@ -248,7 +249,7 @@ function UploadForm({ token, onStart }: {
           else showToast(msg, 'error')
           onStart('error', projectId); return
         }
-        onStart('done', projectId, { docxUrl: exData.docx_url, pdfUrl: exData.pdf_url ?? undefined })
+        onStart('done', projectId, { docxUrl: exData.docx_url, pdfUrl: exData.pdf_url ?? undefined }, mode)
         return
       }
 
@@ -276,7 +277,7 @@ function UploadForm({ token, onStart }: {
       const genData = await genRes.json()
       if (!genRes.ok) { showToast(genData.error ?? 'Ошибка генерации', 'error'); onStart('error', projectId); return }
 
-      onStart('done', projectId, { docxUrl: genData.docx_url, pdfUrl: genData.pdf_url ?? undefined })
+      onStart('done', projectId, { docxUrl: genData.docx_url, pdfUrl: genData.pdf_url ?? undefined }, mode)
     } catch {
       showToast('Сетевая ошибка при обработке', 'error')
       onStart('error')
@@ -438,7 +439,7 @@ function ProgressView({ phase }: { phase: Phase }) {
 
 // ── Result view ───────────────────────────────────────────────────────────────
 
-function ResultView({ result, onReset }: { result: ProjectResult; onReset: () => void }) {
+function ResultView({ result, onReset, projectId, mode }: { result: ProjectResult; onReset: () => void; projectId?: string; mode?: string }) {
   return (
     <div className="bg-surface border border-line rounded-2xl p-6">
       <div className="flex items-center gap-2 mb-4">
@@ -457,6 +458,13 @@ function ResultView({ result, onReset }: { result: ProjectResult; onReset: () =>
             <Download size={15} />
             Скачать PDF
           </a>
+        )}
+        {mode === 'custom_template' && projectId && (
+          <Link to={`/gost/chat/${projectId}`}
+            className="flex items-center gap-2 px-4 py-2.5 border border-accent/60 text-accent text-sm font-medium rounded-xl hover:bg-accent/10 transition-colors">
+            <MessageSquare size={15} />
+            Редактировать в чате
+          </Link>
         )}
       </div>
       <button onClick={onReset}
@@ -542,8 +550,10 @@ export default function Gost() {
   const [unlimited,     setUnlimited]     = useState(false)
   const [balLoading,    setBalLoading]    = useState(true)
 
-  const [phase,     setPhase]   = useState<Phase>('idle')
-  const [result,    setResult]  = useState<ProjectResult | null>(null)
+  const [phase,     setPhase]     = useState<Phase>('idle')
+  const [result,    setResult]    = useState<ProjectResult | null>(null)
+  const [projectId, setProjectId] = useState<string | undefined>()
+  const [genMode,   setGenMode]   = useState<string | undefined>()
 
   useEffect(() => {
     if (!token) { setBalLoading(false); return }
@@ -561,12 +571,14 @@ export default function Gost() {
     if (profile) setWalletBalance(profile.balance ?? 0)
   }, [token, profile])
 
-  function handleStart(p: Phase, _projectId?: string, res?: ProjectResult) {
+  function handleStart(p: Phase, pid?: string, res?: ProjectResult, m?: string) {
     setPhase(p)
+    if (pid) setProjectId(pid)
     if (res) setResult(res)
+    if (m)   setGenMode(m)
   }
 
-  function reset() { setPhase('idle'); setResult(null) }
+  function reset() { setPhase('idle'); setResult(null); setProjectId(undefined); setGenMode(undefined) }
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
@@ -602,7 +614,7 @@ export default function Gost() {
         <ProgressView phase={phase} />
       )}
       {phase === 'done' && result && (
-        <ResultView result={result} onReset={reset} />
+        <ResultView result={result} onReset={reset} projectId={projectId} mode={genMode} />
       )}
       {phase === 'error' && (
         <div className="bg-surface border border-line rounded-2xl p-6 flex items-start gap-3">

@@ -37,6 +37,7 @@ import ServiceNew       from './pages/ServiceNew'
 import ServiceEdit      from './pages/ServiceEdit'
 import ServicesMine     from './pages/ServicesMine'
 import UserProfile      from './pages/UserProfile'
+import GostChat         from './pages/GostChat'
 
 function NotFound() {
   return (
@@ -74,6 +75,7 @@ export default function App() {
             <Route path="market/services/:id/edit"             element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
             <Route path="market/users/:id"                     element={<UserProfile />} />
             <Route path="gost"    element={<Gost />} />
+            <Route path="gost/chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="login"    element={<Login />} />
