@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Wallet, User, LogOut, Menu, X } from 'lucide-react'
+import { User, LogOut, Menu, X, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 const logoH = `${import.meta.env.BASE_URL}logo-horizontal.png`
@@ -20,11 +20,11 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-brand-orange">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-20 gap-6">
 
         {/* Логотип */}
         <Link to="/" onClick={close} className="shrink-0">
-          <img src={logoH} alt="Ebu.Gubkin" className="h-10 w-auto" />
+          <img src={logoH} alt="Ebu.Gubkin" className="h-14 w-auto" />
         </Link>
 
         {/* Навигация (desktop) */}
@@ -50,13 +50,16 @@ export default function Navbar() {
         <div className="ml-auto flex items-center gap-2 shrink-0">
           {user ? (
             <>
-              <Link
-                to="/wallet"
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-white/80 hover:text-white hover:bg-white/15 transition-colors"
-              >
-                <Wallet size={14} />
-                <span>{(profile?.balance ?? 0).toLocaleString('ru-RU')} ₽</span>
-              </Link>
+              {profile?.is_admin && (
+                <Link
+                  to="/admin"
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/15 transition-colors"
+                  title="Панель администратора"
+                >
+                  <ShieldCheck size={15} />
+                  <span>Админ</span>
+                </Link>
+              )}
 
               <Link
                 to="/profile"

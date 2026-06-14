@@ -4,14 +4,13 @@
   <meta charset="utf-8">
   <title>Ebu.Gubkin</title>
   <script>
-    var path = window.location.pathname;
-    var search = window.location.search;
-    var hash = window.location.hash;
-    var query = '?p=' + encodeURIComponent(
-      path.slice(1) + (search ? '&q=' + search.slice(1) : '') + hash
+    // Store the full URL so index.html can restore it via history.replaceState.
+    // This makes React Router work on GitHub Pages (sub-path deployment).
+    sessionStorage.redirect = location.href;
+    location.replace(
+      location.protocol + '//' + location.host +
+      '/' + location.pathname.split('/')[1] + '/'
     );
-    window.location.replace(window.location.origin + '/' +
-      path.split('/')[1] + '/' + query);
   </script>
 </head>
 <body></body>
