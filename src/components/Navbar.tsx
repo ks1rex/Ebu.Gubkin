@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom'
 import { User, LogOut, Menu, X, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-const logoH = `${import.meta.env.BASE_URL}logo-horizontal-trimmed.png`
+const logoH = `${import.meta.env.BASE_URL}logo-horizontal.png`
 
 const NAV_ITEMS = [
   { label: 'Форум',            to: '/forum'  },
@@ -24,7 +24,7 @@ export default function Navbar() {
 
         {/* Логотип */}
         <Link to="/" onClick={close} className="shrink-0">
-          <img src={logoH} alt="Ebu.Gubkin" className="h-16 w-auto object-contain" style={{ minWidth: '200px' }} />
+          <img src={logoH} alt="Ebu.Gubkin" className="h-16 w-auto object-contain" />
         </Link>
 
         {/* Навигация (desktop) */}
