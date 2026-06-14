@@ -1,7 +1,8 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import logoUrl from '../assets/logo.png'
+
+const logoV = `${import.meta.env.BASE_URL}logo-vertical.png`
 
 export default function Login() {
   const { signIn } = useAuth()
@@ -31,7 +32,7 @@ export default function Login() {
     <div className="flex min-h-[70vh] items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-8">
-          <img src={logoUrl} alt="Ebu.Gubkin" className="h-28 w-auto" />
+          <img src={logoV} alt="Ebu.Gubkin" className="h-[120px] w-auto" />
         </div>
 
         <div className="bg-surface border border-line rounded-xl p-8">
@@ -46,7 +47,7 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="student@gubkin.ru"
-                className="w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm
+                className="w-full px-3 py-2 rounded-lg border border-line bg-panel text-ink text-sm placeholder:text-subtle
                            focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
               />
             </div>
@@ -59,7 +60,7 @@ export default function Login() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm
+                className="w-full px-3 py-2 rounded-lg border border-line bg-panel text-ink text-sm placeholder:text-subtle
                            focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors"
               />
             </div>
@@ -78,7 +79,7 @@ export default function Login() {
 
           <p className="mt-6 text-center text-sm text-subtle">
             Нет аккаунта?{' '}
-            <Link to="/register" className="text-accent hover:underline font-medium">
+            <Link to="/register" className="text-accent-muted hover:text-accent transition-colors font-medium">
               Регистрация
             </Link>
           </p>

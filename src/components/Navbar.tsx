@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Wallet, User, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
-import logoUrl from '../assets/logo.png'
+
+const logoH = `${import.meta.env.BASE_URL}logo-horizontal.png`
 
 const NAV_ITEMS = [
   { label: 'Форум',            to: '/forum'  },
@@ -18,12 +19,12 @@ export default function Navbar() {
   function close() { setMenuOpen(false) }
 
   return (
-    <header className="sticky top-0 z-50 bg-brand-navy">
+    <header className="sticky top-0 z-50 bg-brand-orange">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
 
         {/* Логотип */}
         <Link to="/" onClick={close} className="shrink-0">
-          <img src={logoUrl} alt="Ebu.Gubkin" className="h-9 w-auto" />
+          <img src={logoH} alt="Ebu.Gubkin" className="h-10 w-auto" />
         </Link>
 
         {/* Навигация (desktop) */}
@@ -35,8 +36,8 @@ export default function Navbar() {
               className={({ isActive }) =>
                 `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-white/10 text-white'
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/80 hover:text-white hover:bg-white/15'
                 }`
               }
             >
@@ -51,7 +52,7 @@ export default function Navbar() {
             <>
               <Link
                 to="/wallet"
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-white/80 hover:text-white hover:bg-white/15 transition-colors"
               >
                 <Wallet size={14} />
                 <span>{(profile?.balance ?? 0).toLocaleString('ru-RU')} ₽</span>
@@ -59,13 +60,13 @@ export default function Navbar() {
 
               <Link
                 to="/profile"
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-white/10 transition-colors"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-md hover:bg-white/15 transition-colors"
               >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="w-7 h-7 rounded-full object-cover" alt="" />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
-                    <User size={14} className="text-slate-300" />
+                  <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                    <User size={14} className="text-white" />
                   </div>
                 )}
                 <span className="text-sm font-medium text-white hidden sm:block">
@@ -76,7 +77,7 @@ export default function Navbar() {
               <button
                 onClick={signOut}
                 title="Выйти"
-                className="p-2 rounded-md text-slate-400 hover:text-red-400 hover:bg-white/10 transition-colors"
+                className="p-2 rounded-md text-white/70 hover:text-white hover:bg-white/15 transition-colors"
               >
                 <LogOut size={16} />
               </button>
@@ -85,13 +86,13 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="hidden sm:inline-flex px-4 py-1.5 text-sm font-medium text-slate-300 border border-white/20 rounded-md hover:bg-white/10 transition-colors"
+                className="hidden sm:inline-flex px-4 py-1.5 text-sm font-medium text-white border border-white/30 rounded-md hover:bg-white/15 transition-colors"
               >
                 Войти
               </Link>
               <Link
                 to="/register"
-                className="px-4 py-1.5 text-sm font-medium text-white bg-accent rounded-md hover:bg-accent-hover transition-colors"
+                className="px-4 py-1.5 text-sm font-medium text-brand-orange bg-white rounded-md hover:bg-white/90 transition-colors"
               >
                 Регистрация
               </Link>
@@ -100,7 +101,7 @@ export default function Navbar() {
 
           {/* Burger (mobile only) */}
           <button
-            className="md:hidden p-2 rounded-md text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="md:hidden p-2 rounded-md text-white/80 hover:text-white hover:bg-white/15 transition-colors"
             onClick={() => setMenuOpen(v => !v)}
             aria-label="Меню"
           >
@@ -111,7 +112,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-white/10 bg-brand-navy">
+        <div className="md:hidden border-t border-white/20 bg-brand-orange">
           <nav className="px-4 py-3 flex flex-col gap-1">
             {NAV_ITEMS.map(({ label, to }) => (
               <NavLink
@@ -121,8 +122,8 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-white/10 text-white'
-                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/80 hover:text-white hover:bg-white/15'
                   }`
                 }
               >
@@ -133,7 +134,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={close}
-                className="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                className="px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/15 transition-colors"
               >
                 Войти
               </Link>

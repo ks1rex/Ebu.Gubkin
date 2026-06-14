@@ -5,28 +5,29 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Accent — Indigo (академический, интеллектуальный)
+        // Accent — Indigo
         accent: {
           DEFAULT: '#4f46e5',
           hover:   '#4338ca',
-          subtle:  '#eef2ff',
+          subtle:  '#1e1b4b',   // тёмный indigo-тинт для тёмной темы
           muted:   '#a5b4fc',
         },
-        // Поверхности
-        canvas:  '#f9f8f6',   // фон страницы — слоновая кость
-        surface: '#ffffff',   // карточки / панели
-        panel:   '#f4f3f0',   // hover-поверхности, альт. фон
-        // Типографика
-        ink:    '#1c1917',    // основной текст
-        subtle: '#71717a',    // второстепенный текст
-        // Бренд (логотип) — тёмный фон шапки и страниц входа
-        'brand-navy': '#1a2332',
+        // Поверхности (тёмная тема)
+        canvas:  '#1a2332',   // фон страницы — тёмный
+        surface: '#1e2a3a',   // карточки
+        panel:   '#243044',   // hover/альт. поверхность
+        // Типографика (светлая на тёмном)
+        ink:    '#e2e8f0',    // основной текст
+        subtle: '#94a3b8',    // второстепенный текст
+        // Бренд
+        'brand-navy':   '#1a2332',
+        'brand-orange': '#f97316',
         // Разделители
-        line:   '#e4e4e7',
-        // Статусы
-        error:   '#dc2626',
-        success: '#16a34a',
-        warning: '#d97706',
+        line:   '#2d3f55',
+        // Статусы (lightened for dark bg)
+        error:   '#f87171',
+        success: '#4ade80',
+        warning: '#fbbf24',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
