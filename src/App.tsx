@@ -24,6 +24,19 @@ import AdminDisputes    from './pages/Admin/Disputes'
 import AdminForumMod    from './pages/Admin/ForumMod'
 import AdminUsers       from './pages/Admin/Users'
 import AdminSettings    from './pages/Admin/Settings'
+import OrderFeed        from './pages/OrderFeed'
+import MyOrders         from './pages/MyOrders'
+import AppliedOrders    from './pages/AppliedOrders'
+import NewOrder         from './pages/NewOrder'
+import OrderDetail      from './pages/OrderDetail'
+import Applications     from './pages/Applications'
+import OrderChat        from './pages/OrderChat'
+import ServicesCatalog  from './pages/ServicesCatalog'
+import ServiceDetail    from './pages/ServiceDetail'
+import ServiceNew       from './pages/ServiceNew'
+import ServiceEdit      from './pages/ServiceEdit'
+import ServicesMine     from './pages/ServicesMine'
+import UserProfile      from './pages/UserProfile'
 
 function NotFound() {
   return (
@@ -47,6 +60,19 @@ export default function App() {
             <Route path="forum/category/:id"   element={<ForumCategory />} />
             <Route path="forum/thread/:id"     element={<ForumThread />} />
             <Route path="market"  element={<Market />} />
+            <Route path="orders"                        element={<ProtectedRoute><OrderFeed /></ProtectedRoute>} />
+            <Route path="orders/new"                    element={<ProtectedRoute><NewOrder /></ProtectedRoute>} />
+            <Route path="orders/mine"                   element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+            <Route path="orders/applied"                element={<ProtectedRoute><AppliedOrders /></ProtectedRoute>} />
+            <Route path="orders/:id"                    element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+            <Route path="orders/:id/applications"       element={<ProtectedRoute><Applications /></ProtectedRoute>} />
+            <Route path="orders/:id/chat"               element={<ProtectedRoute><OrderChat /></ProtectedRoute>} />
+            <Route path="services"                      element={<ServicesCatalog />} />
+            <Route path="services/new"                  element={<ProtectedRoute><ServiceNew /></ProtectedRoute>} />
+            <Route path="services/mine"                 element={<ProtectedRoute><ServicesMine /></ProtectedRoute>} />
+            <Route path="services/:id"                  element={<ServiceDetail />} />
+            <Route path="services/:id/edit"             element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
+            <Route path="users/:id"                     element={<UserProfile />} />
             <Route path="gost"    element={<Gost />} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
