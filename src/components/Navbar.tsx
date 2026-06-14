@@ -24,7 +24,7 @@ export default function Navbar() {
 
         {/* Логотип */}
         <Link to="/" onClick={close} className="shrink-0">
-          <img src={logoH} alt="Ebu.Gubkin" className="h-14 w-auto" />
+          <img src={logoH} alt="Ebu.Gubkin" className="h-16 w-auto object-contain" style={{ minWidth: '200px' }} />
         </Link>
 
         {/* Навигация (desktop) */}
