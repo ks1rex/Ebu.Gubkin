@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ebu.Gubkin</title>
+  <script>
+    var path = window.location.pathname;
+    var search = window.location.search;
+    var hash = window.location.hash;
+    var query = '?p=' + encodeURIComponent(
+      path.slice(1) + (search ? '&q=' + search.slice(1) : '') + hash
+    );
+    window.location.replace(window.location.origin + '/' +
+      path.split('/')[1] + '/' + query);
+  </script>
+</head>
+<body></body>
+</html>
