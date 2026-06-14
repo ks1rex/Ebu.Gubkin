@@ -7,21 +7,29 @@ import {
   ArrowUpCircle,
   Scale,
   MessageSquare,
+  MessageCircle,
   Users,
   Settings,
   Menu,
   X,
+  BookOpen,
+  ScrollText,
+  ShieldAlert,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { to: '/admin',             icon: LayoutDashboard, label: 'Дашборд',     end: true },
-  { to: '/admin/finance',     icon: TrendingUp,      label: 'Финансы' },
-  { to: '/admin/deposits',    icon: ArrowDownCircle, label: 'Пополнения' },
-  { to: '/admin/withdrawals', icon: ArrowUpCircle,   label: 'Выводы' },
-  { to: '/admin/disputes',    icon: Scale,           label: 'Споры' },
-  { to: '/admin/forum',       icon: MessageSquare,   label: 'Форум' },
-  { to: '/admin/users',       icon: Users,           label: 'Пользователи' },
-  { to: '/admin/settings',    icon: Settings,        label: 'Настройки' },
+  { to: '/admin',                icon: LayoutDashboard, label: 'Дашборд',     end: true },
+  { to: '/admin/finance',        icon: TrendingUp,      label: 'Финансы' },
+  { to: '/admin/deposits',       icon: ArrowDownCircle, label: 'Пополнения' },
+  { to: '/admin/withdrawals',    icon: ArrowUpCircle,   label: 'Выводы' },
+  { to: '/admin/disputes',       icon: Scale,           label: 'Споры' },
+  { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
+  { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
+  { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
+  { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },
+  { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал' },
+  { to: '/admin/users',          icon: Users,           label: 'Пользователи' },
+  { to: '/admin/settings',       icon: Settings,        label: 'Настройки' },
 ]
 
 export default function AdminLayout() {

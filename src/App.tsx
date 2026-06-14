@@ -17,15 +17,23 @@ import Wallet        from './pages/Wallet'
 import Profile       from './pages/Profile'
 import Login         from './pages/Login'
 import Register      from './pages/Register'
-import AdminLayout      from './pages/Admin'
-import AdminDashboard   from './pages/Admin/Dashboard'
-import AdminFinance     from './pages/Admin/Finance'
-import AdminDeposits    from './pages/Admin/Deposits'
-import AdminWithdrawals from './pages/Admin/Withdrawals'
-import AdminDisputes    from './pages/Admin/Disputes'
-import AdminForumMod    from './pages/Admin/ForumMod'
-import AdminUsers       from './pages/Admin/Users'
-import AdminSettings    from './pages/Admin/Settings'
+import AdminLayout        from './pages/Admin'
+import AdminDashboard     from './pages/Admin/Dashboard'
+import AdminFinance       from './pages/Admin/Finance'
+import AdminDeposits      from './pages/Admin/Deposits'
+import AdminWithdrawals   from './pages/Admin/Withdrawals'
+import AdminDisputes      from './pages/Admin/Disputes'
+import AdminForumMod      from './pages/Admin/ForumMod'
+import AdminUsers         from './pages/Admin/Users'
+import AdminSettings      from './pages/Admin/Settings'
+import AdminLedger        from './pages/Admin/Ledger'
+import AdminOrders        from './pages/Admin/Orders'
+import AdminConversations from './pages/Admin/Conversations'
+import AdminChatMod       from './pages/Admin/ChatMod'
+import ForgotPassword  from './pages/ForgotPassword'
+import ResetPassword   from './pages/ResetPassword'
+import Support         from './pages/Support'
+import SupportTicket   from './pages/SupportTicket'
 import OrderFeed        from './pages/OrderFeed'
 import MyOrders         from './pages/MyOrders'
 import AppliedOrders    from './pages/AppliedOrders'
@@ -84,8 +92,12 @@ export default function App() {
             <Route path="gost/chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="login"    element={<Login />} />
-            <Route path="register" element={<Register />} />
+            <Route path="login"           element={<Login />} />
+            <Route path="register"        element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password"  element={<ResetPassword />} />
+            <Route path="support"         element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="support/:id"     element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
             <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index                   element={<AdminDashboard />} />
               <Route path="finance"          element={<AdminFinance />} />
@@ -93,6 +105,10 @@ export default function App() {
               <Route path="withdrawals"      element={<AdminWithdrawals />} />
               <Route path="disputes"         element={<AdminDisputes />} />
               <Route path="forum"            element={<AdminForumMod />} />
+              <Route path="orders"           element={<AdminOrders />} />
+              <Route path="conversations"    element={<AdminConversations />} />
+              <Route path="chat-mod"         element={<AdminChatMod />} />
+              <Route path="ledger"           element={<AdminLedger />} />
               <Route path="users"            element={<AdminUsers />} />
               <Route path="settings"         element={<AdminSettings />} />
             </Route>

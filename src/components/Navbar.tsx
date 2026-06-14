@@ -5,11 +5,16 @@ import { useAuth } from '../contexts/AuthContext'
 
 const logoH = `${import.meta.env.BASE_URL}logo-horizontal-trimmed.png`
 
-const NAV_ITEMS = [
+const NAV_ITEMS_PUBLIC = [
   { label: 'Форум',            to: '/forum'  },
   { label: 'Биржа',            to: '/market' },
   { label: 'ГОСТ-калькулятор', to: '/gost'   },
-  { label: 'Кошелёк',          to: '/wallet' },
+]
+
+const NAV_ITEMS_AUTH = [
+  ...NAV_ITEMS_PUBLIC,
+  { label: 'Кошелёк',   to: '/wallet'  },
+  { label: 'Поддержка', to: '/support' },
 ]
 
 export default function Navbar() {
@@ -29,7 +34,7 @@ export default function Navbar() {
 
         {/* Навигация (desktop) */}
         <nav className="hidden md:flex items-center gap-0.5 flex-1">
-          {NAV_ITEMS.map(({ label, to }) => (
+          {(user ? NAV_ITEMS_AUTH : NAV_ITEMS_PUBLIC).map(({ label, to }) => (
             <NavLink
               key={to}
               to={to}
@@ -117,7 +122,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden border-t border-white/20 bg-brand-orange">
           <nav className="px-4 py-3 flex flex-col gap-1">
-            {NAV_ITEMS.map(({ label, to }) => (
+            {(user ? NAV_ITEMS_AUTH : NAV_ITEMS_PUBLIC).map(({ label, to }) => (
               <NavLink
                 key={to}
                 to={to}

@@ -392,14 +392,17 @@ export default function Wallet() {
               Скопировать ссылку
             </button>
           </div>
-          {(profile.referral_earnings ?? 0) > 0 && (
-            <p className="text-xs text-subtle mt-3">
-              Заработано по реферальной программе:{' '}
-              <span className="text-success font-medium">
-                {(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽
-              </span>
-            </p>
-          )}
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-subtle">
+            {(profile.referral_registered_count ?? 0) > 0 && (
+              <span>Приглашено: <span className="text-ink font-medium">{profile.referral_registered_count}</span></span>
+            )}
+            {(profile.referral_qualifying_deposits_count ?? 0) > 0 && (
+              <span>Бонусных пополнений: <span className="text-ink font-medium">{profile.referral_qualifying_deposits_count} / {3}</span></span>
+            )}
+            {(profile.referral_earnings ?? 0) > 0 && (
+              <span>Заработано: <span className="text-success font-medium">{(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽</span></span>
+            )}
+          </div>
         </div>
       )}
 

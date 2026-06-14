@@ -16,6 +16,8 @@ export interface Profile {
   is_admin: boolean
   referral_code: string | null
   referral_earnings: number | null
+  referral_registered_count: number | null
+  referral_qualifying_deposits_count: number | null
 }
 
 interface AuthContextValue {
@@ -38,7 +40,8 @@ async function loadProfile(userId: string): Promise<Profile | null> {
       id, email, nickname, full_name, avatar_url,
       phone, telegram_username, university_group,
       balance, token_balance, is_admin,
-      referral_code, referral_earnings
+      referral_code, referral_earnings,
+      referral_registered_count, referral_qualifying_deposits_count
     `)
     .eq('id', userId)
     .single()
