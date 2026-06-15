@@ -103,7 +103,7 @@ export default function AdminConversations() {
             {convs.map(c => {
               const isOrder   = c.type === 'order_chat'
               const title     = isOrder ? c.orders?.title : c.support_tickets?.subject
-              const nicks     = c.conversation_participants
+              const nicks     = (c.conversation_participants ?? [])
                 .map(p => p.profiles?.nickname)
                 .filter(Boolean)
                 .join(', ')

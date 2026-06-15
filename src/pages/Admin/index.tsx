@@ -15,6 +15,7 @@ import {
   BookOpen,
   ScrollText,
   ShieldAlert,
+  LifeBuoy,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
   { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
   { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },
+  { to: '/admin/support',        icon: LifeBuoy,        label: 'Поддержка' },
   { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал' },
   { to: '/admin/users',          icon: Users,           label: 'Пользователи' },
   { to: '/admin/settings',       icon: Settings,        label: 'Настройки' },

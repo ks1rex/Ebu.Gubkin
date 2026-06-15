@@ -138,6 +138,22 @@ export default function Navbar() {
                 {label}
               </NavLink>
             ))}
+            {user && profile?.is_admin && (
+              <NavLink
+                to="/admin"
+                onClick={close}
+                className={({ isActive }) =>
+                  `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/80 hover:text-white hover:bg-white/15'
+                  }`
+                }
+              >
+                <ShieldCheck size={15} />
+                Админка
+              </NavLink>
+            )}
             {!user && (
               <Link
                 to="/login"

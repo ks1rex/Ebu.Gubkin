@@ -30,6 +30,7 @@ import AdminLedger        from './pages/Admin/Ledger'
 import AdminOrders        from './pages/Admin/Orders'
 import AdminConversations from './pages/Admin/Conversations'
 import AdminChatMod       from './pages/Admin/ChatMod'
+import AdminSupport       from './pages/Admin/Support'
 import ForgotPassword  from './pages/ForgotPassword'
 import ResetPassword   from './pages/ResetPassword'
 import Support         from './pages/Support'
@@ -108,6 +109,7 @@ export default function App() {
               <Route path="orders"           element={<AdminOrders />} />
               <Route path="conversations"    element={<AdminConversations />} />
               <Route path="chat-mod"         element={<AdminChatMod />} />
+              <Route path="support"          element={<AdminSupport />} />
               <Route path="ledger"           element={<AdminLedger />} />
               <Route path="users"            element={<AdminUsers />} />
               <Route path="settings"         element={<AdminSettings />} />
