@@ -16,6 +16,7 @@ import {
   ScrollText,
   ShieldAlert,
   LifeBuoy,
+  FileText,
 } from 'lucide-react'
 
 const NAV_ITEMS = [
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { to: '/admin/withdrawals',    icon: ArrowUpCircle,   label: 'Выводы' },
   { to: '/admin/disputes',       icon: Scale,           label: 'Споры' },
   { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
+  { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны' },
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
   { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
   { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },
