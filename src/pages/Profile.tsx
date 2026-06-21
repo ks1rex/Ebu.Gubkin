@@ -1,9 +1,12 @@
-import { useState, useRef, ChangeEvent, KeyboardEvent } from 'react'
-import { User, Mail, Phone, AtSign, Users, MessageCircle, Edit3, Save, X } from 'lucide-react'
+import { useState, useRef, useEffect, ChangeEvent, KeyboardEvent } from 'react'
+import { Save, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
+import { apiCall } from '../lib/api'
 import type { Profile as ProfileType } from '../contexts/AuthContext'
+import ProfileView, { PublicProfile } from '../components/ProfileView'
+import Spinner from '../components/Spinner'
 
 // ─── Phone mask ──────────────────────────────────────────────────────────────
 
@@ -84,6 +87,20 @@ export default function Profile() {
   const [avatarFile, setAvatarFile]     = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [saving, setSaving]             = useState(false)
+
+  const [publicProfile, setPublicProfile] = useState<PublicProfile | null>(null)
+  const [publicLoading, setPublicLoading]  = useState(true)
+
+  function fetchPublic() {
+    if (!user) return
+    setPublicLoading(true)
+    apiCall('GET', `/profile/${user.id}/public`)
+      .then(setPublicProfile)
+      .catch(() => {})
+      .finally(() => setPublicLoading(false))
+  }
+
+  useEffect(fetchPublic, [user])
 
   if (!profile) {
     return (
@@ -173,6 +190,7 @@ export default function Profile() {
       if (error) throw error
 
       await refreshProfile()
+      fetchPublic()
       setEditing(false)
       toast('Профиль сохранён', 'success')
     } catch {
@@ -182,116 +200,39 @@ export default function Profile() {
     }
   }
 
-  // ── View fields ──
-  const VIEW_FIELDS = [
-    { icon: AtSign,        label: 'Никнейм',   value: profile.nickname          },
-    { icon: User,          label: 'Имя',        value: profile.full_name         },
-    { icon: Mail,          label: 'Email',       value: profile.email             },
-    { icon: Phone,         label: 'Телефон',     value: profile.phone             },
-    { icon: MessageCircle, label: 'Telegram',    value: profile.telegram_username },
-    { icon: Users,         label: 'Группа',      value: profile.university_group  },
-  ]
+  if (!editing) {
+    if (publicLoading) return <Spinner />
+    if (!publicProfile) return <div className="text-error">Не удалось загрузить профиль</div>
+    return <ProfileView profile={publicProfile} userId={profile.id} isOwner onEdit={startEditing} />
+  }
 
   return (
     <div className="max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-ink">Профиль</h1>
-        {!editing && (
-          <button
-            onClick={startEditing}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-accent border border-accent/30 rounded-lg hover:bg-accent-subtle transition-colors"
-          >
-            <Edit3 size={14} />
-            Редактировать
-          </button>
-        )}
+        <h1 className="text-2xl font-bold text-ink">Редактирование профиля</h1>
       </div>
 
       <div className="bg-surface border border-line rounded-xl overflow-hidden">
 
         {/* ── Шапка ── */}
         <div className="px-6 py-5 flex items-center gap-4 border-b border-line bg-canvas">
-          {editing ? (
-            <>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="relative group shrink-0"
-                title="Загрузить фото"
-              >
-                <Avatar profile={profile} preview={avatarPreview} />
-                <div className="absolute inset-0 rounded-full bg-ink/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span className="text-white text-[10px] font-semibold leading-tight text-center px-1">Изменить</span>
-                </div>
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
-              <div>
-                <p className="text-sm font-medium text-ink">{profile.nickname ?? profile.full_name ?? 'Студент'}</p>
-                <p className="text-xs text-subtle mt-0.5">Нажмите на фото для загрузки</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <Avatar profile={profile} />
-              <div>
-                <p className="text-lg font-semibold text-ink">
-                  {profile.nickname ?? profile.full_name ?? 'Студент'}
-                </p>
-                <p className="text-sm text-subtle">{profile.email}</p>
-                {profile.is_admin && (
-                  <span className="inline-block mt-1 px-2 py-0.5 bg-accent-subtle text-accent text-xs font-medium rounded">
-                    Администратор
-                  </span>
-                )}
-              </div>
-            </>
-          )}
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="relative group shrink-0"
+            title="Загрузить фото"
+          >
+            <Avatar profile={profile} preview={avatarPreview} />
+            <div className="absolute inset-0 rounded-full bg-ink/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span className="text-white text-[10px] font-semibold leading-tight text-center px-1">Изменить</span>
+            </div>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
+          <div>
+            <p className="text-sm font-medium text-ink">{profile.nickname ?? profile.full_name ?? 'Студент'}</p>
+            <p className="text-xs text-subtle mt-0.5">Нажмите на фото для загрузки</p>
+          </div>
         </div>
-
-        {/* ── Баланс (только в режиме просмотра) ── */}
-        {!editing && (
-          <div className="px-6 py-4 grid grid-cols-2 gap-4 border-b border-line">
-            <div>
-              <p className="text-xs text-subtle mb-0.5">Баланс</p>
-              <p className="text-lg font-semibold text-ink">{(profile.balance ?? 0).toLocaleString('ru-RU')} ₽</p>
-            </div>
-            <div>
-              <p className="text-xs text-subtle mb-0.5">ГОСТ-токены</p>
-              <p className="text-lg font-semibold text-ink">{(profile.token_balance ?? 0).toLocaleString('ru-RU')}</p>
-            </div>
-          </div>
-        )}
-
-        {/* ── О себе / навыки ── */}
-        {!editing && (profile.bio || (profile.skills && profile.skills.length > 0)) && (
-          <div className="px-6 py-4 border-b border-line space-y-3">
-            {profile.bio && <p className="text-sm text-ink leading-relaxed">{profile.bio}</p>}
-            {profile.skills && profile.skills.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {profile.skills.map(s => (
-                  <span key={s} className="text-xs text-accent bg-accent-subtle rounded-lg px-2.5 py-1">{s}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Режим просмотра ── */}
-        {!editing && (
-          <div className="divide-y divide-line">
-            {VIEW_FIELDS.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center gap-3 px-6 py-3.5">
-                <Icon size={15} className="text-subtle shrink-0" />
-                <span className="text-sm text-subtle w-24 shrink-0">{label}</span>
-                {value ? (
-                  <span className="text-sm text-ink">{value}</span>
-                ) : (
-                  <span className="text-sm text-subtle italic">не указано</span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* ── Режим редактирования ── */}
         {editing && (
