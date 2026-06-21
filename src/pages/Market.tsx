@@ -87,7 +87,7 @@ export default function Market() {
           <p className="mt-2.5 text-sm text-subtle max-w-[440px] leading-relaxed">
             Заказы и услуги от студентов Губки — дизайн, код, курсовые, чертежи. Оплата рублями, безопасная сделка.
           </p>
-          <div className="flex gap-6 mt-4.5">
+          <div className="flex gap-6 mt-5">
             <div><b className="block text-2xl font-bold text-ink">{orders.length || (mode === 'orders' ? 0 : '—')}</b><span className="text-xs text-subtle">{mode === 'orders' ? 'заказов в выдаче' : ''}</span></div>
             <div><b className="block text-2xl font-bold text-mint">{listings.length || (mode === 'services' ? 0 : '—')}</b><span className="text-xs text-subtle">{mode === 'services' ? 'услуг в выдаче' : ''}</span></div>
           </div>
@@ -118,11 +118,11 @@ export default function Market() {
         <div className="flex gap-1 bg-white/[.07] border border-white/[.12] rounded-[13px] p-1">
           <button
             onClick={() => setMode('orders')}
-            className={`font-semibold text-sm px-4.5 py-2 rounded-[10px] transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+            className={`font-semibold text-sm px-5 py-2 rounded-[10px] whitespace-nowrap transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
           >Заказы</button>
           <button
             onClick={() => setMode('services')}
-            className={`font-semibold text-sm px-4.5 py-2 rounded-[10px] transition-colors ${mode === 'services' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+            className={`font-semibold text-sm px-5 py-2 rounded-[10px] whitespace-nowrap transition-colors ${mode === 'services' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
           >Услуги</button>
         </div>
         <div className="flex items-center gap-2 bg-white/[.07] border border-white/[.12] rounded-[14px] px-3.5 py-2.5 text-sm flex-1 min-w-[180px] max-w-sm">
@@ -226,9 +226,9 @@ export default function Market() {
 
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
-          <GlassCard className="rounded-[20px] p-5.5 !bg-gradient-to-br !from-mint/[.18] !to-pink/[.16]">
-            <h3 className="text-lg font-bold mb-1.5 text-ink">Есть навык? 💸</h3>
-            <p className="text-[13px] text-subtle mb-4 leading-relaxed">Размести услугу и получай заказы от студентов прямо в кошелёк.</p>
+          <GlassCard className="rounded-[20px] p-7 text-center !bg-gradient-to-br !from-mint/[.18] !to-pink/[.16]">
+            <h3 className="text-xl font-bold mb-2 text-ink">Есть навык? 💸</h3>
+            <p className="text-[13.5px] text-subtle mb-5 leading-relaxed">Размести услугу и получай заказы от студентов прямо в кошелёк.</p>
             <Button to="/market/services/new" variant="mint" className="w-full justify-center">Стать исполнителем</Button>
           </GlassCard>
           <GlassCard className="rounded-[20px] p-5">

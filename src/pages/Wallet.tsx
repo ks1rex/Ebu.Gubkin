@@ -394,13 +394,13 @@ export default function Wallet() {
 
           {/* Мини-статы */}
           <div className="grid grid-cols-2 gap-3.5 mb-4">
-            <GlassCard className="rounded-[18px] px-5 py-4.5">
-              <div className="text-[12.5px] text-subtle">↓ Получено</div>
-              <b className="block text-2xl font-bold mt-2 tracking-[-.5px] text-mint">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
+            <GlassCard className="rounded-[18px] p-5 min-w-0">
+              <div className="text-[12.5px] text-subtle whitespace-nowrap">↓ Получено</div>
+              <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-mint whitespace-nowrap">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
             </GlassCard>
-            <GlassCard className="rounded-[18px] px-5 py-4.5">
-              <div className="text-[12.5px] text-subtle">↑ Потрачено</div>
-              <b className="block text-2xl font-bold mt-2 tracking-[-.5px] text-ink">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
+            <GlassCard className="rounded-[18px] p-5 min-w-0">
+              <div className="text-[12.5px] text-subtle whitespace-nowrap">↑ Потрачено</div>
+              <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-ink whitespace-nowrap">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
             </GlassCard>
           </div>
 

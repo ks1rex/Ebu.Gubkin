@@ -68,19 +68,19 @@ export default function UserProfile() {
       </GlassCard>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
-        <GlassCard className="rounded-[18px] px-5 py-4.5">
+        <GlassCard className="rounded-[18px] p-5">
           <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{execRating > 0 ? execRating.toFixed(1) : '—'}</b>
           <span className="text-xs text-subtle">рейтинг исполнителя</span>
         </GlassCard>
-        <GlassCard className="rounded-[18px] px-5 py-4.5">
+        <GlassCard className="rounded-[18px] p-5">
           <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count_executor ?? 0}</b>
           <span className="text-xs text-subtle">отзывов как исполнитель</span>
         </GlassCard>
-        <GlassCard className="rounded-[18px] px-5 py-4.5">
+        <GlassCard className="rounded-[18px] p-5">
           <b className="block text-2xl font-bold tracking-[-.5px] text-gold">{custRating > 0 ? custRating.toFixed(1) : '—'}</b>
           <span className="text-xs text-subtle">рейтинг заказчика</span>
         </GlassCard>
-        <GlassCard className="rounded-[18px] px-5 py-4.5">
+        <GlassCard className="rounded-[18px] p-5">
           <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count_customer ?? 0}</b>
           <span className="text-xs text-subtle">отзывов как заказчик</span>
         </GlassCard>

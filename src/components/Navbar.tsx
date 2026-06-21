@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Search, LogOut, Menu, X, ShieldCheck, Wallet as WalletIcon } from 'lucide-react'
+import { LogOut, Menu, X, ShieldCheck, Wallet as WalletIcon } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { Avatar } from './glass'
 
@@ -59,12 +59,6 @@ export default function Navbar() {
       </nav>
 
       <div className="ml-auto flex items-center gap-2.5 shrink-0">
-        {/* Поиск (desktop) */}
-        <div className="hidden lg:flex items-center gap-2 bg-white/[.07] border border-white/[.12] rounded-[14px] px-3.5 py-2.5 text-subtle text-[13.5px] w-[200px]">
-          <Search size={15} />
-          <span>поиск…</span>
-        </div>
-
         {user && (
           <>
             {/* Пилюля кошелька */}
