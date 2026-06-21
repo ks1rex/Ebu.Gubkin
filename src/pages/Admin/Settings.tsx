@@ -213,7 +213,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-7xl">
       <h1 className="text-xl font-semibold text-ink">Настройки</h1>
 
       {/* Section 1: Payment requisites */}

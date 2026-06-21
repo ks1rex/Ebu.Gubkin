@@ -94,7 +94,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
   const threads = activity.filter((a): a is Extract<Activity, { type: 'thread' }> => a.type === 'thread')
 
   return (
-    <div className="max-w-6xl mx-auto px-4">
+    <div className="max-w-7xl mx-auto px-4">
       <div className="lg:grid lg:grid-cols-[350px_1fr] lg:gap-6 lg:items-start">
 
         {/* ── Левая колонка ── */}

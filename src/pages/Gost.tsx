@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
+import { useState, useEffect, useRef, ChangeEvent, FormEvent, ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Coins, Key, Upload, CheckCircle2, Loader2, AlertCircle,
@@ -88,7 +88,7 @@ function TokenPanel({
 
   return (
     <div
-      className="border border-line border-l-4 border-l-purple-500 rounded-2xl p-5 mb-6"
+      className="border border-line border-l-4 border-l-purple-500 rounded-2xl p-5"
       style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(255,255,255,0.03) 100%)' }}
     >
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -500,7 +500,7 @@ function ResultView({ result, onReset, projectId, mode }: { result: ProjectResul
 
 // ── Recent projects ───────────────────────────────────────────────────────────
 
-function RecentProjects({ userId }: { userId: string }) {
+function RecentProjects({ userId, fallback }: { userId: string; fallback?: ReactNode }) {
   const [projects, setProjects] = useState<RecentProject[]>([])
   const [loading,  setLoading]  = useState(true)
 
@@ -521,14 +521,14 @@ function RecentProjects({ userId }: { userId: string }) {
   }
 
   if (loading) return null
-  if (projects.length === 0) return null
+  if (projects.length === 0) return fallback ?? null
 
   const STATUS_LABEL: Record<string, string> = {
     uploaded: 'Загружен', extracted: 'Спецификация', computed: 'Рассчитан', done: 'Готов',
   }
 
   return (
-    <div className="mt-6">
+    <div>
       <h2 className="text-sm font-semibold text-ink mb-3">Последние проекты</h2>
       <div className="bg-surface border border-line rounded-2xl divide-y divide-line overflow-hidden">
         {projects.map(p => (
@@ -553,6 +553,30 @@ function RecentProjects({ userId }: { userId: string }) {
                 </button>
               )}
             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Mode hints (shown in the sidebar when there's no project history yet) ──────
+
+const MODE_HINTS = [
+  { title: 'Универсальный', desc: 'Загрузите PDF с заданием — AI сам построит расчёт и сформирует документ по ГОСТ' },
+  { title: 'По шаблону',    desc: 'Выберите готовый шаблон расчёта — AI подставит ваш вариант' },
+  { title: 'Мой файл',      desc: 'Загрузите свой .docx — AI приведёт его к ГОСТ или доработает по заданию' },
+] as const
+
+function ModeHints() {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-ink mb-3">Режимы генерации</h2>
+      <div className="space-y-3">
+        {MODE_HINTS.map(h => (
+          <div key={h.title} className="bg-surface border border-line rounded-2xl p-4">
+            <h3 className="text-sm font-semibold text-ink mb-1">{h.title}</h3>
+            <p className="text-xs text-subtle leading-relaxed">{h.desc}</p>
           </div>
         ))}
       </div>
@@ -603,58 +627,64 @@ export default function Gost() {
   function reset() { setPhase('idle'); setResult(null); setProjectId(undefined); setGenMode(undefined) }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
+    <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">ГОСТ-калькулятор</h1>
         <p className="text-sm text-subtle mt-0.5">Автоматическая генерация расчётных работ по ГОСТ</p>
       </div>
 
-      {/* Token panel — only when logged in */}
-      {token ? (
-        <TokenPanel
-          tokenBalance={tokenBalance}
-          walletBalance={walletBalance}
-          tokenPrice={tokenPrice}
-          unlimited={unlimited}
-          loading={balLoading}
-          token={token}
-          onCodeActivated={b => setTokenBalance(b)}
-          onTokensBought={(tb, wb) => { setTokenBalance(tb); setWalletBalance(wb) }}
-        />
-      ) : (
+      {!token && (
         <div className="bg-panel border border-line rounded-2xl px-5 py-4 mb-6 flex items-center gap-3 text-sm text-subtle">
           <AlertCircle size={16} className="shrink-0 text-accent" />
           <span>Войдите, чтобы использовать ГОСТ-калькулятор и видеть баланс токенов</span>
         </div>
       )}
 
-      {/* Main content */}
-      {phase === 'idle' && token && (
-        <UploadForm token={token} onStart={handleStart} />
-      )}
-      {(phase === 'uploading' || phase === 'extracting' || phase === 'computing' || phase === 'generating') && (
-        <ProgressView phase={phase} />
-      )}
-      {phase === 'done' && result && (
-        <ResultView result={result} onReset={reset} projectId={projectId} mode={genMode} />
-      )}
-      {phase === 'error' && (
-        <div className="bg-surface border border-line rounded-2xl p-6 flex items-start gap-3">
-          <AlertCircle size={18} className="text-error shrink-0 mt-0.5" />
+      {token && (
+        <div className="lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:items-start">
+          {/* Левая колонка — новый проект */}
           <div>
-            <p className="font-medium text-ink text-sm">Произошла ошибка</p>
-            <p className="text-xs text-subtle mt-0.5">Проверьте токены и корректность файла, затем попробуйте снова</p>
-            <button onClick={reset}
-              className="mt-3 flex items-center gap-1.5 text-sm text-accent hover:underline">
-              <RotateCcw size={13} />
-              Попробовать снова
-            </button>
+            {phase === 'idle' && (
+              <UploadForm token={token} onStart={handleStart} />
+            )}
+            {(phase === 'uploading' || phase === 'extracting' || phase === 'computing' || phase === 'generating') && (
+              <ProgressView phase={phase} />
+            )}
+            {phase === 'done' && result && (
+              <ResultView result={result} onReset={reset} projectId={projectId} mode={genMode} />
+            )}
+            {phase === 'error' && (
+              <div className="bg-surface border border-line rounded-2xl p-6 flex items-start gap-3">
+                <AlertCircle size={18} className="text-error shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-ink text-sm">Произошла ошибка</p>
+                  <p className="text-xs text-subtle mt-0.5">Проверьте токены и корректность файла, затем попробуйте снова</p>
+                  <button onClick={reset}
+                    className="mt-3 flex items-center gap-1.5 text-sm text-accent hover:underline">
+                    <RotateCcw size={13} />
+                    Попробовать снова
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Правая колонка — токены + история / подсказки */}
+          <div className="mt-6 lg:mt-0 space-y-6">
+            <TokenPanel
+              tokenBalance={tokenBalance}
+              walletBalance={walletBalance}
+              tokenPrice={tokenPrice}
+              unlimited={unlimited}
+              loading={balLoading}
+              token={token}
+              onCodeActivated={b => setTokenBalance(b)}
+              onTokensBought={(tb, wb) => { setTokenBalance(tb); setWalletBalance(wb) }}
+            />
+            {user && <RecentProjects userId={user.id} fallback={<ModeHints />} />}
           </div>
         </div>
       )}
-
-      {/* Project history */}
-      {user && <RecentProjects userId={user.id} />}
     </div>
   )
 }

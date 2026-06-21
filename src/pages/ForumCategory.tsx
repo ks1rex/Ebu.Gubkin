@@ -115,7 +115,7 @@ export default function ForumCategory() {
   function changeSort(s: Sort) { setSort(s); setPage(1) }
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
+    <div className="max-w-7xl mx-auto py-8 px-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6">
         <Link to="/forum" className="flex items-center gap-1 text-sm text-subtle hover:text-ink transition-colors">
