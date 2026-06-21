@@ -78,11 +78,9 @@ preview of a `fixed inset-0`-rooted component**, or it will silently crop.
   back to an empty `[CSS_RUNTIME]` stylesheet.
 - `cfg.provider.component = MemoryRouter` (via `extraEntries:
   ["react-router-dom"]`) so `Outlet`/`Link`/`useLocation` don't crash.
-  `useAuth()` (real `AuthContext`) is NOT mocked — components that call it
-  show the floor card by design (see above); mocking would require either
-  wrapping in the real `AuthProvider` (makes live Supabase calls from every
-  preview render — rejected) or adding an injectable-client seam to
-  `src/lib/supabase.ts` (out of scope for this sync).
+  `useAuth()` IS mocked (see "Auth/network mocking" above) — via a fake
+  `AuthContext.Provider` value, never the real `AuthProvider`, so no
+  Supabase calls happen from any preview.
 - `src/lib/supabase.ts` was changed to fall back to placeholder
   strings instead of throwing when `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`
   are undefined (the esbuild/synth-entry context never injects Vite env
