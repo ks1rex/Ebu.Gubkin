@@ -31,7 +31,7 @@ interface AuthContextValue {
   refreshProfile: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null)
+export const AuthContext = createContext<AuthContextValue | null>(null)
 
 async function loadProfile(userId: string): Promise<Profile | null> {
   const { data } = await supabase

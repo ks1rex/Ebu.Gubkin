@@ -26,10 +26,19 @@
   "cssEntry": "dist/assets/index-BiAO6n3j.css",
   "runtimeFontPrefixes": ["Inter"],
   "provider": {
-    "component": "MemoryRouter"
+    "component": "MemoryRouter",
+    "inner": {
+      "component": "ToastProvider",
+      "inner": {
+        "component": "PreviewAuthProvider"
+      }
+    }
   },
   "overrides": {
-    "Modal": { "cardMode": "single", "primaryStory": "Default" }
+    "Modal": { "cardMode": "single", "primaryStory": "Default", "viewport": "700x700" },
+    "ReportModal": { "cardMode": "single", "primaryStory": "Default", "viewport": "700x700" },
+    "BuyTokensModal": { "cardMode": "single", "primaryStory": "Default", "viewport": "700x700" },
+    "CreateThreadModal": { "cardMode": "single", "primaryStory": "Default", "viewport": "700x700" }
   },
   "readmeHeader": ".design-sync/conventions.md"
 }
