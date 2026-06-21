@@ -40,7 +40,6 @@ export const ACHIEVEMENTS: Record<string, AchievementDef> = {
   popular_thread:   { emoji: '📣', name: 'Популярная тема',       desc: 'Создайте тему, набравшую 500+ просмотров' },
   viral_thread:     { emoji: '🚀', name: 'Вирусная тема',         desc: 'Создайте тему, набравшую 2000+ просмотров' },
   early_bird:       { emoji: '🌅', name: 'Первопроходец',         desc: 'Будьте одним из первых пользователей платформы' },
-  verified_student: { emoji: '✅', name: 'Студент подтверждён',   desc: 'Подтвердите статус студента' },
   gost_master:      { emoji: '📄', name: 'Мастер ГОСТа',          desc: 'Сгенерируйте несколько работ в ГОСТ-калькуляторе' },
   wallet_top:       { emoji: '💰', name: 'Меценат',               desc: 'Пополните баланс кошелька на крупную сумму' },
   referrer:         { emoji: '👥', name: 'Амбассадор',            desc: 'Пригласите друга по реферальной ссылке' },

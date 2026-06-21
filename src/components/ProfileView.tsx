@@ -23,7 +23,6 @@ export interface PublicProfile {
   nickname: string | null
   avatar_url: string | null
   university_group?: string | null
-  is_verified?: boolean
   bio?: string | null
   skills?: string[] | null
   level?: number
@@ -118,9 +117,6 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 <div>
                   <h1 className="text-2xl font-bold tracking-[-.5px] text-ink flex items-center gap-2">
                     {profile.nickname}
-                    {profile.is_verified && (
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg text-white bg-lav/80">✓ студент</span>
-                    )}
                   </h1>
                   {profile.university_group && <div className="text-sm text-subtle mt-1">{profile.university_group}</div>}
                   {profile.bio && <p className="text-sm text-ink/90 mt-2 leading-relaxed">{profile.bio}</p>}
