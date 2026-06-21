@@ -108,7 +108,7 @@ export default function Support() {
   useEffect(() => { fetchTickets() }, [session])
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-ink">Поддержка</h1>

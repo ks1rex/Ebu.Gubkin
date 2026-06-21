@@ -94,115 +94,124 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
   const threads = activity.filter((a): a is Extract<Activity, { type: 'thread' }> => a.type === 'thread')
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <GlassCard className="rounded-[26px] overflow-hidden mb-4">
-        <div className="h-[120px] relative" style={{ background: 'linear-gradient(120deg,#7c3aed,#db2777 55%,#0ea5e9)' }}>
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 160% at 80% -20%, rgba(255,255,255,.25), transparent 60%)' }} />
-        </div>
-        <div className="px-7 pb-6 flex gap-5 items-end -mt-12 relative">
-          <Avatar
-            name={profile.nickname}
-            src={profile.avatar_url}
-            size={96}
-            radius={26}
-            className="text-[34px] border-4 border-[rgba(36,21,81,.6)] shadow-[0_14px_36px_rgba(0,0,0,.4)]"
-          />
-          <div className="pb-1.5 flex-1">
-            <h1 className="text-2xl font-bold tracking-[-.5px] text-ink flex items-center gap-2">
-              {profile.nickname}
-              {profile.is_verified && (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg text-white bg-lav/80">✓ студент</span>
-              )}
-            </h1>
-            {profile.university_group && <div className="text-sm text-subtle mt-1">{profile.university_group}</div>}
-            {profile.bio && <p className="text-sm text-ink/90 mt-2 max-w-md leading-relaxed">{profile.bio}</p>}
-          </div>
-          {isOwner && (
-            <button
-              onClick={onEdit}
-              className="flex items-center gap-1.5 px-3.5 py-2 mb-1.5 text-sm font-medium text-ink bg-white/[.1] border border-white/[.16] rounded-xl hover:bg-white/[.16] transition-colors shrink-0"
-            >
-              <Edit3 size={14} /> Редактировать
-            </button>
-          )}
-        </div>
-      </GlassCard>
+    <div className="max-w-6xl mx-auto px-4">
+      <div className="lg:grid lg:grid-cols-[350px_1fr] lg:gap-6 lg:items-start">
 
-      {profile.level != null && (
-        <GlassCard className="rounded-[18px] p-5 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-ink">Уровень {profile.level} — {LEVEL_NAMES[profile.level] ?? ''}</span>
-            <span className="text-xs text-subtle">{profile.reputation ?? 0} репутации</span>
-          </div>
-          {progress && (
-            <>
-              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
-              </div>
-              <div className="text-xs text-subtle mt-1.5">ещё {progress.remaining} репутации до следующего уровня</div>
-            </>
-          )}
-        </GlassCard>
-      )}
-
-      {profile.skills && profile.skills.length > 0 && (
-        <div className="mb-4">
-          <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold mb-2.5">Навыки</div>
-          <div className="flex flex-wrap gap-2">
-            {profile.skills.map(s => (
-              <span key={s} className="text-xs text-lav bg-white/[.08] border border-white/[.1] rounded-lg px-2.5 py-1.5">{s}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {profile.achievements && (
-        <GlassCard className="rounded-[18px] p-5 mb-4">
-          <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold mb-3.5">Достижения</div>
-          <div className="grid grid-cols-6 sm:grid-cols-8 gap-2.5">
-            {Object.entries(ACHIEVEMENTS).map(([type, a]) => {
-              const unlocked = profile.achievements!.some(x => x.type === type)
-              return (
-                <div
-                  key={type}
-                  title={a.name}
-                  className={`aspect-square rounded-[14px] grid place-items-center text-xl border border-white/[.1] ${
-                    unlocked ? 'bg-white/[.1]' : 'bg-white/[.03] grayscale opacity-35'
-                  }`}
-                >
-                  {a.emoji}
+        {/* ── Левая колонка ── */}
+        <div className="space-y-4 mb-4 lg:mb-0">
+          <GlassCard className="rounded-[26px] overflow-hidden">
+            <div className="h-[120px] relative" style={{ background: 'linear-gradient(120deg,#7c3aed,#db2777 55%,#0ea5e9)' }}>
+              <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 160% at 80% -20%, rgba(255,255,255,.25), transparent 60%)' }} />
+            </div>
+            <div className="px-6 pb-6 -mt-12 relative">
+              <Avatar
+                name={profile.nickname}
+                src={profile.avatar_url}
+                size={96}
+                radius={26}
+                className="text-[34px] border-4 border-[rgba(36,21,81,.6)] shadow-[0_14px_36px_rgba(0,0,0,.4)] mb-3"
+              />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start gap-3">
+                <div>
+                  <h1 className="text-2xl font-bold tracking-[-.5px] text-ink flex items-center gap-2">
+                    {profile.nickname}
+                    {profile.is_verified && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg text-white bg-lav/80">✓ студент</span>
+                    )}
+                  </h1>
+                  {profile.university_group && <div className="text-sm text-subtle mt-1">{profile.university_group}</div>}
+                  {profile.bio && <p className="text-sm text-ink/90 mt-2 leading-relaxed">{profile.bio}</p>}
                 </div>
-              )
-            })}
-          </div>
-        </GlassCard>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mb-4">
-        {profile.reputation != null && (
-          <GlassCard className="rounded-[18px] p-5">
-            <b className="block text-2xl font-bold tracking-[-.5px] text-lav">{profile.reputation}</b>
-            <span className="text-xs text-subtle">репутация</span>
+                {isOwner && (
+                  <button
+                    onClick={onEdit}
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium text-ink bg-white/[.1] border border-white/[.16] rounded-xl hover:bg-white/[.16] transition-colors shrink-0 w-full sm:w-auto lg:w-full"
+                  >
+                    <Edit3 size={14} /> Редактировать
+                  </button>
+                )}
+              </div>
+            </div>
           </GlassCard>
-        )}
-        <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-gold">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</b>
-          <span className="text-xs text-subtle">средний рейтинг</span>
-        </GlassCard>
-        <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count ?? 0}</b>
-          <span className="text-xs text-subtle">отзывов</span>
-        </GlassCard>
-        <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{profile.deals_count ?? 0}</b>
-          <span className="text-xs text-subtle">сделок на бирже</span>
-        </GlassCard>
-        <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.forum_posts_count ?? 0}</b>
-          <span className="text-xs text-subtle">постов на форуме</span>
-        </GlassCard>
-      </div>
 
+          {profile.level != null && (
+            <GlassCard className="rounded-[18px] p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-ink">Уровень {profile.level} — {LEVEL_NAMES[profile.level] ?? ''}</span>
+                <span className="text-xs text-subtle">{profile.reputation ?? 0} репутации</span>
+              </div>
+              {progress && (
+                <>
+                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
+                  </div>
+                  <div className="text-xs text-subtle mt-1.5">ещё {progress.remaining} репутации до следующего уровня</div>
+                </>
+              )}
+            </GlassCard>
+          )}
+
+          <div className="grid grid-cols-2 gap-3.5">
+            {profile.reputation != null && (
+              <GlassCard className="rounded-[18px] p-5">
+                <b className="block text-2xl font-bold tracking-[-.5px] text-lav">{profile.reputation}</b>
+                <span className="text-xs text-subtle">репутация</span>
+              </GlassCard>
+            )}
+            <GlassCard className="rounded-[18px] p-5">
+              <b className="block text-2xl font-bold tracking-[-.5px] text-gold">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</b>
+              <span className="text-xs text-subtle">средний рейтинг</span>
+            </GlassCard>
+            <GlassCard className="rounded-[18px] p-5">
+              <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count ?? 0}</b>
+              <span className="text-xs text-subtle">отзывов</span>
+            </GlassCard>
+            <GlassCard className="rounded-[18px] p-5">
+              <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{profile.deals_count ?? 0}</b>
+              <span className="text-xs text-subtle">сделок на бирже</span>
+            </GlassCard>
+            <GlassCard className="rounded-[18px] p-5">
+              <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.forum_posts_count ?? 0}</b>
+              <span className="text-xs text-subtle">постов на форуме</span>
+            </GlassCard>
+          </div>
+
+          {profile.skills && profile.skills.length > 0 && (
+            <div>
+              <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold mb-2.5">Навыки</div>
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map(s => (
+                  <span key={s} className="text-xs text-lav bg-white/[.08] border border-white/[.1] rounded-lg px-2.5 py-1.5">{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {profile.achievements && (
+            <GlassCard className="rounded-[18px] p-5">
+              <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold mb-3.5">Достижения</div>
+              <div className="grid grid-cols-4 gap-2.5">
+                {Object.entries(ACHIEVEMENTS).map(([type, a]) => {
+                  const unlocked = profile.achievements!.some(x => x.type === type)
+                  return (
+                    <div
+                      key={type}
+                      title={a.name}
+                      className={`aspect-square rounded-[14px] grid place-items-center text-xl border border-white/[.1] ${
+                        unlocked ? 'bg-white/[.1]' : 'bg-white/[.03] grayscale opacity-35'
+                      }`}
+                    >
+                      {a.emoji}
+                    </div>
+                  )
+                })}
+              </div>
+            </GlassCard>
+          )}
+        </div>
+
+        {/* ── Правая колонка ── */}
+        <div>
       <div className="flex gap-1 bg-white/[.07] border border-white/[.12] rounded-[14px] p-1 mb-4">
         {TABS.map(t => (
           <button
@@ -276,6 +285,8 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
               ))}
             </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }
