@@ -4,12 +4,27 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Sora', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
   body {
-    background-color: #1a2332;
-    color: #e2e8f0;
+    background:
+      radial-gradient(120% 120% at 8% 0%,   #3a1d77 0%, transparent 45%),
+      radial-gradient(120% 120% at 100% 10%, #7a1d8f 0%, transparent 50%),
+      radial-gradient(140% 120% at 50% 110%, #1d2a8f 0%, transparent 55%),
+      linear-gradient(160deg, #1a1140 0%, #241551 50%, #2a0f4a 100%);
+    background-attachment: fixed;
+    color: #f4f1ff;
+  }
+}
+
+@layer utilities {
+  /* Every existing bg-surface/bg-panel card sitewide picks up real glass
+     blur for free — no per-page edits needed (see Tailwind color tokens
+     in tailwind.config.ts, which already make these translucent). */
+  .bg-surface, .bg-panel {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 }

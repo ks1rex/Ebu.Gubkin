@@ -5,32 +5,38 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Accent — Indigo
+        // Accent — violet (primary actions sitewide; keeps white-text contrast)
         accent: {
-          DEFAULT: '#4f46e5',
-          hover:   '#4338ca',
-          subtle:  '#1e1b4b',   // тёмный indigo-тинт для тёмной темы
-          muted:   '#a5b4fc',
+          DEFAULT: '#7c3aed',
+          hover:   '#6d28d9',
+          subtle:  'rgba(124,58,237,.15)',
+          muted:   '#c4b5fd',
         },
-        // Поверхности (тёмная тема)
-        canvas:  '#1a2332',   // фон страницы — тёмный
-        surface: '#1e2a3a',   // карточки
-        panel:   '#243044',   // hover/альт. поверхность
-        // Типографика (светлая на тёмном)
-        ink:    '#e2e8f0',    // основной текст
-        subtle: '#94a3b8',    // второстепенный текст
-        // Бренд
-        'brand-navy':   '#1a2332',
-        'brand-orange': '#f97316',
+        // Поверхности — translucent glass (over the gradient body background)
+        canvas:  '#1a1140',            // opaque fills: inputs, modal overlays
+        surface: 'rgba(255,255,255,.06)', // glass cards
+        panel:   'rgba(255,255,255,.1)',  // hover / alt surface
+        // Типографика
+        ink:    '#f4f1ff',
+        subtle: '#bcb4e0',
+        subtle2: '#9a92c0',
+        // Доп. акценты дизайн-системы (glassmorphism handoff)
+        mint: '#5eead4',
+        lav:  '#c4b5fd',
+        pink: '#f5a3e8',
+        gold: '#ffd27a',
         // Разделители
-        line:   '#2d3f55',
-        // Статусы (lightened for dark bg)
-        error:   '#f87171',
-        success: '#4ade80',
-        warning: '#fbbf24',
+        line: 'rgba(255,255,255,.14)',
+        // Статусы
+        error:   '#fb7185',
+        success: '#5eead4',
+        warning: '#ffd27a',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Sora', 'system-ui', 'sans-serif'],
+      },
+      backdropBlur: {
+        glass: '20px',
       },
       animation: {
         'slide-up': 'slideUp 0.15s ease-out',

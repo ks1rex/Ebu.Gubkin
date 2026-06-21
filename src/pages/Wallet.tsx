@@ -1,12 +1,15 @@
 import { useState, useEffect, FormEvent } from 'react'
 import {
-  ArrowDownCircle, ArrowUpCircle, Copy,
-  Plus, Minus, ChevronDown, Gift,
+  ArrowDownCircle, ArrowUpCircle, Copy, Plus, Minus, ChevronDown, Gift, Coins,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/Modal'
+import BuyTokensModal from '../components/Gost/BuyTokensModal'
+import { GlassCard, Button, Chip } from '../components/glass'
+
+const API = import.meta.env.VITE_BACKEND_URL as string
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,9 +39,9 @@ const TX_LABELS: Record<string, string> = {
 }
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  pending:   { label: 'В обработке', cls: 'bg-warning/10 text-warning'   },
-  completed: { label: 'Выполнено',   cls: 'bg-success/10 text-success'   },
-  rejected:  { label: 'Отклонено',   cls: 'bg-error/10 text-error'       },
+  pending:   { label: 'В обработке', cls: 'text-gold bg-gold/10'   },
+  completed: { label: 'Выполнено',   cls: 'text-mint bg-mint/10'   },
+  rejected:  { label: 'Отклонено',   cls: 'text-error bg-error/10' },
 }
 
 const INCOME_TYPES = new Set([
@@ -52,7 +55,7 @@ function Skeleton({ className }: { className?: string }) {
   return <div className={`bg-panel animate-pulse rounded-lg ${className ?? ''}`} />
 }
 
-const INPUT = 'w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors'
+const INPUT = 'w-full px-3 py-2.5 rounded-[12px] border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-lav/30 focus:border-lav/40 transition-colors'
 
 // ─── Transaction row ──────────────────────────────────────────────────────────
 
@@ -62,27 +65,25 @@ function TxRow({ tx }: { tx: Transaction }) {
   const date   = new Date(tx.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
 
   return (
-    <div className="flex items-center gap-3 py-3.5">
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${income ? 'bg-success/10' : 'bg-error/10'}`}>
+    <div className="flex items-center gap-3.5 py-3.5 px-1">
+      <div className={`w-11 h-11 rounded-[13px] flex items-center justify-center shrink-0 ${income ? 'bg-mint/[.15]' : 'bg-error/[.15]'}`}>
         {income
-          ? <Plus  size={14} className="text-success" />
-          : <Minus size={14} className="text-error"   />
+          ? <Plus  size={16} className="text-mint" />
+          : <Minus size={16} className="text-error" />
         }
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-ink">{TX_LABELS[tx.type] ?? tx.type}</p>
+        <p className="text-[14.5px] font-semibold text-ink">{TX_LABELS[tx.type] ?? tx.type}</p>
         {tx.admin_comment && (
           <p className="text-xs text-subtle truncate mt-0.5">{tx.admin_comment}</p>
         )}
       </div>
-      <div className="text-right shrink-0">
-        <p className={`text-sm font-semibold ${income ? 'text-success' : 'text-error'}`}>
+      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ${status.cls}`}>{status.label}</span>
+      <div className="text-right shrink-0 min-w-[96px]">
+        <p className={`text-base font-bold ${income ? 'text-mint' : 'text-ink'}`}>
           {income ? '+' : '−'}{Math.abs(tx.amount).toLocaleString('ru-RU')} ₽
         </p>
-        <div className="flex items-center gap-1.5 justify-end mt-0.5">
-          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${status.cls}`}>{status.label}</span>
-          <span className="text-xs text-subtle">{date}</span>
-        </div>
+        <span className="text-xs text-subtle">{date}</span>
       </div>
     </div>
   )
@@ -154,13 +155,9 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
             />
             <p className="text-xs text-subtle mt-1">Комиссия 10% — на баланс поступит 90% от суммы</p>
           </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
-          >
+          <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
             {submitting ? 'Отправляем...' : 'Отправить заявку'}
-          </button>
+          </Button>
         </form>
       </div>
     </Modal>
@@ -243,13 +240,9 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
             className={INPUT}
           />
         </div>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
-        >
+        <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
           {submitting ? 'Отправляем...' : 'Отправить заявку'}
-        </button>
+        </Button>
       </form>
     </Modal>
   )
@@ -257,8 +250,10 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+type TxFilter = 'all' | 'in' | 'out'
+
 export default function Wallet() {
-  const { user, profile } = useAuth()
+  const { user, session, profile } = useAuth()
   const toast = useToast()
 
   const [balance, setBalance]           = useState<number | null>(null)
@@ -269,10 +264,18 @@ export default function Wallet() {
   const [txOffset, setTxOffset]         = useState(0)
   const [hasMore, setHasMore]           = useState(false)
   const [loadingMore, setLoadingMore]   = useState(false)
+  const [txFilter, setTxFilter]         = useState<TxFilter>('all')
 
   const [instructions, setInstructions] = useState<string | null>(null)
   const [depositOpen, setDepositOpen]   = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
+
+  const [tokenBalance, setTokenBalance] = useState(0)
+  const [tokenPrice, setTokenPrice]     = useState(10)
+  const [unlimited, setUnlimited]       = useState(false)
+  const [buyTokensOpen, setBuyTokensOpen] = useState(false)
+
+  const token = session?.access_token ?? null
 
   useEffect(() => {
     if (!user) return
@@ -281,6 +284,18 @@ export default function Wallet() {
     fetchInstructions()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
+
+  useEffect(() => {
+    if (!token) return
+    fetch(`${API}/gost/token-balance`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => {
+        setTokenBalance(d.token_balance ?? 0)
+        setUnlimited(d.unlimited_access ?? false)
+        setTokenPrice(d.token_price ?? 10)
+      })
+      .catch(() => {})
+  }, [token])
 
   async function fetchBalance() {
     setBalanceLoading(true)
@@ -338,118 +353,187 @@ export default function Wallet() {
 
   const currentBalance = balance ?? profile?.balance ?? 0
 
+  const filteredTx = transactions.filter(tx => {
+    if (txFilter === 'all') return true
+    const income = INCOME_TYPES.has(tx.type)
+    return txFilter === 'in' ? income : !income
+  })
+  const totalIncome  = transactions.filter(tx => INCOME_TYPES.has(tx.type)).reduce((s, t) => s + Math.abs(t.amount), 0)
+  const totalExpense = transactions.filter(tx => !INCOME_TYPES.has(tx.type)).reduce((s, t) => s + Math.abs(t.amount), 0)
+
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold text-ink">Кошелёк</h1>
-
-      {/* ── Баланс ── */}
-      <div className="bg-surface border border-line rounded-xl p-6">
-        <p className="text-sm text-subtle mb-1">Доступный баланс</p>
-        {balanceLoading ? (
-          <Skeleton className="h-11 w-44 mb-4" />
-        ) : (
-          <p className="text-4xl font-bold text-ink tracking-tight mb-4">
-            {currentBalance.toLocaleString('ru-RU')} ₽
-          </p>
-        )}
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setDepositOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors"
+    <div>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+        <div className="min-w-0">
+          {/* Баланс */}
+          <GlassCard
+            className="rounded-[26px] px-8 py-7 mb-4 relative overflow-hidden !border-white/20"
+            style={{ background: 'linear-gradient(135deg, rgba(124,58,237,.5), rgba(219,39,119,.4) 60%, rgba(14,165,233,.4))' }}
           >
-            <ArrowDownCircle size={16} />
-            Пополнить
-          </button>
-          <button
-            onClick={() => setWithdrawOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-line text-ink text-sm font-medium rounded-lg hover:bg-panel transition-colors"
-          >
-            <ArrowUpCircle size={16} />
-            Вывести
-          </button>
-        </div>
-      </div>
-
-      {/* ── Реферальная программа ── */}
-      {profile?.referral_code && (
-        <div className="bg-surface border border-line rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Gift size={18} className="text-accent" />
-            <h2 className="font-semibold text-ink">Реферальная программа</h2>
-          </div>
-          <p className="text-sm text-subtle mb-4">
-            Приглашайте друзей — получайте 5% от каждого из их первых трёх пополнений от 100 ₽.
-          </p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 bg-canvas border border-line rounded-lg px-3 py-2 text-sm font-mono text-ink tracking-wide">
-              {profile.referral_code}
-            </code>
-            <button
-              onClick={copyReferralLink}
-              className="flex items-center gap-1.5 px-3 py-2 border border-line rounded-lg text-sm text-subtle hover:text-ink hover:bg-panel transition-colors shrink-0"
-            >
-              <Copy size={14} />
-              Скопировать ссылку
-            </button>
-          </div>
-          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-subtle">
-            {(profile.referral_registered_count ?? 0) > 0 && (
-              <span>Приглашено: <span className="text-ink font-medium">{profile.referral_registered_count}</span></span>
-            )}
-            {(profile.referral_qualifying_deposits_count ?? 0) > 0 && (
-              <span>Бонусных пополнений: <span className="text-ink font-medium">{profile.referral_qualifying_deposits_count} / {3}</span></span>
-            )}
-            {(profile.referral_earnings ?? 0) > 0 && (
-              <span>Заработано: <span className="text-success font-medium">{(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽</span></span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── История операций ── */}
-      <div className="bg-surface border border-line rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-line">
-          <h2 className="font-semibold text-ink">История операций</h2>
-        </div>
-
-        <div className="px-6 divide-y divide-line">
-          {txLoading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="py-4 flex items-center gap-3">
-                <Skeleton className="w-8 h-8 rounded-full shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-3.5 w-36" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-                <div className="space-y-2 items-end flex flex-col">
-                  <Skeleton className="h-3.5 w-20" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
+            <div className="absolute w-[280px] h-[280px] rounded-full -right-20 -top-32 pointer-events-none"
+              style={{ background: 'radial-gradient(circle, rgba(255,255,255,.25), transparent 70%)' }} />
+            <p className="text-[13px] text-white/80 font-medium tracking-wide relative">Текущий баланс</p>
+            {balanceLoading ? (
+              <Skeleton className="h-14 w-48 my-2" />
+            ) : (
+              <div className="flex items-baseline gap-2.5 mt-2 mb-1 relative">
+                <span className="text-[54px] font-extrabold tracking-[-2px] leading-none text-white">{currentBalance.toLocaleString('ru-RU')}</span>
+                <span className="text-2xl font-semibold opacity-85 text-white">₽</span>
               </div>
-            ))
-          ) : transactions.length === 0 ? (
-            <p className="text-sm text-subtle py-10 text-center">Операций пока нет</p>
-          ) : (
-            transactions.map(tx => <TxRow key={tx.id} tx={tx} />)
+            )}
+            <p className="text-[13px] text-white/75 relative">Доступно к выводу и оплате на платформе · рубли</p>
+            <div className="flex gap-2.5 mt-5 relative">
+              <Button variant="mint" onClick={() => setDepositOpen(true)} className="flex-1 justify-center">
+                <ArrowDownCircle size={16} /> Пополнить
+              </Button>
+              <Button variant="ghost" onClick={() => setWithdrawOpen(true)} className="flex-1 justify-center">
+                <ArrowUpCircle size={16} /> Вывести
+              </Button>
+            </div>
+          </GlassCard>
+
+          {/* Мини-статы */}
+          <div className="grid grid-cols-2 gap-3.5 mb-4">
+            <GlassCard className="rounded-[18px] px-5 py-4.5">
+              <div className="text-[12.5px] text-subtle">↓ Получено</div>
+              <b className="block text-2xl font-bold mt-2 tracking-[-.5px] text-mint">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
+            </GlassCard>
+            <GlassCard className="rounded-[18px] px-5 py-4.5">
+              <div className="text-[12.5px] text-subtle">↑ Потрачено</div>
+              <b className="block text-2xl font-bold mt-2 tracking-[-.5px] text-ink">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
+            </GlassCard>
+          </div>
+
+          {/* Реферальная программа */}
+          {profile?.referral_code && (
+            <GlassCard className="rounded-[20px] p-5 mb-4">
+              <div className="flex items-center gap-2 mb-2.5">
+                <Gift size={18} className="text-lav" />
+                <h2 className="font-semibold text-ink">Реферальная программа</h2>
+              </div>
+              <p className="text-sm text-subtle mb-4">
+                Приглашайте друзей — получайте 5% от каждого из их первых трёх пополнений от 100 ₽.
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-canvas border border-line rounded-[12px] px-3 py-2.5 text-sm font-mono text-ink tracking-wide">
+                  {profile.referral_code}
+                </code>
+                <button
+                  onClick={copyReferralLink}
+                  className="flex items-center gap-1.5 px-3 py-2.5 border border-line rounded-[12px] text-sm text-subtle hover:text-ink hover:bg-panel transition-colors shrink-0"
+                >
+                  <Copy size={14} />
+                  Скопировать
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-subtle">
+                {(profile.referral_registered_count ?? 0) > 0 && (
+                  <span>Приглашено: <span className="text-ink font-medium">{profile.referral_registered_count}</span></span>
+                )}
+                {(profile.referral_qualifying_deposits_count ?? 0) > 0 && (
+                  <span>Бонусных пополнений: <span className="text-ink font-medium">{profile.referral_qualifying_deposits_count} / {3}</span></span>
+                )}
+                {(profile.referral_earnings ?? 0) > 0 && (
+                  <span>Заработано: <span className="text-mint font-medium">{(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽</span></span>
+                )}
+              </div>
+            </GlassCard>
           )}
+
+          {/* История операций */}
+          <div className="flex items-center mb-3.5">
+            <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold">История транзакций</div>
+            <div className="ml-auto flex gap-2">
+              <Chip active={txFilter === 'all'} onClick={() => setTxFilter('all')}>Все</Chip>
+              <Chip active={txFilter === 'in'}  onClick={() => setTxFilter('in')}>Доходы</Chip>
+              <Chip active={txFilter === 'out'} onClick={() => setTxFilter('out')}>Расходы</Chip>
+            </div>
+          </div>
+
+          <GlassCard className="rounded-[20px] px-3 py-1">
+            <div className="divide-y divide-white/[.08]">
+              {txLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="py-4 flex items-center gap-3.5">
+                    <Skeleton className="w-11 h-11 rounded-[13px] shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3.5 w-36" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <div className="space-y-2 items-end flex flex-col">
+                      <Skeleton className="h-3.5 w-20" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                  </div>
+                ))
+              ) : filteredTx.length === 0 ? (
+                <p className="text-sm text-subtle py-10 text-center">Операций пока нет</p>
+              ) : (
+                filteredTx.map(tx => <TxRow key={tx.id} tx={tx} />)
+              )}
+            </div>
+
+            {hasMore && (
+              <div className="pb-3 pt-1">
+                <button
+                  onClick={() => fetchTransactions(txOffset, false)}
+                  disabled={loadingMore}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-subtle hover:text-ink border border-line rounded-xl hover:bg-panel disabled:opacity-50 transition-colors"
+                >
+                  <ChevronDown size={16} />
+                  {loadingMore ? 'Загружаем...' : 'Загрузить ещё'}
+                </button>
+              </div>
+            )}
+          </GlassCard>
         </div>
 
-        {hasMore && (
-          <div className="px-6 pb-5 pt-1">
-            <button
-              onClick={() => fetchTransactions(txOffset, false)}
-              disabled={loadingMore}
-              className="w-full flex items-center justify-center gap-2 py-2 text-sm text-subtle hover:text-ink border border-line rounded-lg hover:bg-panel disabled:opacity-50 transition-colors"
-            >
-              <ChevronDown size={16} />
-              {loadingMore ? 'Загружаем...' : 'Загрузить ещё'}
-            </button>
-          </div>
-        )}
+        {/* Sidebar */}
+        <div className="flex flex-col gap-4">
+          <GlassCard className="rounded-[20px] p-5">
+            <h3 className="text-sm font-semibold mb-1 flex items-center gap-2 text-ink">◈ ГОСТ-токены</h3>
+            <p className="text-xs text-subtle mb-4">Курс 1 ₮ = {tokenPrice} ₽ · списывается с баланса</p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-[13px] bg-mint/[.15] grid place-items-center shrink-0">
+                <Coins size={18} className="text-mint" />
+              </div>
+              <div>
+                <b className="text-lg font-bold text-ink">{unlimited ? 'Безлимит' : `${tokenBalance} ₮`}</b>
+                <div className="text-xs text-subtle">текущий баланс</div>
+              </div>
+            </div>
+            {token && !unlimited && (
+              <Button variant="mint" onClick={() => setBuyTokensOpen(true)} className="w-full justify-center">
+                Купить токены
+              </Button>
+            )}
+          </GlassCard>
+
+          <GlassCard className="rounded-[20px] p-5">
+            <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink">📊 Сводка</h3>
+            <div className="flex items-center py-2.5 text-[13px]">
+              <span className="text-subtle">Всего получено</span>
+              <b className="ml-auto text-mint font-semibold">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
+            </div>
+            <div className="flex items-center py-2.5 border-t border-white/[.08] text-[13px]">
+              <span className="text-subtle">Всего потрачено</span>
+              <b className="ml-auto text-ink font-semibold">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
+            </div>
+          </GlassCard>
+        </div>
       </div>
 
       <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)}  instructions={instructions} />
       <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} maxAmount={currentBalance}  />
+      {buyTokensOpen && token && (
+        <BuyTokensModal
+          walletBalance={currentBalance}
+          tokenPrice={tokenPrice}
+          token={token}
+          onClose={() => setBuyTokensOpen(false)}
+          onSuccess={(tb, wb) => { setTokenBalance(tb); setBalance(wb); setBuyTokensOpen(false) }}
+        />
+      )}
     </div>
   )
 }
