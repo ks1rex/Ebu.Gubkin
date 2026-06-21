@@ -5,13 +5,9 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
-import { GlassCard, Button, Avatar, Chip } from '../components/glass'
+import { GlassCard, Button, Avatar } from '../components/glass'
 
 const logoHorizontal = `${import.meta.env.BASE_URL}logo-horizontal.png`
-
-// ponytail: no websocket presence channel exists yet — static placeholder
-// until one ships (see TODO_BACKEND.md).
-const ONLINE_NOW = 312
 
 interface Stats { users_count: number; threads_count: number; orders_count: number; total_paid: number }
 
@@ -42,6 +38,7 @@ interface ListingPreview {
 }
 
 interface Leader { id: string; nickname: string | null; avatar_url: string | null; reputation: number }
+interface CategoryStub { id: string; name: string; threads_count: number }
 
 export default function Home() {
   const { user, profile } = useAuth()
@@ -52,7 +49,7 @@ export default function Home() {
   const [orders, setOrders]   = useState<OrderPreview[]>([])
   const [listings, setListings] = useState<ListingPreview[]>([])
   const [leaders, setLeaders] = useState<Leader[]>([])
-  const [tags, setTags] = useState<string[]>([])
+  const [categories, setCategories] = useState<CategoryStub[]>([])
 
   useEffect(() => {
     apiCall('GET', '/stats/public').then(setStats).catch(() => {})
@@ -60,7 +57,9 @@ export default function Home() {
     apiCall('GET', '/orders?limit=5').then(d => setOrders(Array.isArray(d) ? d : [])).catch(() => {})
     apiCall('GET', '/listings?limit=5').then(d => setListings(Array.isArray(d) ? d : [])).catch(() => {})
     apiCall('GET', '/profile/leaderboard').then(d => setLeaders(Array.isArray(d?.users) ? d.users.slice(0, 4) : [])).catch(() => {})
-    apiCall('GET', '/forum/trending-tags').then(d => setTags(Array.isArray(d?.tags) ? d.tags : [])).catch(() => {})
+    apiCall('GET', '/forum/categories')
+      .then(d => setCategories(Array.isArray(d) ? [...d].sort((a, b) => b.threads_count - a.threads_count) : []))
+      .catch(() => {})
   }, [])
 
   const marketItems = [...orders.map(o => ({ ...o, kind: 'order' as const })), ...listings.map(l => ({ ...l, kind: 'listing' as const }))]
@@ -89,14 +88,10 @@ export default function Home() {
       </div>
 
       {/* Counters */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-10">
+      <div className="grid grid-cols-3 gap-3.5 mb-10">
         <GlassCard className="rounded-[18px] p-5 text-center">
           <b className="block text-2xl font-bold text-ink">{stats?.users_count ?? '—'}</b>
           <span className="text-xs text-subtle">студентов на сайте</span>
-        </GlassCard>
-        <GlassCard className="rounded-[18px] p-5 text-center">
-          <b className="block text-2xl font-bold text-mint">{ONLINE_NOW}</b>
-          <span className="text-xs text-subtle">онлайн сейчас</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-5 text-center">
           <b className="block text-2xl font-bold text-ink">{stats?.threads_count ?? '—'}</b>
@@ -256,11 +251,19 @@ export default function Home() {
             </GlassCard>
           )}
 
-          {tags.length > 0 && (
+          {categories.length > 0 && (
             <GlassCard className="rounded-[20px] p-5">
-              <h3 className="text-sm font-semibold text-ink mb-3.5">🔥 В тренде</h3>
+              <h3 className="text-sm font-semibold text-ink mb-3.5">🔥 Популярные категории</h3>
               <div className="flex flex-wrap gap-2">
-                {tags.map(t => <Chip key={t}>#{t}</Chip>)}
+                {categories.map(c => (
+                  <Link
+                    key={c.id}
+                    to={`/forum/category/${c.id}`}
+                    className="text-sm font-medium px-3.5 py-2 rounded-[11px] whitespace-nowrap transition-colors duration-150 text-lav bg-white/[.07] border border-white/[.12] hover:bg-white/[.12] hover:text-ink"
+                  >
+                    {c.name} · {c.threads_count}
+                  </Link>
+                ))}
               </div>
             </GlassCard>
           )}

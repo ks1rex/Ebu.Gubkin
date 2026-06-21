@@ -9,7 +9,7 @@ import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
 import { apiCall } from '../lib/api'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
-import { GlassCard, Button, Avatar, Chip } from '../components/glass'
+import { GlassCard, Button, Avatar } from '../components/glass'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -57,8 +57,6 @@ const SORT_TABS: { key: SortTab; label: string }[] = [
   { key: 'top',      label: 'Топ' },
 ]
 
-const ONLINE_NOW = 312 // ponytail: no websocket presence yet, see TODO_BACKEND.md
-
 function Skeleton() {
   return (
     <div className="bg-surface border border-line rounded-xl p-5 animate-pulse">
@@ -84,7 +82,6 @@ export default function Forum() {
   const [hotSort, setHotSort] = useState<SortTab>('activity')
   const [hotThreads, setHotThreads] = useState<HotThread[]>([])
   const [leaders, setLeaders] = useState<Leader[]>([])
-  const [tags, setTags] = useState<string[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
 
   useEffect(() => {
@@ -103,7 +100,6 @@ export default function Forum() {
 
   useEffect(() => {
     apiCall('GET', '/profile/leaderboard').then(d => setLeaders(Array.isArray(d?.users) ? d.users.slice(0, 3) : [])).catch(() => {})
-    apiCall('GET', '/forum/trending-tags').then(d => setTags(Array.isArray(d?.tags) ? d.tags : [])).catch(() => {})
     apiCall('GET', '/stats/public').then(setStats).catch(() => {})
   }, [])
 
@@ -112,6 +108,11 @@ export default function Forum() {
     if (!q) return categories
     return categories.filter(c => c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q))
   }, [categories, search])
+
+  const popularCategories = useMemo(
+    () => [...categories].sort((a, b) => b.threads_count - a.threads_count),
+    [categories],
+  )
 
   function openCreate() {
     if (!user) { showToast('Войдите, чтобы создать обсуждение', 'error'); return }
@@ -136,7 +137,6 @@ export default function Forum() {
         <div className="flex items-center gap-7 mb-5">
           <div><b className="text-xl font-bold text-ink">{stats?.threads_count ?? '—'}</b><span className="text-xs text-subtle ml-1.5">тем</span></div>
           <div><b className="text-xl font-bold text-ink">{stats?.posts_count ?? '—'}</b><span className="text-xs text-subtle ml-1.5">обсуждений</span></div>
-          <div><b className="text-xl font-bold text-mint">{ONLINE_NOW}</b><span className="text-xs text-subtle ml-1.5">онлайн</span></div>
         </div>
         <div className="flex items-center gap-2 bg-white/[.07] border border-white/[.12] rounded-[14px] px-3.5 py-2.5 text-sm max-w-sm">
           <Search size={15} className="text-subtle shrink-0" />
@@ -251,11 +251,19 @@ export default function Forum() {
             </GlassCard>
           )}
 
-          {tags.length > 0 && (
+          {popularCategories.length > 0 && (
             <GlassCard className="rounded-[20px] p-5">
-              <h3 className="text-sm font-semibold text-ink mb-3.5">🔥 В тренде</h3>
+              <h3 className="text-sm font-semibold text-ink mb-3.5">🔥 Популярные категории</h3>
               <div className="flex flex-wrap gap-2">
-                {tags.map(t => <Chip key={t}>#{t}</Chip>)}
+                {popularCategories.map(c => (
+                  <Link
+                    key={c.id}
+                    to={`/forum/category/${c.id}`}
+                    className="text-sm font-medium px-3.5 py-2 rounded-[11px] whitespace-nowrap transition-colors duration-150 text-lav bg-white/[.07] border border-white/[.12] hover:bg-white/[.12] hover:text-ink"
+                  >
+                    {c.name} · {c.threads_count}
+                  </Link>
+                ))}
               </div>
             </GlassCard>
           )}
