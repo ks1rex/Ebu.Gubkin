@@ -1,0 +1,35 @@
+{
+  "projectId": "b625486b-8000-4edc-8971-01ddf07e3132",
+  "shape": "package",
+  "pkg": "ebu-gubkin",
+  "globalName": "EbuGubkin",
+  "srcDir": "src/components",
+  "tsconfig": "tsconfig.json",
+  "entry": ".design-sync/entry.tsx",
+  "componentSrcMap": {
+    "AdminRoute": "src/components/AdminRoute.tsx",
+    "ChatWindow": "src/components/ChatWindow.tsx",
+    "EmptyState": "src/components/EmptyState.tsx",
+    "CreateThreadModal": "src/components/Forum/CreateThreadModal.tsx",
+    "ReportModal": "src/components/Forum/ReportModal.tsx",
+    "BuyTokensModal": "src/components/Gost/BuyTokensModal.tsx",
+    "GostLayout": "src/components/GostLayout.tsx",
+    "Layout": "src/components/Layout.tsx",
+    "MarketLayout": "src/components/MarketLayout.tsx",
+    "Modal": "src/components/Modal.tsx",
+    "Navbar": "src/components/Navbar.tsx",
+    "ProtectedRoute": "src/components/ProtectedRoute.tsx",
+    "Spinner": "src/components/Spinner.tsx",
+    "StarRating": "src/components/StarRating.tsx"
+  },
+  "extraEntries": ["react-router-dom"],
+  "cssEntry": "dist/assets/index-BiAO6n3j.css",
+  "runtimeFontPrefixes": ["Inter"],
+  "provider": {
+    "component": "MemoryRouter"
+  },
+  "overrides": {
+    "Modal": { "cardMode": "single", "primaryStory": "Default" }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
