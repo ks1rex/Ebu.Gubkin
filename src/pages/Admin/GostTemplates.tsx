@@ -278,9 +278,9 @@ export default function AdminGostTemplates() {
       {!GOST ? (
         <div className="text-sm text-subtle">VITE_GOST_URL не настроен</div>
       ) : (
-        <div className="flex gap-4 items-start">
+        <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-start">
           {/* Left panel */}
-          <div className="w-64 shrink-0 bg-surface rounded-xl border border-line overflow-hidden">
+          <div className="w-full md:w-64 shrink-0 bg-surface rounded-xl border border-line overflow-hidden">
             {listLoading ? (
               <div className="p-4 space-y-2">
                 {[...Array(5)].map((_, i) => <div key={i} className="h-9 rounded-lg bg-panel animate-pulse" />)}
@@ -288,7 +288,7 @@ export default function AdminGostTemplates() {
             ) : list.length === 0 ? (
               <div className="p-4 text-sm text-subtle">Шаблонов нет</div>
             ) : (
-              <div className="divide-y divide-line">
+              <div className="divide-y divide-line max-h-60 md:max-h-none overflow-y-auto">
                 {list.map(t => (
                   <button
                     key={t.id}
@@ -353,7 +353,7 @@ export default function AdminGostTemplates() {
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-mono text-subtle">{d.id}</span>
                           </div>
-                          <div className="grid grid-cols-4 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                             <Field label="Обозначение" value={d.symbol} onChange={v => updateInputDatum(d.id, { symbol: v })} />
                             <Field label="Значение" value={String(d.value)} onChange={v => updateInputDatum(d.id, { value: Number(v) || 0 })} />
                             <Field label="Единица" value={d.unit} onChange={v => updateInputDatum(d.id, { unit: v })} />
@@ -369,7 +369,7 @@ export default function AdminGostTemplates() {
                       {spec.tables.map(t => (
                         <div key={t.id} className={`${CARD} ${errors.has(`table-${t.id}`) ? 'border-error' : ''}`}>
                           <span className="text-xs font-mono text-subtle">{t.id}</span>
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <Field label="Название" value={t.name} onChange={v => updateTable(t.id, { name: v })} />
                             <Field label="Подпись X" value={t.x_label} onChange={v => updateTable(t.id, { x_label: v })} />
                             <Field label="Подпись Y" value={t.y_label} onChange={v => updateTable(t.id, { y_label: v })} />
@@ -382,7 +382,7 @@ export default function AdminGostTemplates() {
                               <option value="cubic">cubic</option>
                             </select>
                           </div>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <TextAreaField label="Значения X" value={tableTexts[t.id]?.x ?? ''} onChange={v => updateTableNumbers(t.id, 'x', v)} rows={2} />
                             <TextAreaField label="Значения Y" value={tableTexts[t.id]?.y ?? ''} onChange={v => updateTableNumbers(t.id, 'y', v)} rows={2} />
                           </div>
@@ -414,7 +414,7 @@ export default function AdminGostTemplates() {
                             </button>
                             {open && (
                               <div className="p-3 space-y-3">
-                                <div className="grid grid-cols-3 gap-2">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                   <Field label="Название" value={sec.title} onChange={v => updateSection(sec.id, { title: v })} />
                                   <div>
                                     <label className={LABEL}>Уровень</label>
@@ -447,7 +447,7 @@ export default function AdminGostTemplates() {
                                           </button>
                                         </div>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-2">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <Field label="Обозначение результата" value={st.result_symbol}
                                           onChange={v => updateStep(sec.id, st.id, { result_symbol: v })}
                                           error={errors.has(`step-symbol-${st.id}`)} />
@@ -497,8 +497,8 @@ export default function AdminGostTemplates() {
                 </div>
 
                 {/* Footer controls */}
-                <div className="flex items-center justify-between px-4 py-3 border-t border-line">
-                  <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 py-3 border-t border-line">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={save}
                       disabled={!dirty || saving}
