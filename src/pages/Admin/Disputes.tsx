@@ -124,7 +124,7 @@ export default function AdminDisputes() {
                       <span>{timeAgo(d.created_at)}</span>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 shrink-0">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning shrink-0">
                     Открыт
                   </span>
                 </div>
@@ -167,7 +167,7 @@ export default function AdminDisputes() {
                   <button
                     onClick={() => resolve(d, 'refund_customer')}
                     disabled={st.acting}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-accent-subtle text-accent border border-accent/30 rounded-lg hover:bg-accent/20 transition-colors disabled:opacity-50"
                   >
                     {st.acting && <Loader2 size={14} className="animate-spin" />}
                     Вернуть заказчику
@@ -175,7 +175,7 @@ export default function AdminDisputes() {
                   <button
                     onClick={() => resolve(d, 'pay_executor')}
                     disabled={st.acting}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm bg-success/10 text-success border border-success/30 rounded-lg hover:bg-success/20 transition-colors disabled:opacity-50"
                   >
                     {st.acting && <Loader2 size={14} className="animate-spin" />}
                     Выплатить исполнителю

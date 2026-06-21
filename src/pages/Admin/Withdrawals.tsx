@@ -21,9 +21,9 @@ interface WithdrawalRequest {
 }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  pending:   { label: 'Ожидает', cls: 'bg-yellow-100 text-yellow-800' },
-  confirmed: { label: 'Выплачено', cls: 'bg-green-100 text-green-800' },
-  rejected:  { label: 'Отклонено', cls: 'bg-red-100 text-red-800' },
+  pending:   { label: 'Ожидает', cls: 'bg-warning/10 text-warning' },
+  confirmed: { label: 'Выплачено', cls: 'bg-success/10 text-success' },
+  rejected:  { label: 'Отклонено', cls: 'bg-error/10 text-error' },
 }
 
 export default function AdminWithdrawals() {
@@ -91,7 +91,65 @@ export default function AdminWithdrawals() {
       ) : withdrawals.length === 0 ? (
         <div className="text-center py-16 text-subtle text-sm">Нет заявок</div>
       ) : (
-        <div className="bg-surface rounded-xl border border-line overflow-hidden">
+        <>
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {withdrawals.map(w => {
+            const isPending = w.status === 'pending'
+            const s = STATUS_LABELS[w.status] ?? { label: w.status, cls: 'bg-panel text-ink' }
+            return (
+              <div key={w.id} className="bg-surface border border-line rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-accent-subtle flex items-center justify-center shrink-0">
+                    <span className="text-xs font-medium text-accent">
+                      {(w.user?.nickname ?? w.user_id)[0]?.toUpperCase() ?? '?'}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink truncate">{w.user?.nickname ?? w.user_id.slice(0, 8)}</p>
+                    <p className="text-xs text-subtle">{timeAgo(w.created_at)}</p>
+                  </div>
+                  <span className="ml-auto text-error font-bold shrink-0">
+                    −{w.amount.toLocaleString('ru-RU')} ₽
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <p className="text-subtle text-xs">Статус</p>
+                    <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.cls}`}>{s.label}</span>
+                  </div>
+                  <div>
+                    <p className="text-subtle text-xs">Карта</p>
+                    <p className="text-ink font-mono text-xs">{w.card_number ?? '—'}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => act(w.id, 'confirm')}
+                    disabled={!isPending || acting[w.id]}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-success text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                  >
+                    {acting[w.id] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    Выплачено
+                  </button>
+                  <button
+                    onClick={() => act(w.id, 'reject')}
+                    disabled={!isPending || acting[w.id]}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                  >
+                    <X size={12} />
+                    Отклонить
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-surface rounded-xl border border-line overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-panel border-b border-line">
               <tr>
@@ -150,6 +208,7 @@ export default function AdminWithdrawals() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   )

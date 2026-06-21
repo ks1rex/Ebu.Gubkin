@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Loader2, Users, ShoppingBag, Scale, ArrowDownCircle, ArrowUpCircle, HeadphonesIcon, TrendingUp } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
+import { NAV_ITEMS } from './index'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -115,6 +116,29 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-ink">Дашборд</h1>
+
+      {/* Mobile section grid — replaces the sidebar nav below lg */}
+      <div className="grid grid-cols-4 gap-3 lg:hidden">
+        {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className="flex flex-col items-center gap-1 p-3 bg-surface border border-line rounded-xl hover:bg-accent-subtle transition-colors text-center"
+          >
+            {({ isActive }) => (
+              <>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                  isActive ? 'bg-accent' : 'bg-accent-subtle'
+                }`}>
+                  <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-accent'}`} />
+                </div>
+                <span className={`text-xs leading-tight ${isActive ? 'text-ink font-medium' : 'text-subtle'}`}>{label}</span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

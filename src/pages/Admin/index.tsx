@@ -19,7 +19,7 @@ import {
   FileText,
 } from 'lucide-react'
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { to: '/admin',                icon: LayoutDashboard, label: 'Дашборд',     end: true },
   { to: '/admin/finance',        icon: TrendingUp,      label: 'Финансы' },
   { to: '/admin/deposits',       icon: ArrowDownCircle, label: 'Пополнения' },
@@ -41,9 +41,9 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-[calc(100vh-56px)]">
-      {/* Sidebar */}
+      {/* Sidebar — desktop only; mobile uses the icon grid on the dashboard page */}
       <aside
-        className={`shrink-0 bg-surface border-r border-line flex flex-col py-4 transition-all duration-200 ${
+        className={`hidden lg:flex shrink-0 bg-surface border-r border-line flex-col py-4 transition-all duration-200 ${
           collapsed ? 'w-14' : 'w-52'
         }`}
       >

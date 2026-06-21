@@ -26,9 +26,9 @@ interface DepositRequest {
 }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  pending:   { label: 'Ожидает', cls: 'bg-yellow-100 text-yellow-800' },
-  confirmed: { label: 'Подтверждено', cls: 'bg-green-100 text-green-800' },
-  rejected:  { label: 'Отклонено', cls: 'bg-red-100 text-red-800' },
+  pending:   { label: 'Ожидает', cls: 'bg-warning/10 text-warning' },
+  confirmed: { label: 'Подтверждено', cls: 'bg-success/10 text-success' },
+  rejected:  { label: 'Отклонено', cls: 'bg-error/10 text-error' },
 }
 
 export default function AdminDeposits() {
@@ -128,7 +128,82 @@ export default function AdminDeposits() {
       ) : deposits.length === 0 ? (
         <div className="text-center py-16 text-subtle text-sm">Нет заявок</div>
       ) : (
-        <div className="bg-surface rounded-xl border border-line overflow-hidden">
+        <>
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {deposits.map(dep => {
+            const confirmedVal = parseFloat(confirmedAmounts[dep.id] ?? '0')
+            const creditedPreview = isNaN(confirmedVal) ? '—' : (confirmedVal * 0.9).toFixed(2)
+            const isPending = dep.status === 'pending'
+            const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < 3
+            const s = STATUS_LABELS[dep.status] ?? { label: dep.status, cls: 'bg-panel text-ink' }
+
+            return (
+              <div key={dep.id} className="bg-surface border border-line rounded-xl p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-full bg-accent-subtle flex items-center justify-center shrink-0">
+                    <span className="text-xs font-medium text-accent">
+                      {(dep.user?.nickname ?? dep.user_id)[0]?.toUpperCase() ?? '?'}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink truncate">{dep.user?.nickname ?? dep.user_id.slice(0, 8)}</p>
+                    <p className="text-xs text-subtle">{timeAgo(dep.created_at)}</p>
+                  </div>
+                  <span className="ml-auto text-success font-bold shrink-0">
+                    +{dep.claimed_amount.toLocaleString('ru-RU')} ₽
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <p className="text-subtle text-xs">Статус</p>
+                    <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.cls}`}>{s.label}</span>
+                  </div>
+                  <div>
+                    <p className="text-subtle text-xs">Реф.</p>
+                    <p className="text-ink">{isRef ? 'Да' : 'Нет'}</p>
+                  </div>
+                </div>
+
+                {isPending && (
+                  <div className="mb-3">
+                    <label className="text-xs text-subtle">Подтверждённая сумма</label>
+                    <input
+                      type="number"
+                      value={confirmedAmounts[dep.id] ?? ''}
+                      onChange={e => setConfirmedAmounts(a => ({ ...a, [dep.id]: e.target.value }))}
+                      className="w-full mt-1 border border-line rounded px-2 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
+                    />
+                    <span className="text-xs text-subtle">→ {creditedPreview} ₽ на баланс</span>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => confirm(dep.id)}
+                    disabled={!isPending || acting[dep.id]}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-success text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                  >
+                    {acting[dep.id] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    Подтвердить
+                  </button>
+                  <button
+                    onClick={() => reject(dep.id)}
+                    disabled={!isPending || acting[dep.id]}
+                    className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                  >
+                    <X size={12} />
+                    Отклонить
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-surface rounded-xl border border-line overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-panel border-b border-line">
               <tr>
@@ -210,6 +285,7 @@ export default function AdminDeposits() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   )

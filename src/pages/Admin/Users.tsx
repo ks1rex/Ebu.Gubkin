@@ -128,7 +128,79 @@ export default function AdminUsers() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-subtle text-sm">Пользователей не найдено</div>
       ) : (
-        <div className="bg-surface rounded-xl border border-line overflow-hidden">
+        <>
+        {/* Mobile cards */}
+        <div className="md:hidden space-y-3">
+          {filtered.map(user => (
+            <div key={user.id} className="bg-surface border border-line rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-3">
+                {user.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.nickname ?? ''} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-accent-subtle flex items-center justify-center shrink-0">
+                    <span className="text-xs font-medium text-accent">
+                      {(user.nickname ?? user.email)?.[0]?.toUpperCase() ?? '?'}
+                    </span>
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-medium text-ink truncate">{user.nickname ?? '—'}</p>
+                  <p className="text-xs text-subtle truncate">{user.email}</p>
+                </div>
+                <span className="ml-auto font-bold text-ink shrink-0">
+                  {(user.balance ?? 0).toLocaleString('ru-RU')} ₽
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                <div>
+                  <p className="text-subtle text-xs">Роль</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {user.is_admin && (
+                      <span className="px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full font-medium">ADMIN</span>
+                    )}
+                    {user.is_banned && (
+                      <span className="px-1.5 py-0.5 bg-error/10 text-error text-xs rounded-full font-medium">БАН</span>
+                    )}
+                    {!user.is_admin && !user.is_banned && (
+                      <span className="text-xs text-subtle">Пользователь</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-subtle text-xs">Регистрация</p>
+                  <p className="text-ink text-xs mt-0.5">{timeAgo(user.created_at)}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
+                  disabled={acting[user.id]}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                    user.is_banned ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                  }`}
+                >
+                  {acting[user.id] ? <Loader2 size={12} className="animate-spin" /> : user.is_banned ? <UserCheck size={12} /> : <UserX size={12} />}
+                  {user.is_banned ? 'Разбанить' : 'Заблокировать'}
+                </button>
+                <button
+                  onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
+                  disabled={acting[user.id]}
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                    user.is_admin ? 'bg-accent-subtle text-accent' : 'bg-panel text-subtle'
+                  }`}
+                >
+                  {user.is_admin ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
+                  {user.is_admin ? 'Снять админа' : 'Сделать админом'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block bg-surface rounded-xl border border-line overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-panel border-b border-line">
               <tr>
@@ -180,7 +252,7 @@ export default function AdminUsers() {
                         </span>
                       )}
                       {user.is_banned && (
-                        <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                        <span className="px-1.5 py-0.5 bg-error/10 text-error text-xs rounded-full font-medium">
                           БАН
                         </span>
                       )}
@@ -197,8 +269,8 @@ export default function AdminUsers() {
                         title={user.is_banned ? 'Разбанить' : 'Заблокировать'}
                         className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
                           user.is_banned
-                            ? 'text-success hover:bg-green-50'
-                            : 'text-error hover:bg-red-50'
+                            ? 'text-success hover:bg-success/10'
+                            : 'text-error hover:bg-error/10'
                         }`}
                       >
                         {acting[user.id] ? (
@@ -228,6 +300,7 @@ export default function AdminUsers() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   )

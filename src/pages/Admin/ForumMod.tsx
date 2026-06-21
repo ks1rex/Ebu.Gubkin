@@ -172,7 +172,7 @@ export default function AdminForumMod() {
                     <strong className="text-ink">{post.author.nickname ?? 'Аноним'}</strong>
                     {' · '}{timeAgo(post.created_at)}
                     {post.moderation_reason && (
-                      <span className="ml-2 px-1.5 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs">
+                      <span className="ml-2 px-1.5 py-0.5 bg-warning/10 text-warning rounded-full text-xs">
                         {post.moderation_reason}
                       </span>
                     )}
@@ -221,7 +221,7 @@ export default function AdminForumMod() {
                     Жалоба от <strong className="text-ink">{report.reporter.nickname ?? 'Аноним'}</strong>
                     {' · '}{timeAgo(report.created_at)}
                     <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs font-medium ${
-                      report.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+                      report.status === 'pending' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'
                     }`}>
                       {report.status === 'pending' ? 'На рассмотрении' : report.status}
                     </span>
