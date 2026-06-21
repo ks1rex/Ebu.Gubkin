@@ -3,41 +3,46 @@ import { Link } from 'react-router-dom'
 import { Edit3 } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
+import { timeAgo } from '../lib/timeAgo'
 import Spinner from './Spinner'
 import { GlassCard, Avatar, Stars } from './glass'
 import { LEVEL_NAMES, levelProgress, ACHIEVEMENTS } from '../lib/gamification'
 
-interface Activity { type: 'post' | 'deal' | 'thread'; text: string; ago: string }
-interface Achievement { type: string; unlocked: boolean }
+// Matches GET /profile/:id/public's recent_activity — shape differs by type
+// (see reshbirga backend/src/routes/profile.js).
+type Activity =
+  | { type: 'post'; text: string; forum_category: string | null; ago: string }
+  | { type: 'deal'; amount: number; ago: string }
+  | { type: 'thread'; title: string; ago: string }
+
+interface Achievement { type: string; earned_at: string }
 
 export interface PublicProfile {
   id: string
   nickname: string | null
   avatar_url: string | null
-  university_group: string | null
+  university_group?: string | null
   is_verified?: boolean
   bio?: string | null
   skills?: string[] | null
   level?: number
   reputation?: number
-  current_threshold?: number
-  next_threshold?: number
-  rating_as_executor?: number | string | null
-  rating_as_customer?: number | string | null
-  reviews_count_executor?: number | null
-  reviews_count_customer?: number | null
+  next_level_reputation?: number | null
+  average_rating?: number | string | null
+  reviews_count?: number | null
+  deals_count?: number | null
+  forum_posts_count?: number | null
   recent_activity?: Activity[]
   achievements?: Achievement[]
 }
 
 interface Review {
-  id: string
+  author_id: string
+  author_username: string | null
+  author_avatar: string | null
   rating: number
-  comment: string | null
-  context: 'as_executor' | 'as_customer'
+  text: string | null
   created_at: string
-  reviewer_id: string
-  reviewer?: { nickname: string | null }
 }
 
 interface Service { id: string; title: string; price: number }
@@ -57,6 +62,12 @@ interface Props {
   onEdit?: () => void
 }
 
+function activityText(a: Activity): string {
+  if (a.type === 'post') return a.forum_category ? `Ответил в теме «${a.forum_category}»` : a.text
+  if (a.type === 'thread') return `Создал тему «${a.title}»`
+  return 'Завершил сделку на бирже'
+}
+
 /** Shared profile display — used by both the own-profile page and public profiles. */
 export default function ProfileView({ profile, userId, isOwner, onEdit }: Props) {
   const [tab, setTab] = useState<Tab>('activity')
@@ -67,7 +78,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
   useEffect(() => {
     if (tab === 'reviews' && reviews === null) {
       setTabLoading(true)
-      apiCall('GET', `/profile/${userId}/reviews`).then(r => setReviews(Array.isArray(r) ? r : [])).catch(() => setReviews([])).finally(() => setTabLoading(false))
+      apiCall('GET', `/profile/${userId}/reviews`).then(r => setReviews(Array.isArray(r?.reviews) ? r.reviews : [])).catch(() => setReviews([])).finally(() => setTabLoading(false))
     }
     if (tab === 'services' && services === null) {
       setTabLoading(true)
@@ -75,13 +86,12 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
     }
   }, [tab, userId, reviews, services])
 
-  const execRating = parseFloat(String(profile.rating_as_executor ?? 0))
-  const custRating = parseFloat(String(profile.rating_as_customer ?? 0))
+  const avgRating = parseFloat(String(profile.average_rating ?? 0))
   const progress = profile.level != null && profile.reputation != null
-    ? levelProgress(profile.level, profile.reputation, profile.current_threshold, profile.next_threshold)
+    ? levelProgress(profile.level, profile.reputation, profile.next_level_reputation)
     : null
   const activity = profile.recent_activity ?? []
-  const threads = activity.filter(a => a.type === 'thread')
+  const threads = activity.filter((a): a is Extract<Activity, { type: 'thread' }> => a.type === 'thread')
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -176,20 +186,20 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           </GlassCard>
         )}
         <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{execRating > 0 ? execRating.toFixed(1) : '—'}</b>
-          <span className="text-xs text-subtle">рейтинг исполнителя</span>
+          <b className="block text-2xl font-bold tracking-[-.5px] text-gold">{avgRating > 0 ? avgRating.toFixed(1) : '—'}</b>
+          <span className="text-xs text-subtle">средний рейтинг</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count_executor ?? 0}</b>
-          <span className="text-xs text-subtle">отзывов как исполнитель</span>
+          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count ?? 0}</b>
+          <span className="text-xs text-subtle">отзывов</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-gold">{custRating > 0 ? custRating.toFixed(1) : '—'}</b>
-          <span className="text-xs text-subtle">рейтинг заказчика</span>
+          <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{profile.deals_count ?? 0}</b>
+          <span className="text-xs text-subtle">сделок на бирже</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-5">
-          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.reviews_count_customer ?? 0}</b>
-          <span className="text-xs text-subtle">отзывов как заказчик</span>
+          <b className="block text-2xl font-bold tracking-[-.5px] text-ink">{profile.forum_posts_count ?? 0}</b>
+          <span className="text-xs text-subtle">постов на форуме</span>
         </GlassCard>
       </div>
 
@@ -211,8 +221,10 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           : <div className="flex flex-col gap-2">
               {activity.map((a, i) => (
                 <GlassCard key={i} className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
-                  <span className="text-sm text-ink flex-1">{a.text}</span>
-                  <span className="text-xs text-subtle shrink-0">{a.ago}</span>
+                  <span className="text-sm text-ink flex-1">{activityText(a)}</span>
+                  {a.type === 'deal'
+                    ? <span className="text-sm font-semibold text-mint shrink-0">+{formatCurrency(a.amount)}</span>
+                    : <span className="text-xs text-subtle shrink-0">{timeAgo(a.ago)}</span>}
                 </GlassCard>
               ))}
             </div>
@@ -224,8 +236,8 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           : <div className="flex flex-col gap-2">
               {threads.map((a, i) => (
                 <GlassCard key={i} className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
-                  <span className="text-sm text-ink flex-1">{a.text}</span>
-                  <span className="text-xs text-subtle shrink-0">{a.ago}</span>
+                  <span className="text-sm text-ink flex-1">{a.title}</span>
+                  <span className="text-xs text-subtle shrink-0">{timeAgo(a.ago)}</span>
                 </GlassCard>
               ))}
             </div>
@@ -250,17 +262,16 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
         tabLoading ? <Spinner /> : !reviews || reviews.length === 0
           ? <GlassCard className="rounded-2xl py-8 text-center text-subtle text-sm">Отзывов пока нет</GlassCard>
           : <div className="flex flex-col gap-3">
-              {reviews.map(r => (
-                <GlassCard key={r.id} className="rounded-2xl px-5 py-4">
+              {reviews.map((r, i) => (
+                <GlassCard key={i} className="rounded-2xl px-5 py-4">
                   <div className="flex items-center gap-2.5 mb-2">
                     <Stars rating={r.rating} />
-                    <Link to={`/market/users/${r.reviewer_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
-                      {r.reviewer?.nickname}
+                    <Link to={`/market/users/${r.author_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
+                      {r.author_username}
                     </Link>
-                    <span className="text-subtle text-xs">{r.context === 'as_executor' ? '· как исполнитель' : '· как заказчик'}</span>
                     <span className="text-subtle text-xs ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                   </div>
-                  {r.comment && <p className="text-[13.5px] text-[#e6e1f7] leading-relaxed">{r.comment}</p>}
+                  {r.text && <p className="text-[13.5px] text-[#e6e1f7] leading-relaxed">{r.text}</p>}
                 </GlassCard>
               ))}
             </div>

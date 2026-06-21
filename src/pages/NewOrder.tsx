@@ -34,7 +34,7 @@ export default function NewOrder() {
 
   useEffect(() => {
     apiCall('GET', '/listings/categories')
-      .then(data => setCategories(Array.isArray(data) ? data.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
       .catch(() => {})
   }, [])
   const [baseAmount, setBaseAmount] = useState('')

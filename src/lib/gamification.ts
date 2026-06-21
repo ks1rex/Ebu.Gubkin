@@ -3,15 +3,15 @@ export const LEVEL_NAMES = [
   'Профессионал', 'Наставник', 'Легенда курса', 'Легенда факультета', 'Легенда Губкинского',
 ]
 
-// ponytail: no threshold table exists server-side (profiles.level/reputation are
-// plain stored columns) — picked a reasonable curve client-side for the progress
-// bar. If /profile/:id/public ever returns current_threshold/next_threshold,
-// levelProgress() below prefers those instead.
-const LEVEL_THRESHOLDS = [0, 0, 100, 300, 600, 1000, 1500, 2500, 4000, 6000, 10000]
+// Mirrors backend/src/utils/reputation.js LEVEL_THRESHOLDS exactly — keep in sync.
+const LEVEL_THRESHOLDS = [0, 0, 200, 500, 1000, 2000, 3500, 5500, 8500, 12500, 18000]
 
-export function levelProgress(level: number, reputation: number, apiCurrent?: number, apiNext?: number) {
-  const current = apiCurrent ?? LEVEL_THRESHOLDS[level] ?? 0
-  const next = apiNext ?? LEVEL_THRESHOLDS[level + 1]
+// nextLevelReputation comes straight from GET /profile/:id/public (computed
+// server-side by the same table) — pass it through; the local table is only
+// a fallback if that field is ever missing.
+export function levelProgress(level: number, reputation: number, nextLevelReputation?: number | null) {
+  const current = LEVEL_THRESHOLDS[level] ?? 0
+  const next = nextLevelReputation !== undefined ? nextLevelReputation : LEVEL_THRESHOLDS[level + 1]
   if (next == null) return null // max level
   const pct = Math.max(0, Math.min(100, ((reputation - current) / (next - current)) * 100))
   return { pct, remaining: Math.max(0, next - reputation) }

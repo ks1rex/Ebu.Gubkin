@@ -42,7 +42,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
 
   useEffect(() => {
     apiCall('GET', '/listings/categories')
-      .then(data => setCategories(Array.isArray(data) ? data.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
       .catch(() => {})
   }, [])
 
