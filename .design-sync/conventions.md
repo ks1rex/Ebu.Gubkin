@@ -27,13 +27,11 @@ button: `bg-accent hover:bg-accent-hover text-white rounded-md`. Icons are
 `useLocation`) need a `<MemoryRouter>` (or `<BrowserRouter>` in a real app)
 ancestor — without it they throw. Several components (`Navbar`,
 `AdminRoute`, `ProtectedRoute`, `ChatWindow`, `Layout`, `CreateThreadModal`,
-`ReportModal`, `BuyTokensModal`) also call `useAuth()`, which requires a
-real `AuthProvider` backed by a live Supabase session — these are NOT
-mocked in this sync (it would mean either real network calls from every
-preview or hand-authoring fake auth state) and show the floor card here.
-Treat their `.d.ts` as the real API contract, but expect to compose new UI
-from `Modal`, `Spinner`, `StarRating`, `EmptyState`, `GostLayout`, and
-`MarketLayout`, which render standalone.
+`ReportModal`, `BuyTokensModal`) also call `useAuth()`, which requires an
+`AuthContext` value — in a real app that's the live `AuthProvider`
+(Supabase session); these previews render with a static fake admin user
+instead (see `.design-sync/auth-preview.tsx`), so all 14 components render
+for real here, not just the auth-free ones.
 
 **Where the truth lives.** `_ds_bundle.css` (imported by `styles.css`) is
 the compiled Tailwind output — read it for the full generated utility
