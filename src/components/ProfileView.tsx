@@ -5,8 +5,9 @@ import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
 import Spinner from './Spinner'
+import Modal from './Modal'
 import { GlassCard, Avatar, Stars } from './glass'
-import { LEVEL_NAMES, levelProgress, ACHIEVEMENTS } from '../lib/gamification'
+import { LEVEL_NAMES, LEVEL_THRESHOLDS, levelProgress, ACHIEVEMENTS } from '../lib/gamification'
 
 // Matches GET /profile/:id/public's recent_activity — shape differs by type
 // (see reshbirga backend/src/routes/profile.js).
@@ -74,6 +75,8 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
   const [reviews, setReviews]   = useState<Review[] | null>(null)
   const [services, setServices] = useState<Service[] | null>(null)
   const [tabLoading, setTabLoading] = useState(false)
+  const [openAchievement, setOpenAchievement] = useState<string | null>(null)
+  const [levelModalOpen, setLevelModalOpen] = useState(false)
 
   useEffect(() => {
     if (tab === 'reviews' && reviews === null) {
@@ -135,20 +138,22 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           </GlassCard>
 
           {profile.level != null && (
-            <GlassCard className="rounded-[18px] p-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-ink">Уровень {profile.level} — {LEVEL_NAMES[profile.level] ?? ''}</span>
-                <span className="text-xs text-subtle">{profile.reputation ?? 0} репутации</span>
-              </div>
-              {progress && (
-                <>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
-                  </div>
-                  <div className="text-xs text-subtle mt-1.5">ещё {progress.remaining} репутации до следующего уровня</div>
-                </>
-              )}
-            </GlassCard>
+            <button onClick={() => setLevelModalOpen(true)} className="block w-full text-left">
+              <GlassCard hover className="rounded-[18px] p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-ink">Уровень {profile.level} — {LEVEL_NAMES[profile.level] ?? ''}</span>
+                  <span className="text-xs text-subtle">{profile.reputation ?? 0} репутации</span>
+                </div>
+                {progress && (
+                  <>
+                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
+                    </div>
+                    <div className="text-xs text-subtle mt-1.5">ещё {progress.remaining} репутации до следующего уровня</div>
+                  </>
+                )}
+              </GlassCard>
+            </button>
           )}
 
           <div className="grid grid-cols-2 gap-3.5">
@@ -194,15 +199,16 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 {Object.entries(ACHIEVEMENTS).map(([type, a]) => {
                   const unlocked = profile.achievements!.some(x => x.type === type)
                   return (
-                    <div
+                    <button
                       key={type}
+                      onClick={() => setOpenAchievement(type)}
                       title={a.name}
-                      className={`aspect-square rounded-[14px] grid place-items-center text-xl border border-white/[.1] ${
+                      className={`aspect-square rounded-[14px] grid place-items-center text-xl border border-white/[.1] transition-colors hover:bg-white/[.15] ${
                         unlocked ? 'bg-white/[.1]' : 'bg-white/[.03] grayscale opacity-35'
                       }`}
                     >
                       {a.emoji}
-                    </div>
+                    </button>
                   )
                 })}
               </div>
@@ -287,6 +293,72 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
       )}
         </div>
       </div>
+
+      {/* Achievement detail modal */}
+      {openAchievement && ACHIEVEMENTS[openAchievement] && (() => {
+        const a = ACHIEVEMENTS[openAchievement]
+        const unlocked = profile.achievements?.some(x => x.type === openAchievement) ?? false
+        const current = a.statKey ? (profile[a.statKey] ?? 0) : null
+        return (
+          <Modal open onClose={() => setOpenAchievement(null)} title={`${a.emoji} ${a.name}`}>
+            <p className="text-sm text-ink leading-relaxed mb-4">{a.desc}</p>
+            {a.target != null && current != null ? (
+              <>
+                <div className="h-2 rounded-full bg-panel overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${unlocked ? 'bg-success' : 'bg-accent'}`}
+                    style={{ width: `${Math.min(100, (current / a.target) * 100)}%` }}
+                  />
+                </div>
+                <div className="text-xs text-subtle mt-1.5">
+                  Прогресс: {Math.min(current, a.target)} / {a.target}
+                </div>
+              </>
+            ) : (
+              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${
+                unlocked ? 'bg-success/10 text-success' : 'bg-panel text-subtle'
+              }`}>
+                {unlocked ? 'Получено' : 'Пока не получено'}
+              </span>
+            )}
+          </Modal>
+        )
+      })()}
+
+      {/* Level detail modal */}
+      {levelModalOpen && profile.level != null && (
+        <Modal open onClose={() => setLevelModalOpen(false)} title={`Уровень ${profile.level} — ${LEVEL_NAMES[profile.level] ?? ''}`}>
+          <p className="text-sm text-subtle mb-3">Текущая репутация: <span className="text-ink font-medium">{profile.reputation ?? 0}</span></p>
+          {progress && (
+            <>
+              <div className="h-2 rounded-full bg-panel overflow-hidden">
+                <div className="h-full bg-accent rounded-full" style={{ width: `${progress.pct}%` }} />
+              </div>
+              <div className="text-xs text-subtle mt-1.5 mb-4">ещё {progress.remaining} репутации до следующего уровня</div>
+            </>
+          )}
+          <div className="text-xs text-subtle uppercase tracking-wide font-semibold mb-2 mt-2">Все уровни</div>
+          <div className="space-y-1 max-h-64 overflow-y-auto">
+            {LEVEL_NAMES.slice(1).map((name, i) => {
+              const lvl = i + 1
+              const threshold = LEVEL_THRESHOLDS[lvl]
+              const achieved = (profile.reputation ?? 0) >= threshold
+              const isCurrent = lvl === profile.level
+              return (
+                <div
+                  key={lvl}
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-sm ${isCurrent ? 'bg-accent-subtle' : ''}`}
+                >
+                  <span className={isCurrent ? 'text-accent font-semibold' : achieved ? 'text-ink' : 'text-subtle'}>
+                    {lvl}. {name}
+                  </span>
+                  <span className="text-xs text-subtle">{threshold}+ репутации</span>
+                </div>
+              )
+            })}
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }

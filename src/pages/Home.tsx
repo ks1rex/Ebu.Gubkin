@@ -37,7 +37,7 @@ interface ListingPreview {
   owner: { nickname: string | null; avatar_url: string | null } | null
 }
 
-interface Leader { id: string; nickname: string | null; avatar_url: string | null; reputation: number }
+interface Leader { id: string; nickname: string | null; avatar_url: string | null; reputation: number; weekly_reputation: number }
 interface CategoryStub { id: string; name: string; threads_count: number }
 
 export default function Home() {
@@ -248,7 +248,7 @@ export default function Home() {
                     <span className="w-5 text-sm font-bold text-subtle shrink-0">{i + 1}</span>
                     <Avatar name={l.nickname} src={l.avatar_url} size={32} radius={10} className="text-xs" />
                     <span className="text-sm text-ink flex-1 truncate">{l.nickname}</span>
-                    <span className="text-xs font-semibold text-mint shrink-0">{l.reputation}</span>
+                    <span className="text-xs font-semibold text-mint shrink-0">+{l.weekly_reputation} за неделю</span>
                   </Link>
                 ))}
               </div>
