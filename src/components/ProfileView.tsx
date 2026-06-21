@@ -136,10 +136,13 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
       )}
 
       {profile.skills && profile.skills.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {profile.skills.map(s => (
-            <span key={s} className="text-xs text-lav bg-white/[.08] border border-white/[.1] rounded-lg px-2.5 py-1.5">{s}</span>
-          ))}
+        <div className="mb-4">
+          <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold mb-2.5">Навыки</div>
+          <div className="flex flex-wrap gap-2">
+            {profile.skills.map(s => (
+              <span key={s} className="text-xs text-lav bg-white/[.08] border border-white/[.1] rounded-lg px-2.5 py-1.5">{s}</span>
+            ))}
+          </div>
         </div>
       )}
 
@@ -165,7 +168,13 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
         </GlassCard>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mb-4">
+        {profile.reputation != null && (
+          <GlassCard className="rounded-[18px] p-5">
+            <b className="block text-2xl font-bold tracking-[-.5px] text-lav">{profile.reputation}</b>
+            <span className="text-xs text-subtle">репутация</span>
+          </GlassCard>
+        )}
         <GlassCard className="rounded-[18px] p-5">
           <b className="block text-2xl font-bold tracking-[-.5px] text-mint">{execRating > 0 ? execRating.toFixed(1) : '—'}</b>
           <span className="text-xs text-subtle">рейтинг исполнителя</span>
