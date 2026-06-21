@@ -126,10 +126,19 @@ export default function Support() {
           <Loader2 className="animate-spin text-subtle" size={24} />
         </div>
       ) : tickets.length === 0 ? (
-        <div className="bg-surface border border-line rounded-xl p-12 text-center">
-          <MessageCircle size={32} className="mx-auto text-subtle mb-3" />
-          <p className="text-ink font-medium mb-1">Тикетов пока нет</p>
-          <p className="text-sm text-subtle">Если у вас возникли вопросы — создайте тикет</p>
+        <div className="flex flex-col items-center gap-4 py-12">
+          <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center">
+            <MessageCircle className="w-10 h-10 text-purple-400" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-ink font-semibold text-lg">Тикетов пока нет</h3>
+            <p className="text-subtle mt-1">Если у вас возникли вопросы — создайте тикет</p>
+          </div>
+          <button onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors">
+            <Plus size={15} />
+            Создать тикет
+          </button>
         </div>
       ) : (
         <div className="bg-surface border border-line rounded-xl divide-y divide-line overflow-hidden">

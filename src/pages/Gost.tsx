@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, ChangeEvent, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Coins, Key, Upload, CheckCircle2, Loader2, AlertCircle,
-  FileText, Download, RotateCcw, ChevronDown, MessageSquare,
+  FileText, Download, RotateCcw, ChevronDown, MessageSquare, Infinity,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -87,11 +87,14 @@ function TokenPanel({
   }
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-5 mb-6">
+    <div
+      className="border border-line border-l-4 border-l-purple-500 rounded-2xl p-5 mb-6"
+      style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(255,255,255,0.03) 100%)' }}
+    >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-subtle flex items-center justify-center">
-            <Coins size={20} className="text-accent" />
+          <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+            {unlimited ? <Infinity size={20} className="text-purple-400" /> : <Coins size={20} className="text-purple-400" />}
           </div>
           <div>
             {loading ? (
