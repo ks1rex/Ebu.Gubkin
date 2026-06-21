@@ -14,7 +14,7 @@ const API = import.meta.env.VITE_BACKEND_URL as string
 const EMOJIS = ['👍', '👎', '😂', '🔥'] as const
 type Emoji = typeof EMOJIS[number]
 
-interface Author { id: string; nickname: string | null; avatar_url: string | null }
+interface Author { id: string; nickname: string | null; avatar_url: string | null; level?: number }
 
 interface Reaction { id: string; user_id: string; emoji: string }
 
@@ -111,6 +111,9 @@ function PostCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
           <span className="font-semibold text-[15px] text-ink">{post.author?.nickname ?? 'Аноним'}</span>
+          {post.author?.level != null && (
+            <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md text-lav bg-white/[.08]">Ур. {post.author.level}</span>
+          )}
           {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-[#08221c] bg-gold">Автор</span>}
           {post.moderation_status === 'flagged' && isAdmin && (
             <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>

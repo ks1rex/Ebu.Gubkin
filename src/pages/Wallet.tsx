@@ -5,6 +5,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
+import { apiCall } from '../lib/api'
 import Modal from '../components/Modal'
 import BuyTokensModal from '../components/Gost/BuyTokensModal'
 import { GlassCard, Button, Chip } from '../components/glass'
@@ -56,6 +57,45 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 const INPUT = 'w-full px-3 py-2.5 rounded-[12px] border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-lav/30 focus:border-lav/40 transition-colors'
+
+// ─── Money chart (hand-rolled SVG — recharts isn't an installed dep) ──────────
+
+interface ChartPoint { month: string; income: number; expense: number }
+
+function MoneyChart({ points }: { points: ChartPoint[] }) {
+  const W = 600, H = 140, pad = 8
+  const max = Math.max(1, ...points.flatMap(p => [p.income, p.expense]))
+  const x = (i: number) => pad + (i / Math.max(1, points.length - 1)) * (W - pad * 2)
+  const y = (v: number) => H - pad - (v / max) * (H - pad * 2)
+  const line = (key: 'income' | 'expense') =>
+    points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(p[key])}`).join(' ')
+  const area = (key: 'income' | 'expense') =>
+    `${line(key)} L ${x(points.length - 1)} ${H - pad} L ${x(0)} ${H - pad} Z`
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-32">
+        <path d={area('income')} fill="#4ade80" opacity={0.15} />
+        <path d={area('expense')} fill="#f87171" opacity={0.15} />
+        <path d={line('income')} fill="none" stroke="#4ade80" strokeWidth={2} />
+        <path d={line('expense')} fill="none" stroke="#f87171" strokeWidth={2} />
+        {points.map((p, i) => (
+          <g key={p.month}>
+            <circle cx={x(i)} cy={y(p.income)} r={6} fill="transparent"><title>{p.month}: +{p.income.toLocaleString('ru-RU')} ₽</title></circle>
+            <circle cx={x(i)} cy={y(p.expense)} r={6} fill="transparent"><title>{p.month}: −{p.expense.toLocaleString('ru-RU')} ₽</title></circle>
+          </g>
+        ))}
+      </svg>
+      <div className="flex justify-between text-[11px] text-subtle mt-1.5">
+        {points.map(p => <span key={p.month}>{p.month}</span>)}
+      </div>
+      <div className="flex items-center gap-4 text-xs text-subtle mt-2">
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#4ade80]" /> доходы</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#f87171]" /> расходы</span>
+      </div>
+    </div>
+  )
+}
 
 // ─── Transaction row ──────────────────────────────────────────────────────────
 
@@ -275,6 +315,8 @@ export default function Wallet() {
   const [unlimited, setUnlimited]       = useState(false)
   const [buyTokensOpen, setBuyTokensOpen] = useState(false)
 
+  const [chart, setChart] = useState<ChartPoint[]>([])
+
   const token = session?.access_token ?? null
 
   useEffect(() => {
@@ -282,6 +324,7 @@ export default function Wallet() {
     fetchBalance()
     fetchTransactions(0, true)
     fetchInstructions()
+    apiCall('GET', '/wallet/chart').then(d => setChart(Array.isArray(d) ? d : [])).catch(() => setChart([]))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
@@ -439,6 +482,16 @@ export default function Wallet() {
               </div>
             </GlassCard>
           )}
+
+          {/* Движение средств */}
+          <GlassCard className="rounded-[20px] p-5 mb-4">
+            <h3 className="text-sm font-semibold text-ink mb-4">Движение средств</h3>
+            {chart.every(p => p.income === 0 && p.expense === 0) ? (
+              <p className="text-sm text-subtle text-center py-6">Пока нет движения средств</p>
+            ) : (
+              <MoneyChart points={chart} />
+            )}
+          </GlassCard>
 
           {/* История операций */}
           <div className="flex items-center mb-3.5">

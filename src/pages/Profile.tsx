@@ -1,4 +1,4 @@
-import { useState, useRef, ChangeEvent } from 'react'
+import { useState, useRef, ChangeEvent, KeyboardEvent } from 'react'
 import { User, Mail, Phone, AtSign, Users, MessageCircle, Edit3, Save, X } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -65,6 +65,8 @@ interface FormState {
   phone: string
   telegram_username: string
   university_group: string
+  bio: string
+  skills: string[]
 }
 
 const INPUT = 'w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors'
@@ -77,7 +79,8 @@ export default function Profile() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [editing, setEditing]           = useState(false)
-  const [form, setForm]                 = useState<FormState>({ full_name: '', phone: '', telegram_username: '', university_group: '' })
+  const [form, setForm]                 = useState<FormState>({ full_name: '', phone: '', telegram_username: '', university_group: '', bio: '', skills: [] })
+  const [skillInput, setSkillInput]     = useState('')
   const [avatarFile, setAvatarFile]     = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [saving, setSaving]             = useState(false)
@@ -96,10 +99,26 @@ export default function Profile() {
       phone:             profile!.phone             ?? '',
       telegram_username: profile!.telegram_username ?? '',
       university_group:  profile!.university_group  ?? '',
+      bio:               profile!.bio               ?? '',
+      skills:            profile!.skills             ?? [],
     })
+    setSkillInput('')
     setAvatarFile(null)
     setAvatarPreview(null)
     setEditing(true)
+  }
+
+  function addSkill(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    const s = skillInput.trim()
+    if (!s || form.skills.includes(s)) { setSkillInput(''); return }
+    setForm(f => ({ ...f, skills: [...f.skills, s] }))
+    setSkillInput('')
+  }
+
+  function removeSkill(s: string) {
+    setForm(f => ({ ...f, skills: f.skills.filter(x => x !== s) }))
   }
 
   function handleAvatarPick(e: ChangeEvent<HTMLInputElement>) {
@@ -118,6 +137,7 @@ export default function Profile() {
     if (!form.full_name.trim()) return 'Введите имя'
     if (form.phone && !isValidPhone(form.phone)) return 'Некорректный формат телефона'
     if (form.telegram_username && !form.telegram_username.startsWith('@')) return 'Telegram должен начинаться с @'
+    if (form.bio.length > 300) return 'О себе — не больше 300 символов'
     return null
   }
 
@@ -143,6 +163,8 @@ export default function Profile() {
           phone:             form.phone                    || null,
           telegram_username: form.telegram_username        || null,
           university_group:  form.university_group.trim()  || null,
+          bio:               form.bio.trim()                || null,
+          skills:            form.skills,
           avatar_url,
           updated_at: new Date().toISOString(),
         })
@@ -240,6 +262,20 @@ export default function Profile() {
           </div>
         )}
 
+        {/* ── О себе / навыки ── */}
+        {!editing && (profile.bio || (profile.skills && profile.skills.length > 0)) && (
+          <div className="px-6 py-4 border-b border-line space-y-3">
+            {profile.bio && <p className="text-sm text-ink leading-relaxed">{profile.bio}</p>}
+            {profile.skills && profile.skills.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map(s => (
+                  <span key={s} className="text-xs text-accent bg-accent-subtle rounded-lg px-2.5 py-1">{s}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Режим просмотра ── */}
         {!editing && (
           <div className="divide-y divide-line">
@@ -313,6 +349,40 @@ export default function Profile() {
                 value={form.university_group}
                 onChange={e => setForm(f => ({ ...f, university_group: e.target.value }))}
                 placeholder="ИВТ-21-1"
+                className={INPUT}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1">О себе</label>
+              <textarea
+                value={form.bio}
+                onChange={e => setForm(f => ({ ...f, bio: e.target.value.slice(0, 300) }))}
+                placeholder="Пара слов о себе..."
+                rows={3}
+                className={`${INPUT} resize-none`}
+              />
+              <p className="text-xs text-subtle mt-1">{form.bio.length}/300</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1">Навыки</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {form.skills.map(s => (
+                  <span key={s} className="flex items-center gap-1 text-xs text-accent bg-accent-subtle rounded-lg px-2.5 py-1">
+                    {s}
+                    <button type="button" onClick={() => removeSkill(s)} className="hover:text-error transition-colors">
+                      <X size={11} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={skillInput}
+                onChange={e => setSkillInput(e.target.value)}
+                onKeyDown={addSkill}
+                placeholder="Введите навык и нажмите Enter"
                 className={INPUT}
               />
             </div>

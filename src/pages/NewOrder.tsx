@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Upload, X, Eye, Lock, AlertCircle } from 'lucide-react'
 import { apiCall } from '../lib/api'
@@ -29,6 +29,14 @@ export default function NewOrder() {
   const [title, setTitle]       = useState('')
   const [description, setDescription] = useState('')
   const [subject, setSubject]   = useState('')
+  const [category, setCategory] = useState('')
+  const [categories, setCategories] = useState<string[]>([])
+
+  useEffect(() => {
+    apiCall('GET', '/listings/categories')
+      .then(data => setCategories(Array.isArray(data) ? data.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .catch(() => {})
+  }, [])
   const [baseAmount, setBaseAmount] = useState('')
   const [files, setFiles]       = useState<FileItem[]>([])
   const [dragOver, setDragOver] = useState(false)
@@ -66,7 +74,7 @@ export default function NewOrder() {
     try {
       const order = await apiCall('POST', '/orders', {
         title: title.trim(), description: description.trim(), subject: subject.trim(),
-        order_type: 'order', base_amount: amount,
+        order_type: 'order', base_amount: amount, category: category || undefined,
       })
       for (const { file, visibility } of files) {
         const fd = new FormData()
@@ -122,6 +130,16 @@ export default function NewOrder() {
             <div style={S.hint}>Исполнитель может предложить другую цену</div>
           </div>
         </div>
+
+        {categories.length > 0 && (
+          <div style={S.section}>
+            <label style={S.label}>Категория</label>
+            <select style={S.input} value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="">Не выбрана</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        )}
 
         {amount > 0 && (
           <div style={{ background: insufficient ? '#1f0808' : '#0d2620', border: `1px solid ${insufficient ? '#ef4444' : '#0e8a7d'}`, borderRadius: 8, padding: '14px 16px', marginBottom: '1.5rem' }}>

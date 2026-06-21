@@ -4,7 +4,7 @@ import { Search, Star, Shield } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/format'
-import { GlassCard, Button, Avatar, Stars, gradientFor } from '../components/glass'
+import { GlassCard, Button, Chip, Avatar, Stars, gradientFor } from '../components/glass'
 
 const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7dd3fc', '#fbbf24']
 function catColor(seed: string) {
@@ -22,6 +22,7 @@ interface Order {
   customer: { nickname: string | null; avatar_url?: string | null } | null
   customer_id: string
   already_applied?: boolean
+  category?: string | null
 }
 
 interface Listing {
@@ -30,6 +31,7 @@ interface Listing {
   price: number
   deposit_amount: number | null
   owner: { nickname: string | null; rating_as_executor?: number | string | null } | null
+  category?: string | null
 }
 
 export default function Market() {
@@ -41,6 +43,8 @@ export default function Market() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading]   = useState(true)
   const [pendingReviews, setPendingReviews] = useState<any[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [category, setCategory] = useState<string>('all')
 
   const loadOrders = useCallback(async (q: string) => {
     setLoading(true)
@@ -74,6 +78,15 @@ export default function Market() {
       .then(data => setPendingReviews(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [user])
+
+  useEffect(() => {
+    apiCall('GET', '/listings/categories')
+      .then(data => setCategories(Array.isArray(data) ? data.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .catch(() => {})
+  }, [])
+
+  const visibleOrders   = category === 'all' ? orders   : orders.filter(o => o.category === category)
+  const visibleListings = category === 'all' ? listings : listings.filter(l => l.category === category)
 
   return (
     <div>
@@ -143,6 +156,15 @@ export default function Market() {
         )}
       </div>
 
+      {categories.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <Chip active={category === 'all'} onClick={() => setCategory('all')}>Все</Chip>
+          {categories.map(c => (
+            <Chip key={c} active={category === c} onClick={() => setCategory(c)}>{c}</Chip>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5">
         {/* Grid */}
         <div>
@@ -153,11 +175,11 @@ export default function Market() {
               ))}
             </div>
           ) : mode === 'orders' ? (
-            orders.length === 0 ? (
+            visibleOrders.length === 0 ? (
               <GlassCard className="rounded-[20px] py-10 text-center text-subtle text-sm">Заказов не найдено</GlassCard>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {orders.map(order => {
+                {visibleOrders.map(order => {
                   const isOwner = order.customer_id === user?.id
                   const isNew = Date.now() - new Date(order.created_at).getTime() < 86_400_000
                   return (
@@ -187,11 +209,11 @@ export default function Market() {
                 })}
               </div>
             )
-          ) : listings.length === 0 ? (
+          ) : visibleListings.length === 0 ? (
             <GlassCard className="rounded-[20px] py-10 text-center text-subtle text-sm">Услуг не найдено</GlassCard>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {listings.map(l => {
+              {visibleListings.map(l => {
                 const rating = parseFloat(String(l.owner?.rating_as_executor ?? 0))
                 return (
                   <Link key={l.id} to={`/market/services/${l.id}`}>

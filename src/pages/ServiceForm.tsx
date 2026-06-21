@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { formatCurrency } from '../lib/format'
+import { apiCall } from '../lib/api'
 
 const S: Record<string, any> = {
   page: { maxWidth: 680, margin: '0 auto' },
@@ -36,6 +37,14 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
   const [price, setPrice] = useState(initial.price ?? '')
   const [hasDeposit, setHasDeposit] = useState(parseFloat(initial.deposit_amount ?? 0) > 0)
   const [depositAmt, setDepositAmt] = useState(initial.deposit_amount ?? '')
+  const [category, setCategory] = useState(initial.category ?? '')
+  const [categories, setCategories] = useState<string[]>([])
+
+  useEffect(() => {
+    apiCall('GET', '/listings/categories')
+      .then(data => setCategories(Array.isArray(data) ? data.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .catch(() => {})
+  }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,6 +52,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
       title: formTitle, description,
       price: parseFloat(String(price)),
       deposit_amount: hasDeposit ? parseFloat(String(depositAmt) || '0') : 0,
+      category: category || undefined,
     })
   }
 
@@ -75,6 +85,16 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
             <div style={{ color: '#64748b', fontSize: '0.82rem', paddingTop: 10 }}>{amt > 0 ? formatCurrency(amt) : '—'}</div>
           </div>
         </div>
+
+        {categories.length > 0 && (
+          <div style={S.section}>
+            <label style={S.label}>Категория</label>
+            <select style={S.input} value={category} onChange={e => setCategory(e.target.value)}>
+              <option value="">Не выбрана</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        )}
 
         <div style={S.section}>
           <div style={S.checkRow}>

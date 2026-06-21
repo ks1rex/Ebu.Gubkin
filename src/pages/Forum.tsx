@@ -7,9 +7,13 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
+import { apiCall } from '../lib/api'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
+import { GlassCard, Avatar } from '../components/glass'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
+
+interface LeaderboardEntry { id: string; nickname: string | null; avatar_url: string | null; reputation: number }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ICONS: Record<string, any> = {
@@ -61,6 +65,7 @@ export default function Forum() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading,    setLoading]    = useState(true)
   const [showCreate, setShowCreate] = useState(false)
+  const [leaders,    setLeaders]    = useState<LeaderboardEntry[]>([])
 
   useEffect(() => {
     fetch(`${API}/forum/categories`)
@@ -70,13 +75,19 @@ export default function Forum() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    apiCall('GET', '/profile/leaderboard')
+      .then(data => setLeaders(Array.isArray(data) ? data.slice(0, 4) : []))
+      .catch(() => {})
+  }, [])
+
   function openCreate() {
     if (!user) { showToast('Войдите, чтобы создать обсуждение', 'error'); return }
     setShowCreate(true)
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
+    <div className="max-w-5xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-ink">Форум</h1>
@@ -89,6 +100,8 @@ export default function Forum() {
         </button>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
+      <div>
       <div className="space-y-3">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} />)
@@ -141,6 +154,24 @@ export default function Forum() {
       {!loading && categories.length === 0 && (
         <div className="text-center py-16 text-subtle">Категории ещё не созданы</div>
       )}
+      </div>
+
+      {leaders.length > 0 && (
+        <GlassCard className="rounded-[20px] p-5">
+          <h3 className="text-sm font-semibold text-ink mb-3.5">🏆 Топ студентов</h3>
+          <div className="flex flex-col gap-3">
+            {leaders.map((l, i) => (
+              <Link key={l.id} to={`/market/users/${l.id}`} className="flex items-center gap-2.5">
+                <span className="w-5 text-sm font-bold text-subtle shrink-0">{i + 1}</span>
+                <Avatar name={l.nickname} src={l.avatar_url} size={32} radius={10} className="text-xs" />
+                <span className="text-sm text-ink flex-1 truncate">{l.nickname}</span>
+                <span className="text-xs font-semibold text-mint shrink-0">{l.reputation}</span>
+              </Link>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+      </div>
 
       {showCreate && session && (
         <CreateThreadModal
