@@ -301,10 +301,10 @@ function UploadForm({ token, onStart }: {
       {/* Mode selector */}
       <div>
         <label className="block text-sm font-medium text-ink mb-2">Режим генерации</label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {([ ['universal', 'Универсальный'], ['fixed_template', 'По шаблону'], ['custom_template', 'Мой файл'] ] as const).map(([m, lbl]) => (
             <button key={m} type="button" onClick={() => setMode(m)}
-              className={`px-3 py-2.5 text-sm font-medium rounded-xl border transition-colors ${
+              className={`px-3 py-2.5 text-sm font-medium rounded-xl border transition-colors whitespace-nowrap ${
                 mode === m
                   ? 'bg-accent text-white border-accent'
                   : 'bg-canvas border-line text-ink hover:border-accent/50 hover:bg-accent-subtle/20'

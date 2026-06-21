@@ -123,7 +123,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 mt-2 p-3 rounded-[20px] bg-surface border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45)]">
+        <div className="md:hidden absolute top-full left-0 right-0 mt-2 p-3 rounded-[20px] bg-[#241551]/95 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.6)]">
           <nav className="flex flex-col gap-1">
             {items.map(({ label, to }) => (
               <NavLink

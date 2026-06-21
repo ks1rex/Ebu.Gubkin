@@ -41,7 +41,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-[calc(100vh-56px)]">
-      {/* Sidebar — desktop only; mobile uses the icon grid on the dashboard page */}
+      {/* Sidebar — desktop only; mobile uses the icon grid in <main> below */}
       <aside
         className={`hidden lg:flex shrink-0 bg-surface border-r border-line flex-col py-4 transition-all duration-200 ${
           collapsed ? 'w-14' : 'w-52'
@@ -85,6 +85,29 @@ export default function AdminLayout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto p-6">
+        {/* Mobile section grid — replaces the sidebar nav below lg, shown on every admin page */}
+        <div className="grid grid-cols-4 gap-3 lg:hidden mb-6">
+          {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className="flex flex-col items-center gap-1 p-3 bg-surface border border-line rounded-xl hover:bg-accent-subtle transition-colors text-center"
+            >
+              {({ isActive }) => (
+                <>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                    isActive ? 'bg-accent' : 'bg-accent-subtle'
+                  }`}>
+                    <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-accent'}`} />
+                  </div>
+                  <span className={`text-xs leading-tight ${isActive ? 'text-ink font-medium' : 'text-subtle'}`}>{label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+
         <Outlet />
       </main>
     </div>

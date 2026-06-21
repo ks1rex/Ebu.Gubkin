@@ -109,20 +109,23 @@ export default function Support() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Поддержка</h1>
-          <p className="text-sm text-subtle mt-0.5">Создайте тикет — администратор ответит в ближайшее время</p>
-        </div>
-        <button onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors">
-          <Plus size={15} />
-          Новый тикет
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-ink">Поддержка</h1>
+        <p className="text-sm text-subtle mt-0.5">Создайте тикет — администратор ответит в ближайшее время</p>
       </div>
 
       <div className="lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 lg:items-start">
         <div>
+          {!loading && tickets.length > 0 && (
+            <div className="flex justify-end mb-3">
+              <button onClick={() => setModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors">
+                <Plus size={15} />
+                Новый тикет
+              </button>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="animate-spin text-subtle" size={24} />
@@ -186,7 +189,7 @@ export default function Support() {
             <li>Общайтесь в чате до решения вопроса</li>
           </ol>
           <p className="text-xs text-subtle mt-4 pt-4 border-t border-line">
-            Среднее время ответа: обычно до 2 часов
+            Среднее время ответа ~ 30 минут
           </p>
         </div>
       </div>

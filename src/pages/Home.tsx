@@ -7,7 +7,7 @@ import { formatCurrency } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
 import { GlassCard, Button, Avatar } from '../components/glass'
 
-const logoHorizontal = `${import.meta.env.BASE_URL}logo-horizontal.png`
+const logoMark = `${import.meta.env.BASE_URL}logo-mark.png`
 
 interface Stats { users_count: number; threads_count: number; orders_count: number; total_paid: number }
 
@@ -69,15 +69,19 @@ export default function Home() {
   return (
     <div>
       {/* Hero */}
-      <div className="text-center max-w-2xl mx-auto mb-10">
-        <img src={logoHorizontal} alt="Ebu.Gubkin" className="h-12 mx-auto mb-5 object-contain" />
-        <div className="text-xs tracking-[2px] text-subtle font-semibold uppercase mb-4">
-          Студенческая платформа Губкинского университета
+      <div className="max-w-2xl mx-auto mb-10 text-center">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 mb-5">
+          <img src={logoMark} alt="Ebu.Gubkin" className="w-28 h-28 sm:w-20 sm:h-20 shrink-0 object-contain" />
+          <div className="text-center sm:text-left">
+            <div className="text-xs tracking-[2px] text-subtle font-semibold uppercase mb-2">
+              Студенческая платформа Губкинского университета
+            </div>
+            <h1 className="text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-1px]">
+              <span className="text-ink">Вся студжизнь Губки —</span><br />
+              <span className="bg-gradient-to-r from-[#7c3aed] to-pink bg-clip-text text-transparent">в одном месте</span>
+            </h1>
+          </div>
         </div>
-        <h1 className="text-[40px] leading-[1.1] font-bold tracking-[-1px] mb-4">
-          <span className="text-ink">Вся студжизнь Губки —</span><br />
-          <span className="bg-gradient-to-r from-[#7c3aed] to-pink bg-clip-text text-transparent">в одном месте</span>
-        </h1>
         <p className="text-subtle text-[15px] leading-relaxed mb-7 max-w-md mx-auto">
           Форум, биржа подработок, оформление документов по ГОСТ и кошелёк. Без официоза — для своих.
         </p>
@@ -98,8 +102,8 @@ export default function Home() {
           <span className="text-xs text-subtle">тем на форуме</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-5 text-center">
-          <b className="block text-2xl font-bold text-gold">{stats ? formatCurrency(stats.total_paid) : '—'}</b>
-          <span className="text-xs text-subtle">выплачено на бирже</span>
+          <b className="block text-2xl font-bold text-mint">{stats?.orders_count ?? '—'}</b>
+          <span className="text-xs text-subtle">заказов на бирже</span>
         </GlassCard>
       </div>
 
