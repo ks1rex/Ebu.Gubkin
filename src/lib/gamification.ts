@@ -39,7 +39,7 @@ export const ACHIEVEMENTS: Record<string, AchievementDef> = {
   posts_200:        { emoji: '🏆', name: 'Старожил форума',       desc: 'Напишите 200 постов на форуме', target: 200, statKey: 'forum_posts_count' },
   popular_thread:   { emoji: '📣', name: 'Популярная тема',       desc: 'Создайте тему, набравшую 500+ просмотров' },
   viral_thread:     { emoji: '🚀', name: 'Вирусная тема',         desc: 'Создайте тему, набравшую 2000+ просмотров' },
-  early_bird:       { emoji: '🌅', name: 'Первопроходец',         desc: 'Будьте одним из первых пользователей платформы' },
+  first_order:      { emoji: '🛒', name: 'Первый заказ',          desc: 'Создайте первый заказ на бирже как заказчик' },
   gost_master:      { emoji: '📄', name: 'Мастер ГОСТа',          desc: 'Сгенерируйте несколько работ в ГОСТ-калькуляторе' },
   wallet_top:       { emoji: '💰', name: 'Меценат',               desc: 'Пополните баланс кошелька на крупную сумму' },
   referrer:         { emoji: '👥', name: 'Амбассадор',            desc: 'Пригласите друга по реферальной ссылке' },
