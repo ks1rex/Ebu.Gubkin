@@ -95,7 +95,7 @@ export default function OrderDetail() {
     setDlLoading(att.id)
     try {
       const { url } = await apiCall('GET', `/orders/${id}/attachments/${att.id}/download`)
-      window.open(url, '_blank')
+      window.open(url, '_blank', 'noopener')
     } catch (e: any) { toast(e.message, 'error') }
     finally { setDlLoading(null) }
   }

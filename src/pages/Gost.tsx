@@ -547,7 +547,7 @@ function RecentProjects({ userId, fallback }: { userId: string; fallback?: React
               {p.output_docx_path && (
                 <button onClick={async () => {
                   const url = await getDownloadUrl(p.output_docx_path!, 'outputs')
-                  if (url) window.open(url, '_blank')
+                  if (url) window.open(url, '_blank', 'noopener')
                 }} className="p-1.5 rounded-lg text-subtle hover:text-accent hover:bg-accent-subtle transition-colors" title="Скачать DOCX">
                   <Download size={13} />
                 </button>

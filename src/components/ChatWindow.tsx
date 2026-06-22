@@ -107,7 +107,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   async function handleDownload(msg: any, att: any) {
     try {
       const { url } = await apiCall('GET', `/conversations/${conversationId}/messages/${msg.id}/attachments/${att.id}/download`)
-      window.open(url, '_blank')
+      window.open(url, '_blank', 'noopener')
     } catch (e: any) {
       toast(e.message, 'error')
     }
