@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ebu.Gubkin — 3 направления редизайна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Sora:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#f0eee9;}
+  *{-webkit-font-smoothing:antialiased;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- direction partials (plain JS, assign to window.DIR_*) -->
+<script src="directions/cyber.js"></script>
+<script src="directions/glass.js"></script>
+<script src="directions/bento.js"></script>
+
+<!-- design canvas (JSX) -->
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+// inject each direction's CSS once
+function useDirectionCss() {
+  React.useEffect(() => {
+    [window.DIR_CYBER, window.DIR_GLASS, window.DIR_BENTO].forEach((d, i) => {
+      const id = 'dir-css-' + i;
+      if (!document.getElementById(id)) {
+        const s = document.createElement('style');
+        s.id = id; s.textContent = d.css;
+        document.head.appendChild(s);
+      }
+    });
+  }, []);
+}
+
+function Frame({ dir }) {
+  return <div style={{width:'100%'}} dangerouslySetInnerHTML={{__html: dir.html}} />;
+}
+
+const W = 1320, H = 1320;
+
+function App() {
+  useDirectionCss();
+  return (
+    <DesignCanvas>
+      <DCSection id="forum" title="Ebu.Gubkin · Форум" subtitle="3 направления главной страницы + шапки">
+        <DCArtboard id="cyber" label="1 · Cyberpunk / неон" width={W} height={H}>
+          <Frame dir={window.DIR_CYBER} />
+        </DCArtboard>
+        <DCArtboard id="glass" label="2 · Градиент + glassmorphism" width={W} height={H}>
+          <Frame dir={window.DIR_GLASS} />
+        </DCArtboard>
+        <DCArtboard id="bento" label="3 · Bento / молодёжный (мой выбор)" width={W} height={H}>
+          <Frame dir={window.DIR_BENTO} />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

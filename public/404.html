@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ebu.Gubkin</title>
+  <script>
+    // Store the full URL so index.html can restore it via history.replaceState.
+    // This makes React Router work on GitHub Pages (sub-path deployment).
+    sessionStorage.redirect = location.href;
+    location.replace(
+      location.protocol + '//' + location.host +
+      '/' + location.pathname.split('/')[1] + '/'
+    );
+  </script>
+</head>
+<body></body>
+</html>

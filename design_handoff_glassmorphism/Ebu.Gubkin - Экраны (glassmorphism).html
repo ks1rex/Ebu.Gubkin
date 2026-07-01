@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ebu.Gubkin — экраны (glassmorphism)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#f0eee9;}
+  *{-webkit-font-smoothing:antialiased;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- shared glass kit + screens (plain JS) -->
+<script src="directions/glass-kit.js"></script>
+<script src="directions/screen-thread.js"></script>
+<script src="directions/screen-market.js"></script>
+<script src="directions/screen-profile.js"></script>
+<script src="directions/screen-wallet.js"></script>
+
+<!-- design canvas (JSX) -->
+<script type="text/babel" src="design-canvas.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard } = window;
+
+function useGlassCss() {
+  React.useEffect(() => {
+    const blocks = [
+      ['glass-base', window.GLASS.css],
+      ['scr-thread', window.SCR_THREAD.css],
+      ['scr-market', window.SCR_MARKET.css],
+      ['scr-profile', window.SCR_PROFILE.css],
+      ['scr-wallet', window.SCR_WALLET.css],
+    ];
+    blocks.forEach(([id, css]) => {
+      if (!document.getElementById(id)) {
+        const s = document.createElement('style');
+        s.id = id; s.textContent = css;
+        document.head.appendChild(s);
+      }
+    });
+  }, []);
+}
+
+function Frame({ scr }) {
+  return <div style={{width:'100%'}} dangerouslySetInnerHTML={{__html: scr.html}} />;
+}
+
+const W = 1320;
+
+function App() {
+  useGlassCss();
+  return (
+    <DesignCanvas>
+      <DCSection id="screens" title="Ebu.Gubkin · экраны" subtitle="Glassmorphism — единый фиолетово-градиентный стиль">
+        <DCArtboard id="thread" label="1 · Тема на форуме" width={W} height={1540}>
+          <Frame scr={window.SCR_THREAD} />
+        </DCArtboard>
+        <DCArtboard id="market" label="2 · Биржа — заказы и услуги" width={W} height={1560}>
+          <Frame scr={window.SCR_MARKET} />
+        </DCArtboard>
+        <DCArtboard id="profile" label="3 · Профиль пользователя" width={W} height={1420}>
+          <Frame scr={window.SCR_PROFILE} />
+        </DCArtboard>
+        <DCArtboard id="wallet" label="4 · Кошелёк" width={W} height={1520}>
+          <Frame scr={window.SCR_WALLET} />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
