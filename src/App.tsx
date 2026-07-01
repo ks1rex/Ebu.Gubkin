@@ -90,8 +90,8 @@ export default function App() {
             </Route>
             <Route path="gost" element={<GostLayout />}>
               <Route index element={<Gost />} />
+              <Route path="chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             </Route>
-            <Route path="gost/chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="login"           element={<Login />} />

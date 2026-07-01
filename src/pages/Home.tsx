@@ -6,6 +6,7 @@ import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
 import { GlassCard, Button, Avatar } from '../components/glass'
+import { useGostFrozenModal } from '../components/GostFrozenNotice'
 
 const logoMark = `${import.meta.env.BASE_URL}logo-mark.png`
 
@@ -42,6 +43,8 @@ interface CategoryStub { id: string; name: string; threads_count: number }
 
 export default function Home() {
   const { user, profile } = useAuth()
+  const { openGostFrozenModal, gostFrozenModal } = useGostFrozenModal()
+  const gostFrozen = !profile?.is_admin
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [feedMode, setFeedMode] = useState<'forum' | 'market'>('forum')
@@ -135,19 +138,35 @@ export default function Home() {
             </div>
           </GlassCard>
         </Link>
-        <Link to="/gost">
-          <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
-            <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
-              <FileText size={20} className="text-gold" />
-            </div>
-            <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
-            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">AI-генерация документов по ГОСТ с автоформатированием</p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-subtle">от 1 токена</span>
-              <ArrowRight size={15} className="text-gold" />
-            </div>
-          </GlassCard>
-        </Link>
+        {gostFrozen ? (
+          <button type="button" onClick={openGostFrozenModal} className="text-left cursor-default">
+            <GlassCard className="rounded-[20px] p-6 h-full flex flex-col opacity-50">
+              <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
+                <FileText size={20} className="text-gold" />
+              </div>
+              <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
+              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">AI-генерация документов по ГОСТ с автоформатированием</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-subtle">от 1 токена</span>
+                <ArrowRight size={15} className="text-gold" />
+              </div>
+            </GlassCard>
+          </button>
+        ) : (
+          <Link to="/gost">
+            <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
+              <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
+                <FileText size={20} className="text-gold" />
+              </div>
+              <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
+              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">AI-генерация документов по ГОСТ с автоформатированием</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-subtle">от 1 токена</span>
+                <ArrowRight size={15} className="text-gold" />
+              </div>
+            </GlassCard>
+          </Link>
+        )}
         <Link to="/wallet">
           <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
             <div className="w-11 h-11 rounded-[13px] bg-pink/[.15] flex items-center justify-center mb-4">
@@ -236,7 +255,11 @@ export default function Home() {
             <p className="text-[13px] text-subtle leading-relaxed mb-4">
               Загрузи задание, оформим по ГОСТ за пару минут. Списывай токены — не нервы.
             </p>
-            <Button to="/gost" variant="pri" className="w-full justify-center">Открыть ГОСТ-калькулятор →</Button>
+            {gostFrozen ? (
+              <Button variant="pri" className="w-full justify-center opacity-50 cursor-default" onClick={openGostFrozenModal}>Открыть ГОСТ-калькулятор →</Button>
+            ) : (
+              <Button to="/gost" variant="pri" className="w-full justify-center">Открыть ГОСТ-калькулятор →</Button>
+            )}
           </GlassCard>
 
           {leaders.length > 0 && (
@@ -273,6 +296,7 @@ export default function Home() {
           )}
         </div>
       </div>
+      {gostFrozenModal}
     </div>
   )
 }
