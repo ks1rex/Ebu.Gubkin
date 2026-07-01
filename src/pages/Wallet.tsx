@@ -1,14 +1,59 @@
 import { useState, useEffect, FormEvent } from 'react'
 import {
-  ArrowDownCircle, ArrowUpCircle, Copy, Plus, Minus, ChevronDown, Gift, Coins,
+  ArrowDownCircle, ArrowUpCircle, Copy, Plus, Minus, ChevronDown, Gift, Coins, Crown,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
 import { apiCall } from '../lib/api'
+import { formatDate } from '../lib/format'
 import Modal from '../components/Modal'
 import BuyTokensModal from '../components/Gost/BuyTokensModal'
 import { GlassCard, Button, Chip } from '../components/glass'
+
+// ─── VIP purchase confirm (one-off modal, pattern follows useGostFrozenModal) ─
+
+type VipPlan = 'month' | 'year'
+const VIP_PLAN_META: Record<VipPlan, { label: string; price: number }> = {
+  month: { label: 'Месяц', price: 300 },
+  year:  { label: 'Год',   price: 1500 },
+}
+
+function useVipPurchaseModal(onPurchased: () => void) {
+  const toast = useToast()
+  const [plan, setPlan] = useState<VipPlan | null>(null)
+  const [buying, setBuying] = useState(false)
+
+  async function confirm() {
+    if (!plan || buying) return
+    setBuying(true)
+    try {
+      await apiCall('POST', '/wallet/vip', { plan })
+      toast('VIP-статус активирован', 'success')
+      onPurchased()
+      setPlan(null)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Не удалось оформить VIP'
+      toast(message, 'error')
+    } finally {
+      setBuying(false)
+    }
+  }
+
+  const modal = plan && (
+    <Modal open={!!plan} onClose={() => !buying && setPlan(null)} title="Оформление VIP">
+      <p className="text-sm text-subtle leading-relaxed mb-4">
+        Оформить VIP «{VIP_PLAN_META[plan].label}» за {VIP_PLAN_META[plan].price.toLocaleString('ru-RU')} ₽?
+        Сумма спишется с баланса кошелька.
+      </p>
+      <Button variant="mint" disabled={buying} onClick={confirm} className="w-full justify-center">
+        {buying ? 'Оформляем...' : 'Подтвердить'}
+      </Button>
+    </Modal>
+  )
+
+  return { openVipPurchase: (p: VipPlan) => setPlan(p), vipPurchaseModal: modal }
+}
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -293,8 +338,9 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
 type TxFilter = 'all' | 'in' | 'out'
 
 export default function Wallet() {
-  const { user, session, profile } = useAuth()
+  const { user, session, profile, isVip, refreshProfile } = useAuth()
   const toast = useToast()
+  const { openVipPurchase, vipPurchaseModal } = useVipPurchaseModal(refreshProfile)
 
   const [balance, setBalance]           = useState<number | null>(null)
   const [balanceLoading, setBalanceLoading] = useState(true)
@@ -544,6 +590,24 @@ export default function Wallet() {
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
           <GlassCard className="rounded-[20px] p-5">
+            <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink"><Crown size={16} className="text-gold" /> VIP-статус</h3>
+            {isVip ? (
+              <p className="text-sm text-subtle">
+                Активен до <span className="text-ink font-medium">{formatDate(profile?.vip_expires_at)}</span>
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Button variant="mint" onClick={() => openVipPurchase('month')} className="w-full justify-center">
+                  Месяц — 300 ₽
+                </Button>
+                <Button variant="ghost" onClick={() => openVipPurchase('year')} className="w-full justify-center">
+                  Год — 1500 ₽
+                </Button>
+              </div>
+            )}
+          </GlassCard>
+
+          <GlassCard className="rounded-[20px] p-5">
             <h3 className="text-sm font-semibold mb-1 flex items-center gap-2 text-ink">◈ ГОСТ-токены</h3>
             <p className="text-xs text-subtle mb-4">Курс 1 ₮ = {tokenPrice} ₽ · списывается с баланса</p>
             <div className="flex items-center gap-3 mb-4">
@@ -576,6 +640,7 @@ export default function Wallet() {
         </div>
       </div>
 
+      {vipPurchaseModal}
       <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)}  instructions={instructions} />
       <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} maxAmount={currentBalance}  />
       {buyTokensOpen && token && (

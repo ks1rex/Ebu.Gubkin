@@ -20,6 +20,7 @@ export interface Profile {
   referral_qualifying_deposits_count: number | null
   bio: string | null
   skills: string[] | null
+  vip_expires_at: string | null
 }
 
 interface AuthContextValue {
@@ -27,6 +28,7 @@ interface AuthContextValue {
   user: User | null
   profile: Profile | null
   loading: boolean
+  isVip: boolean
   signUp: (email: string, password: string, nickname: string, refCode?: string | null) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
@@ -44,7 +46,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
       balance, token_balance, is_admin,
       referral_code, referral_earnings,
       referral_registered_count, referral_qualifying_deposits_count,
-      bio, skills
+      bio, skills, vip_expires_at
     `)
     .eq('id', userId)
     .single()
@@ -113,8 +115,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) setProfile(await loadProfile(user.id))
   }
 
+  const isVip = profile?.vip_expires_at != null && new Date(profile.vip_expires_at) > new Date()
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, isVip, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
