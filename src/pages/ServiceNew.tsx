@@ -7,15 +7,16 @@ export default function ServiceNew() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [errorCode, setErrorCode] = useState('')
 
   async function handleSubmit(data: any) {
-    setError(''); setLoading(true)
+    setError(''); setErrorCode(''); setLoading(true)
     try {
       const listing = await apiCall('POST', '/listings', data)
       navigate(`/market/services/${listing.id}`)
-    } catch (e: any) { setError(e.message) }
+    } catch (e: any) { setError(e.message); setErrorCode(e.data?.code ?? '') }
     finally { setLoading(false) }
   }
 
-  return <ServiceForm title="Новая услуга" onSubmit={handleSubmit} loading={loading} error={error} cancelTo="/market/services/mine" />
+  return <ServiceForm title="Новая услуга" onSubmit={handleSubmit} loading={loading} error={error} errorCode={errorCode} cancelTo="/market/services/mine" />
 }

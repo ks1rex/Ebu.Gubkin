@@ -27,11 +27,12 @@ interface Props {
   onSubmit: (data: any) => void
   loading: boolean
   error: string
+  errorCode?: string
   title: string
   cancelTo?: string
 }
 
-export default function ServiceForm({ initial = {}, onSubmit, loading, error, title, cancelTo = '/services/mine' }: Props) {
+export default function ServiceForm({ initial = {}, onSubmit, loading, error, errorCode, title, cancelTo = '/services/mine' }: Props) {
   const [formTitle, setFormTitle] = useState(initial.title ?? '')
   const [description, setDescription] = useState(initial.description ?? '')
   const [price, setPrice] = useState(initial.price ?? '')
@@ -63,7 +64,15 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, ti
     <div style={S.page}>
       <div style={S.h1}>{title}</div>
       <form onSubmit={handleSubmit}>
-        {error && <div style={S.err}><AlertCircle size={16} />{error}</div>}
+        {error && (
+          <div style={S.err}>
+            <AlertCircle size={16} />
+            <span>
+              {error}
+              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Купите VIP — до 10 объявлений</Link></>}
+            </span>
+          </div>
+        )}
 
         <div style={S.section}>
           <label style={S.label}>Заголовок услуги</label>

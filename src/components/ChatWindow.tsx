@@ -28,7 +28,10 @@ const S: Record<string, any> = {
   attachBtn: { background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '10px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', flexShrink: 0 },
   readonlyBanner: { textAlign: 'center', padding: '10px', color: '#64748b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
   sendErr: { color: '#f87171', fontSize: '0.82rem' },
+  lockedBanner: { textAlign: 'center', padding: '10px', color: '#f59e0b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
 }
+
+const CHAT_VIP_LOCK_CODE = 'VIP_EXPIRED_CHAT_LOCKED'
 
 interface Props {
   conversationId: string
@@ -45,6 +48,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   const [files, setFiles] = useState<File[]>([])
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
+  const [chatLocked, setChatLocked] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -98,7 +102,8 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
       atBottomRef.current = true
       await loadMessages()
     } catch (e: any) {
-      setSendError(e.message)
+      if (e.data?.code === CHAT_VIP_LOCK_CODE) setChatLocked(true)
+      else setSendError(e.message)
     } finally {
       setSending(false)
     }
@@ -157,6 +162,18 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
 
       {readOnly ? (
         <div style={S.readonlyBanner}>Просмотр переписки — только чтение</div>
+      ) : chatLocked ? (
+        <div style={S.inputArea}>
+          <div style={S.inputRow}>
+            <textarea style={{ ...S.textarea, opacity: 0.5, cursor: 'not-allowed' }} disabled rows={1} />
+            <button style={{ background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '10px 14px', color: '#64748b', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, flexShrink: 0, fontSize: '0.88rem' }} disabled>
+              <Send size={15} />Отправить
+            </button>
+          </div>
+          <div style={S.lockedBanner}>
+            Чат заблокирован до продления VIP · <Link to="/wallet" style={{ color: '#14a89a' }}>Продлить VIP</Link>
+          </div>
+        </div>
       ) : (
         <div style={S.inputArea}>
           {files.length > 0 && (

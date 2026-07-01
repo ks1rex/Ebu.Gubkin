@@ -41,6 +41,7 @@ export default function NewOrder() {
   const [files, setFiles]       = useState<FileItem[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [error, setError]       = useState('')
+  const [errorCode, setErrorCode] = useState('')
   const [loading, setLoading]   = useState(false)
 
   const amount = parseFloat(baseAmount) || 0
@@ -66,6 +67,7 @@ export default function NewOrder() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setErrorCode('')
     if (!title.trim()) return setError('Введите заголовок')
     if (!description.trim()) return setError('Введите описание')
     if (!subject.trim()) return setError('Введите предмет')
@@ -84,6 +86,7 @@ export default function NewOrder() {
       }
       navigate(`/market/orders/${order.id}`)
     } catch (err: any) {
+      setErrorCode(err.data?.code ?? '')
       if (err.data?.error === 'insufficient_balance') {
         setError(`Недостаточно средств. Нужно ${formatCurrency(err.data.required)}, на балансе ${formatCurrency(err.data.balance)}.`)
       } else {
@@ -105,6 +108,7 @@ export default function NewOrder() {
               {error}
               {error.includes('заблокирован') && <> · <Link to="/support" style={{ color: '#14a89a' }}>Написать в поддержку</Link></>}
               {error.includes('средств') && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Пополнить кошелёк</Link></>}
+              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Купите VIP — до 10 объявлений</Link></>}
             </span>
           </div>
         )}
