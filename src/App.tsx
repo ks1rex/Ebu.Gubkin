@@ -50,6 +50,7 @@ import ServiceEdit      from './pages/ServiceEdit'
 import ServicesMine     from './pages/ServicesMine'
 import UserProfile      from './pages/UserProfile'
 import GostChat         from './pages/GostChat'
+import Schedule         from './pages/Schedule'
 
 function NotFound() {
   return (
@@ -88,6 +89,7 @@ export default function App() {
               <Route path="services/:id/edit"        element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
               <Route path="users/:id"                element={<UserProfile />} />
             </Route>
+            <Route path="schedule" element={<Schedule />} />
             <Route path="gost" element={<GostLayout />}>
               <Route index element={<Gost />} />
               <Route path="chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />

@@ -10,6 +10,7 @@ const logoMark = `${import.meta.env.BASE_URL}logo-mark.png`
 const NAV_ITEMS_PUBLIC = [
   { label: 'Форум',            to: '/forum'  },
   { label: 'Биржа',            to: '/market' },
+  { label: 'Расписание',       to: '/schedule' },
   { label: 'ГОСТ-калькулятор', to: '/gost', frozen: true },
 ]
 
