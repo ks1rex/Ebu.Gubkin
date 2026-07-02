@@ -17,6 +17,7 @@ import {
   ShieldAlert,
   LifeBuoy,
   FileText,
+  CalendarClock,
 } from 'lucide-react'
 
 export const NAV_ITEMS = [
@@ -27,6 +28,7 @@ export const NAV_ITEMS = [
   { to: '/admin/disputes',       icon: Scale,           label: 'Споры' },
   { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
   { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны' },
+  { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания' },
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
   { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
   { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },

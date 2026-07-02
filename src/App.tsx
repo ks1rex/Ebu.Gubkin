@@ -21,6 +21,7 @@ import AdminLayout        from './pages/Admin'
 import AdminDashboard     from './pages/Admin/Dashboard'
 import AdminFinance       from './pages/Admin/Finance'
 import AdminDeposits      from './pages/Admin/Deposits'
+import AdminScheduleWarmup from './pages/Admin/ScheduleWarmup'
 import AdminWithdrawals   from './pages/Admin/Withdrawals'
 import AdminDisputes      from './pages/Admin/Disputes'
 import AdminForumMod      from './pages/Admin/ForumMod'
@@ -114,6 +115,7 @@ export default function App() {
               <Route path="chat-mod"         element={<AdminChatMod />} />
               <Route path="support"          element={<AdminSupport />} />
               <Route path="gost"             element={<AdminGostTemplates />} />
+              <Route path="schedule-warmup"  element={<AdminScheduleWarmup />} />
               <Route path="ledger"           element={<AdminLedger />} />
               <Route path="users"            element={<AdminUsers />} />
               <Route path="settings"         element={<AdminSettings />} />
