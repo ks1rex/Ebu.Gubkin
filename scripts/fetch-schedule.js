@@ -3,27 +3,49 @@ const SERVICE_KEY = process.env.SERVICE_SCHEDULE_KEY
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY
 
-// Список популярных групп для прекеша
-// (берём из schedule_cache по last_accessed)
-async function getPopularGroups() {
-  const res = await fetch(
+// Все группы всех факультетов, читаем из кеша, который только что
+// заполнил prefetch-meta (был замкнутый круг: раньше список групп для
+// прогрева брался из уже закешированных schedule_* ключей, а те
+// появляются только после прогрева — на старте кеш пуст и ничего
+// никогда не прогревалось).
+async function getAllGroups() {
+  // 1. Получаем все факультеты из кеша
+  const facRes = await fetch(
     `${SUPABASE_URL}/rest/v1/schedule_cache` +
-    `?cache_key=like.schedule_*` +
-    `&order=last_accessed.desc&limit=20`,
-    {
-      headers: {
+    `?cache_key=eq.faculties`,
+    { headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }}
+  )
+  const facRows = await facRes.json()
+  if (!facRows.length) {
+    console.log('No faculties in cache yet, skipping groups')
+    return []
+  }
+
+  const faculties = facRows[0].data
+  const allGroups = []
+
+  // 2. Для каждого факультета берём группы из кеша
+  for (const faculty of faculties) {
+    const grpRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/schedule_cache` +
+      `?cache_key=eq.groups_${faculty.id}`,
+      { headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
+      }}
+    )
+    const grpRows = await grpRes.json()
+    if (grpRows.length) {
+      const groups = grpRows[0].data
+      allGroups.push(...groups.map(g => g.id))
     }
-  )
-  const rows = await res.json()
-  // Извлекаем groupId из cache_key вида
-  // "schedule_9206_29-6-2026"
-  return [...new Set(
-    rows.map(r => r.cache_key.split('_')[1])
-       .filter(Boolean)
-  )]
+  }
+
+  console.log(`Total groups to prefetch: ${allGroups.length}`)
+  return allGroups
 }
 
 // Текущая и следующая неделя
@@ -68,7 +90,10 @@ async function main() {
     headers: {'X-Service-Key': SERVICE_KEY}
   })
 
-  const groups = await getPopularGroups()
+  // Небольшая пауза чтобы кеш записался
+  await new Promise(r => setTimeout(r, 2000))
+
+  const groups = await getAllGroups()
   const dates = getWeekDates()
 
   console.log(`Groups: ${groups.length}, Dates: ${dates}`)
