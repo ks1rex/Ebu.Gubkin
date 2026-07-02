@@ -121,7 +121,7 @@ export default function AdminSupport() {
           )}
         </div>
 
-        <ChatWindow conversationId={selected.id} readOnly={isClosed} />
+        <ChatWindow conversationId={selected.id} readOnly={isClosed} adminMode />
       </div>
     )
   }

@@ -27,13 +27,48 @@ interface CategoryForm {
 
 const EMPTY_FORM: CategoryForm = { name: '', description: '', icon_name: '', sort_order: '0' }
 
-const ADMIN_SETTING_KEYS = [
-  { key: 'gost_token_price',       label: 'Цена ГОСТ-токена (₽)',          type: 'number' },
-  { key: 'deposit_commission_pct', label: 'Комиссия с пополнения (%)',      type: 'number' },
-  { key: 'referral_bonus_pct',     label: 'Реферальный бонус (%)',          type: 'number' },
-  { key: 'referral_max_count',     label: 'Макс. реф. бонусов (шт.)',       type: 'number' },
-  { key: 'referral_min_amount',    label: 'Мин. сумма для реф. бонуса (₽)', type: 'number' },
-] as const
+interface AdminSettingKey {
+  key: string
+  label: string
+  type: 'number'
+}
+
+const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
+  {
+    title: 'Общее',
+    keys: [
+      { key: 'gost_token_price',    label: 'Цена ГОСТ-токена (₽)',          type: 'number' },
+      { key: 'referral_bonus_pct',  label: 'Реферальный бонус (%)',          type: 'number' },
+      { key: 'referral_max_count',  label: 'Макс. реф. бонусов (шт.)',       type: 'number' },
+      { key: 'referral_min_amount', label: 'Мин. сумма для реф. бонуса (₽)', type: 'number' },
+    ],
+  },
+  {
+    title: 'Вывод средств',
+    keys: [
+      { key: 'withdrawal_commission_pct', label: 'Комиссия с вывода (%)', type: 'number' },
+    ],
+  },
+  {
+    title: 'VIP',
+    keys: [
+      { key: 'vip_price_month',         label: 'Цена VIP на месяц (₽)', type: 'number' },
+      { key: 'vip_price_year',          label: 'Цена VIP на год (₽)', type: 'number' },
+      { key: 'vip_duration_month_days', label: 'Длительность месячного VIP (дней)', type: 'number' },
+      { key: 'vip_duration_year_days',  label: 'Длительность годового VIP (дней)', type: 'number' },
+      { key: 'vip_token_discount_pct',  label: 'Скидка VIP на ГОСТ-токены (%)', type: 'number' },
+    ],
+  },
+  {
+    title: 'Лимиты объявлений',
+    keys: [
+      { key: 'listing_limit_base', label: 'Лимит объявлений (без VIP)', type: 'number' },
+      { key: 'listing_limit_vip',  label: 'Лимит объявлений (с VIP)', type: 'number' },
+    ],
+  },
+]
+
+const ADMIN_SETTING_KEYS = ADMIN_SETTING_GROUPS.flatMap(g => g.keys)
 
 export default function AdminSettings() {
   const { session } = useAuth()
@@ -238,29 +273,32 @@ export default function AdminSettings() {
       </section>
 
       {/* Section 2: Platform parameters */}
-      <section className="space-y-3">
+      <section className="space-y-5">
         <h2 className="text-base font-semibold text-ink border-b border-line pb-2">Параметры платформы</h2>
-        <div className="space-y-3">
-          {ADMIN_SETTING_KEYS.map(({ key, label }) => (
-            <div key={key} className="flex items-center gap-3">
-              <label className="text-sm text-subtle w-48 shrink-0">{label}</label>
-              <input
-                type="number"
-                value={adminValues[key] ?? ''}
-                onChange={e => setAdminValues(v => ({ ...v, [key]: e.target.value }))}
-                className="w-32 border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
-              />
-              <button
-                onClick={() => saveAdminSetting(key)}
-                disabled={savingKey === key}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
-              >
-                {savingKey === key ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                Сохранить
-              </button>
-            </div>
-          ))}
-        </div>
+        {ADMIN_SETTING_GROUPS.map(group => (
+          <div key={group.title} className="space-y-3">
+            <h3 className="text-sm font-medium text-subtle">{group.title}</h3>
+            {group.keys.map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-3">
+                <label className="text-sm text-subtle w-56 shrink-0">{label}</label>
+                <input
+                  type="number"
+                  value={adminValues[key] ?? ''}
+                  onChange={e => setAdminValues(v => ({ ...v, [key]: e.target.value }))}
+                  className="w-32 border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
+                />
+                <button
+                  onClick={() => saveAdminSetting(key)}
+                  disabled={savingKey === key}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                >
+                  {savingKey === key ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                  Сохранить
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
       </section>
 
       {/* Section 3: Forum categories */}

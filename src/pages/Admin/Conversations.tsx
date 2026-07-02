@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Search, ChevronLeft, ChevronRight, MessageSquare, LifeBuoy } from 'lucide-react'
+import { Loader2, Search, ChevronLeft, ChevronRight, MessageSquare, LifeBuoy, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
+import ChatWindow from '../../components/ChatWindow'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -34,6 +35,7 @@ export default function AdminConversations() {
   const [convs, setConvs] = useState<Conversation[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState<Conversation | null>(null)
 
   const [page,   setPage]   = useState(1)
   const [search, setSearch] = useState('')
@@ -64,6 +66,39 @@ export default function AdminConversations() {
   useEffect(() => { fetchConvs(1) }, [token])
 
   const totalPages = Math.ceil(total / LIMIT)
+
+  if (selected) {
+    const isOrder = selected.type === 'order_chat'
+    const title = isOrder ? selected.orders?.title : selected.support_tickets?.subject
+    const nicks = (selected.conversation_participants ?? [])
+      .map(p => p.profiles?.nickname)
+      .filter(Boolean)
+      .join(', ')
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
+        <div style={{ marginBottom: 12 }}>
+          <button
+            onClick={() => setSelected(null)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 6, padding: 0 }}
+          >
+            <ArrowLeft size={14} /> Все чаты
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>
+              {title ?? 'Без названия'}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isOrder ? 'bg-accent-subtle text-accent' : 'bg-panel text-subtle'}`}>
+              {isOrder ? 'Заказ' : 'Поддержка'}
+            </span>
+          </div>
+          {nicks && <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: 2 }}>Участники: {nicks}</p>}
+        </div>
+
+        <ChatWindow conversationId={selected.id} adminMode />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -109,7 +144,11 @@ export default function AdminConversations() {
                 .join(', ')
 
               return (
-                <div key={c.id} className="flex items-center gap-4 px-4 py-3">
+                <button
+                  key={c.id}
+                  onClick={() => setSelected(c)}
+                  className="w-full flex items-center gap-4 px-4 py-3 hover:bg-panel/50 transition-colors text-left"
+                >
                   <div className="w-8 h-8 rounded-full bg-panel flex items-center justify-center shrink-0">
                     {isOrder
                       ? <MessageSquare size={15} className="text-accent" />
@@ -135,7 +174,7 @@ export default function AdminConversations() {
                       <p className="text-xs text-subtle">{c.message_count} сообщ.</p>
                     )}
                   </div>
-                </div>
+                </button>
               )
             })}
           </div>

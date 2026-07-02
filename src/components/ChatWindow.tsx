@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Paperclip, Send, Download, X } from 'lucide-react'
+import { Paperclip, Send, Download, X, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { useToast } from '../contexts/ToastContext'
+import VipName from './VipBadge'
 
 const S: Record<string, any> = {
   wrap: { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 },
@@ -29,6 +30,8 @@ const S: Record<string, any> = {
   readonlyBanner: { textAlign: 'center', padding: '10px', color: '#64748b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
   sendErr: { color: '#f87171', fontSize: '0.82rem' },
   lockedBanner: { textAlign: 'center', padding: '10px', color: '#f59e0b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
+  adminBubble: { background: '#2a2010', border: '1px solid #f5c451' },
+  adminBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, color: '#f5c451', fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 },
 }
 
 const CHAT_VIP_LOCK_CODE = 'VIP_EXPIRED_CHAT_LOCKED'
@@ -37,9 +40,11 @@ interface Props {
   conversationId: string
   readOnly?: boolean
   pollInterval?: number
+  /** Admin panel mode: reads/sends via /admin/conversations/:id/messages (no file uploads there). */
+  adminMode?: boolean
 }
 
-export default function ChatWindow({ conversationId, readOnly = false, pollInterval = 5000 }: Props) {
+export default function ChatWindow({ conversationId, readOnly = false, pollInterval = 5000, adminMode = false }: Props) {
   const { user } = useAuth()
   const toast = useToast()
   const [messages, setMessages] = useState<any[]>([])
@@ -54,13 +59,15 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   const fileInputRef = useRef<HTMLInputElement>(null)
   const atBottomRef = useRef(true)
 
+  const basePath = adminMode ? `/admin/conversations/${conversationId}/messages` : `/conversations/${conversationId}/messages`
+
   const loadMessages = useCallback(async () => {
     if (!conversationId) return
     try {
-      const data = await apiCall('GET', `/conversations/${conversationId}/messages?limit=100`)
+      const data = await apiCall('GET', `${basePath}?limit=100`)
       setMessages(data ?? [])
     } catch {}
-  }, [conversationId])
+  }, [conversationId, basePath])
 
   useEffect(() => {
     if (!conversationId) return
@@ -93,10 +100,14 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
     setSending(true)
     setSendError('')
     try {
-      const form = new FormData()
-      form.append('content', text || ' ')
-      for (const f of files) form.append('files', f)
-      await apiCall('POST', `/conversations/${conversationId}/messages`, form)
+      if (adminMode) {
+        await apiCall('POST', basePath, { content: text })
+      } else {
+        const form = new FormData()
+        form.append('content', text || ' ')
+        for (const f of files) form.append('files', f)
+        await apiCall('POST', basePath, form)
+      }
       setText('')
       setFiles([])
       atBottomRef.current = true
@@ -138,9 +149,16 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
         )}
         {messages.map(msg => {
           const isOwn = msg.sender_id === user?.id
+          const bubbleStyle = msg.is_admin_message
+            ? { ...(isOwn ? S.ownBubble : S.otherBubble), ...S.adminBubble }
+            : (isOwn ? S.ownBubble : S.otherBubble)
           return (
-            <div key={msg.id} style={isOwn ? S.ownBubble : S.otherBubble}>
-              {!isOwn && <div style={S.senderName}>{msg.sender?.nickname ?? 'Пользователь'}</div>}
+            <div key={msg.id} style={bubbleStyle}>
+              {msg.is_admin_message ? (
+                <div style={S.adminBadge}><ShieldCheck size={11} />Администратор</div>
+              ) : (
+                !isOwn && <div style={S.senderName}><VipName name={msg.sender?.nickname ?? 'Пользователь'} isVip={msg.sender?.is_vip} badgeSize="sm" /></div>
+              )}
               <div style={S.msgText}>{msg.content}</div>
               {msg.message_attachments?.map((att: any) => (
                 <div key={att.id} style={S.attRow}>
@@ -176,7 +194,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
         </div>
       ) : (
         <div style={S.inputArea}>
-          {files.length > 0 && (
+          {!adminMode && files.length > 0 && (
             <div style={S.filesPreview}>
               {files.map((f, i) => (
                 <div key={i} style={S.fileChip}>
@@ -189,10 +207,12 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             </div>
           )}
           <div style={S.inputRow}>
-            <input type="file" multiple ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
-            <button style={S.attachBtn} onClick={() => fileInputRef.current?.click()} title="Прикрепить файл">
-              <Paperclip size={16} />
-            </button>
+            {!adminMode && <input type="file" multiple ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />}
+            {!adminMode && (
+              <button style={S.attachBtn} onClick={() => fileInputRef.current?.click()} title="Прикрепить файл">
+                <Paperclip size={16} />
+              </button>
+            )}
             <textarea
               style={S.textarea}
               placeholder="Напишите сообщение... (Enter — отправить, Shift+Enter — перенос)"
