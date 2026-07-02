@@ -7,12 +7,13 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
+import VipName from '../components/VipBadge'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
 type Sort = 'activity' | 'date' | 'popular'
 
-interface Author { id: string; nickname: string | null; avatar_url: string | null }
+interface Author { id: string; nickname: string | null; avatar_url: string | null; is_vip?: boolean }
 
 interface Thread {
   id: string
@@ -57,7 +58,7 @@ function ThreadCard({ t }: { t: Thread }) {
 
           {/* Meta */}
           <div className="mt-1 flex items-center gap-3 text-xs text-subtle flex-wrap">
-            <span>{t.author?.nickname ?? 'Аноним'} · {timeAgo(t.created_at)}</span>
+            <span><VipName name={t.author?.nickname ?? 'Аноним'} isVip={t.author?.is_vip} badgeSize="sm" /> · {timeAgo(t.created_at)}</span>
             <span className="flex items-center gap-1"><MessageSquare size={11} />{t.posts_count}</span>
             <span className="flex items-center gap-1"><Eye size={11} />{t.views_count}</span>
           </div>

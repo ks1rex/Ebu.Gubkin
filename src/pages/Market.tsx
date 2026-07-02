@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/format'
 import { GlassCard, Button, Chip, Avatar, Stars, gradientFor } from '../components/glass'
+import VipName from '../components/VipBadge'
 
 const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7dd3fc', '#fbbf24']
 function catColor(seed: string) {
@@ -19,7 +20,7 @@ interface Order {
   subject: string
   base_amount: number
   created_at: string
-  customer: { nickname: string | null; avatar_url?: string | null } | null
+  customer: { nickname: string | null; avatar_url?: string | null; is_vip?: boolean } | null
   customer_id: string
   already_applied?: boolean
   category?: string | null
@@ -30,7 +31,7 @@ interface Listing {
   title: string
   price: number
   deposit_amount: number | null
-  owner: { nickname: string | null; rating_as_executor?: number | string | null } | null
+  owner: { nickname: string | null; rating_as_executor?: number | string | null; is_vip?: boolean } | null
   category?: string | null
 }
 
@@ -194,8 +195,8 @@ export default function Market() {
                         <h4 className="text-base font-semibold leading-snug mb-2 text-ink">{order.title}</h4>
                         <div className="text-xs text-subtle mb-4">{formatDate(order.created_at)}</div>
                         <div className="flex items-center gap-2.5 pt-3.5 border-t border-white/[.1] mt-auto">
-                          <Avatar name={order.customer?.nickname} src={order.customer?.avatar_url} size={30} radius={9} />
-                          <span className="text-[12.5px] font-medium text-ink">{order.customer?.nickname}</span>
+                          <Avatar name={order.customer?.nickname} src={order.customer?.avatar_url} size={30} radius={9} isVip={order.customer?.is_vip} />
+                          <VipName name={order.customer?.nickname} isVip={order.customer?.is_vip} className="text-[12.5px] font-medium text-ink" badgeSize="sm" />
                           <div className="ml-auto text-right">
                             <b className="block text-lg font-bold text-mint">{formatCurrency(order.base_amount)}</b>
                             <span className="text-[11px] text-subtle">бюджет</span>
@@ -225,8 +226,8 @@ export default function Market() {
                         <span className="text-[11px] font-semibold text-white bg-black/35 backdrop-blur px-2.5 py-1 rounded-lg">услуга</span>
                       </div>
                       <div className="flex items-center gap-2 mb-2.5">
-                        <Avatar name={l.owner?.nickname} size={26} radius={8} className="text-[10px]" />
-                        <span className="text-[12.5px] font-medium text-ink">{l.owner?.nickname}</span>
+                        <Avatar name={l.owner?.nickname} size={26} radius={8} className="text-[10px]" isVip={l.owner?.is_vip} />
+                        <VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} className="text-[12.5px] font-medium text-ink" badgeSize="sm" />
                         {rating > 0 && <Stars rating={rating} className="ml-auto" />}
                       </div>
                       <h4 className="text-base font-semibold leading-snug mb-2 text-ink">{l.title}</h4>

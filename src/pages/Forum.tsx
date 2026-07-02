@@ -10,6 +10,7 @@ import { timeAgo } from '../lib/timeAgo'
 import { apiCall } from '../lib/api'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
 import { GlassCard, Button, Avatar } from '../components/glass'
+import VipName from '../components/VipBadge'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -43,7 +44,7 @@ interface HotThread {
   posts_count: number
   created_at: string
   last_post_at: string | null
-  author: { id: string; nickname: string | null; avatar_url: string | null } | null
+  author: { id: string; nickname: string | null; avatar_url: string | null; is_vip?: boolean } | null
   category: { id: string; name: string } | null
 }
 
@@ -213,12 +214,12 @@ export default function Forum() {
               : hotThreads.map(t => (
                   <GlassCard key={t.id} className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
                     <Link to={`/market/users/${t.author?.id}`} className="shrink-0">
-                      <Avatar name={t.author?.nickname} src={t.author?.avatar_url} size={34} radius={10} />
+                      <Avatar name={t.author?.nickname} src={t.author?.avatar_url} size={34} radius={10} isVip={t.author?.is_vip} />
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link to={`/forum/thread/${t.id}`} className="text-sm text-ink hover:text-lav transition-colors truncate block">{t.title}</Link>
                       <div className="text-xs text-subtle mt-0.5 flex items-center gap-1.5">
-                        <Link to={`/market/users/${t.author?.id}`} className="hover:text-ink transition-colors">{t.author?.nickname}</Link>
+                        <Link to={`/market/users/${t.author?.id}`} className="hover:text-ink transition-colors"><VipName name={t.author?.nickname} isVip={t.author?.is_vip} badgeSize="sm" /></Link>
                         {t.category && (
                           <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded" style={{ color: catColor(t.category.name), background: `${catColor(t.category.name)}1f` }}>
                             {t.category.name}

@@ -5,6 +5,7 @@ import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
+import VipName from '../components/VipBadge'
 
 const S: Record<string, any> = {
   page: { maxWidth: 1100, margin: '0 auto' },
@@ -70,7 +71,7 @@ export default function ServicesCatalog() {
             <Link key={l.id} to={`/market/services/${l.id}`} style={S.card}>
               <div style={S.cardTitle}>{l.title}</div>
               <div style={S.ownerRow}>
-                <div style={S.ownerName}>{l.owner?.nickname}</div>
+                <div style={S.ownerName}><VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} /></div>
                 {parseFloat(l.owner?.rating_as_executor ?? 0) > 0 && (
                   <div style={S.rating}>
                     <Star size={11} fill="#f59e0b" />{parseFloat(l.owner.rating_as_executor).toFixed(1)}

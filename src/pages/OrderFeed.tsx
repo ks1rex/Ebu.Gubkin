@@ -6,6 +6,7 @@ import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
+import VipName from '../components/VipBadge'
 
 const S: Record<string, any> = {
   header: { marginBottom: '1.5rem' },
@@ -99,7 +100,7 @@ export default function OrderFeed() {
                 </div>
                 <div style={S.footer}>
                   <div style={S.meta}>
-                    {order.customer?.nickname} · {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                    <VipName name={order.customer?.nickname} isVip={order.customer?.is_vip} /> · {new Date(order.created_at).toLocaleDateString('ru-RU')}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <Link to={`/market/orders/${order.id}`} style={S.btn('muted')}>

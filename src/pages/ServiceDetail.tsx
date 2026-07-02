@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
+import VipName from '../components/VipBadge'
 
 const S: Record<string, any> = {
   page: { maxWidth: 720, margin: '0 auto' },
@@ -74,7 +75,7 @@ export default function ServiceDetail() {
       <div style={S.card}>
         <div style={S.title}>{listing.title}</div>
         <div style={S.owner}>
-          <Link to={`/market/users/${listing.owner_id}`} style={S.ownerLink}>{listing.owner?.nickname}</Link>
+          <Link to={`/market/users/${listing.owner_id}`} style={S.ownerLink}><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
           {parseFloat(listing.owner?.rating_as_executor ?? 0) > 0 && (
             <div style={S.rating}>
               <Star size={12} fill="#f59e0b" />{parseFloat(listing.owner.rating_as_executor).toFixed(1)}

@@ -8,13 +8,14 @@ import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
 import ReportModal from '../components/Forum/ReportModal'
 import { GlassCard, Avatar, Button } from '../components/glass'
+import VipName from '../components/VipBadge'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
 const EMOJIS = ['👍', '👎', '😂', '🔥'] as const
 type Emoji = typeof EMOJIS[number]
 
-interface Author { id: string; nickname: string | null; avatar_url: string | null; level?: number }
+interface Author { id: string; nickname: string | null; avatar_url: string | null; level?: number; is_vip?: boolean }
 
 interface Reaction { id: string; user_id: string; emoji: string }
 
@@ -107,10 +108,10 @@ function PostCard({
         isOp ? '!bg-accent/[.12] !border-lav/[.35]' : ''
       }`}
     >
-      <Avatar name={post.author?.nickname} src={post.author?.avatar_url} size={46} radius={14} />
+      <Avatar name={post.author?.nickname} src={post.author?.avatar_url} size={46} radius={14} isVip={post.author?.is_vip} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
-          <span className="font-semibold text-[15px] text-ink">{post.author?.nickname ?? 'Аноним'}</span>
+          <span className="font-semibold text-[15px] text-ink"><VipName name={post.author?.nickname ?? 'Аноним'} isVip={post.author?.is_vip} /></span>
           {post.author?.level != null && (
             <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md text-lav bg-white/[.08]">Ур. {post.author.level}</span>
           )}
@@ -151,7 +152,7 @@ function PostCard({
 
 export default function ForumThread() {
   const { id }            = useParams<{ id: string }>()
-  const { user, session, profile } = useAuth()
+  const { user, session, profile, isVip } = useAuth()
   const showToast         = useToast()
 
   const [thread,     setThread]     = useState<Thread | null>(null)
@@ -284,9 +285,9 @@ export default function ForumThread() {
                 <h1 className="text-[30px] font-bold leading-[1.18] tracking-[-.6px] text-ink">{thread.title}</h1>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={44} radius={13} />
+                <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={44} radius={13} isVip={thread.author?.is_vip} />
                 <div>
-                  <div className="font-semibold text-[14.5px] text-ink">{thread.author?.nickname ?? 'Аноним'}</div>
+                  <div className="font-semibold text-[14.5px] text-ink"><VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} /></div>
                   <div className="text-[12.5px] text-subtle">{timeAgo(thread.created_at)}</div>
                 </div>
                 <div className="ml-auto flex gap-5 text-right">
@@ -360,7 +361,7 @@ export default function ForumThread() {
                 </div>
               ) : (
                 <form onSubmit={sendReply} className="flex gap-3.5">
-                  <Avatar name={profile?.nickname ?? 'Я'} src={profile?.avatar_url} size={44} radius={13} />
+                  <Avatar name={profile?.nickname ?? 'Я'} src={profile?.avatar_url} size={44} radius={13} isVip={isVip} />
                   <div className="flex-1">
                     <textarea
                       value={reply}
@@ -397,9 +398,9 @@ export default function ForumThread() {
         {thread && (
           <div className="flex flex-col gap-4">
             <GlassCard className="rounded-[20px] p-5 text-center">
-              <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={64} radius={18} className="mx-auto mb-3 text-[22px]" />
+              <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={64} radius={18} isVip={thread.author?.is_vip} className="mx-auto mb-3 text-[22px]" />
               <Link to={`/market/users/${thread.author?.id}`} className="font-semibold text-base text-ink hover:underline">
-                {thread.author?.nickname ?? 'Аноним'}
+                <VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} />
               </Link>
             </GlassCard>
             <GlassCard className="rounded-[20px] p-5">

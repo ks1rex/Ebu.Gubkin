@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import Spinner from '../components/Spinner'
+import VipName from '../components/VipBadge'
 
 const S: Record<string, any> = {
   back: { display: 'inline-flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: '0.85rem', marginBottom: '1.25rem', textDecoration: 'none' },
@@ -95,7 +96,7 @@ export default function Applications() {
         <div key={app.id} style={{ ...S.card, opacity: app.status !== 'pending' ? 0.5 : 1 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <Link to={`/market/users/${app.executor?.id}`} style={{ ...S.nick, color: '#14a89a', textDecoration: 'none', display: 'block' }}>{app.executor?.nickname}</Link>
+              <Link to={`/market/users/${app.executor?.id}`} style={{ ...S.nick, color: '#14a89a', textDecoration: 'none', display: 'block' }}><VipName name={app.executor?.nickname} isVip={app.executor?.is_vip} /></Link>
               <StarsRow rating={app.executor?.rating_as_executor} count={app.executor?.reviews_count_executor} />
               {app.proposed_amount && <div style={S.price}>{app.proposed_amount} ₽ — предложенная цена</div>}
               <div style={S.msg}>{app.message}</div>

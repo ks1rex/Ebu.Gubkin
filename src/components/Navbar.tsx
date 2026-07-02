@@ -20,7 +20,7 @@ const NAV_ITEMS_AUTH = [
 ]
 
 export default function Navbar() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut, isVip } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const { openGostFrozenModal, gostFrozenModal } = useGostFrozenModal()
 
@@ -94,7 +94,7 @@ export default function Navbar() {
             )}
 
             <Link to="/profile" onClick={close}>
-              <Avatar name={profile?.nickname ?? profile?.full_name ?? 'Я'} src={profile?.avatar_url} size={42} radius={14} />
+              <Avatar name={profile?.nickname ?? profile?.full_name ?? 'Я'} src={profile?.avatar_url} size={42} radius={14} isVip={isVip} />
             </Link>
 
             <button

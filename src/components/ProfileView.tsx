@@ -8,6 +8,7 @@ import Spinner from './Spinner'
 import Modal from './Modal'
 import { GlassCard, Avatar, Stars } from './glass'
 import { LEVEL_NAMES, LEVEL_THRESHOLDS, levelProgress, ACHIEVEMENTS } from '../lib/gamification'
+import VipName from './VipBadge'
 
 // Matches GET /profile/:id/public's recent_activity — shape differs by type
 // (see reshbirga backend/src/routes/profile.js).
@@ -34,6 +35,7 @@ export interface PublicProfile {
   forum_posts_count?: number | null
   recent_activity?: Activity[]
   achievements?: Achievement[]
+  is_vip?: boolean
 }
 
 interface Review {
@@ -111,12 +113,13 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 src={profile.avatar_url}
                 size={96}
                 radius={26}
+                isVip={profile.is_vip}
                 className="text-[34px] border-4 border-[rgba(36,21,81,.6)] shadow-[0_14px_36px_rgba(0,0,0,.4)] mb-3"
               />
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start gap-3">
                 <div>
                   <h1 className="text-2xl font-bold tracking-[-.5px] text-ink flex items-center gap-2">
-                    {profile.nickname}
+                    <VipName name={profile.nickname} isVip={profile.is_vip} />
                   </h1>
                   {profile.university_group && <div className="text-sm text-subtle mt-1">{profile.university_group}</div>}
                   {profile.bio && <p className="text-sm text-ink/90 mt-2 leading-relaxed">{profile.bio}</p>}

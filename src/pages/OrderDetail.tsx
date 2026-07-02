@@ -7,6 +7,7 @@ import { StatusBadge } from '../lib/statusMap'
 import StarRating from '../components/StarRating'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
+import VipName from '../components/VipBadge'
 
 const S: Record<string, any> = {
   h1: { color: '#e2e8f0', fontSize: '1.3rem', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
@@ -358,8 +359,8 @@ export default function OrderDetail() {
             <div style={S.metaItem}>Залог<div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}><Shield size={13} style={{ color: '#f59e0b' }} /><span style={{ color: '#f59e0b', fontWeight: 500 }}>{order.deposit_amount} ₽</span></div></div>
           )}
           <div style={S.metaItem}>Зарезервировано<div style={S.amount}>{order.reserved_amount} ₽</div></div>
-          {order.customer && <div style={S.metaItem}>Заказчик<div style={S.metaValue}><Link to={`/market/users/${order.customer_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.customer.nickname}</Link></div></div>}
-          {order.executor && <div style={S.metaItem}>Исполнитель<div style={S.metaValue}><Link to={`/market/users/${order.executor_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}>{order.executor.nickname}</Link></div></div>}
+          {order.customer && <div style={S.metaItem}>Заказчик<div style={S.metaValue}><Link to={`/market/users/${order.customer_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
+          {order.executor && <div style={S.metaItem}>Исполнитель<div style={S.metaValue}><Link to={`/market/users/${order.executor_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
         </div>
         <div style={S.sectionTitle}>Описание</div>
         <div style={S.desc}>{order.description}</div>

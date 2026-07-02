@@ -26,21 +26,20 @@ interface Props {
   radius?: number
   gradient?: string
   className?: string
+  /** Renders the same violet→pink ring/glow used sitewide for VIP (see VipBadge.tsx). */
+  isVip?: boolean
 }
 
 /** `.av-g` from the glassmorphism handoff — rounded SQUARE (not circle), initials on a gradient. */
-export default function Avatar({ name, src, size = 42, radius = 14, gradient, className = '' }: Props) {
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt=""
-        className={`object-cover shrink-0 ${className}`}
-        style={{ width: size, height: size, borderRadius: radius }}
-      />
-    )
-  }
-  return (
+export default function Avatar({ name, src, size = 42, radius = 14, gradient, className = '', isVip = false }: Props) {
+  const inner = src ? (
+    <img
+      src={src}
+      alt=""
+      className={`object-cover shrink-0 ${className}`}
+      style={{ width: size, height: size, borderRadius: radius }}
+    />
+  ) : (
     <div
       className={`grid place-items-center font-bold text-white shrink-0 ${className}`}
       style={{
@@ -50,6 +49,24 @@ export default function Avatar({ name, src, size = 42, radius = 14, gradient, cl
       }}
     >
       {initialsFor(name)}
+    </div>
+  )
+
+  if (!isVip) return inner
+
+  const ring = Math.max(2, Math.round(size * 0.06))
+  return (
+    <div
+      className="shrink-0 grid place-items-center"
+      style={{
+        width: size + ring * 2,
+        height: size + ring * 2,
+        borderRadius: radius + ring,
+        background: 'linear-gradient(135deg,#7c3aed,#f5a3e8)',
+        boxShadow: '0 0 10px rgba(124,58,237,.6)',
+      }}
+    >
+      {inner}
     </div>
   )
 }

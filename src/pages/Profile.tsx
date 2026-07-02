@@ -7,6 +7,7 @@ import { apiCall } from '../lib/api'
 import type { Profile as ProfileType } from '../contexts/AuthContext'
 import ProfileView, { PublicProfile } from '../components/ProfileView'
 import Spinner from '../components/Spinner'
+import VipName from '../components/VipBadge'
 
 // ─── Phone mask ──────────────────────────────────────────────────────────────
 
@@ -77,7 +78,7 @@ const INPUT = 'w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Profile() {
-  const { profile, user, refreshProfile } = useAuth()
+  const { profile, user, refreshProfile, isVip } = useAuth()
   const toast = useToast()
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -229,7 +230,7 @@ export default function Profile() {
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarPick} />
           <div>
-            <p className="text-sm font-medium text-ink">{profile.nickname ?? profile.full_name ?? 'Студент'}</p>
+            <p className="text-sm font-medium text-ink"><VipName name={profile.nickname ?? profile.full_name ?? 'Студент'} isVip={isVip} /></p>
             <p className="text-xs text-subtle mt-0.5">Нажмите на фото для загрузки</p>
           </div>
         </div>
