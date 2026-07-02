@@ -132,8 +132,6 @@ export default function AdminDeposits() {
         {/* Mobile cards */}
         <div className="md:hidden space-y-3">
           {deposits.map(dep => {
-            const confirmedVal = parseFloat(confirmedAmounts[dep.id] ?? '0')
-            const creditedPreview = isNaN(confirmedVal) ? '—' : (confirmedVal * 0.9).toFixed(2)
             const isPending = dep.status === 'pending'
             const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < 3
             const s = STATUS_LABELS[dep.status] ?? { label: dep.status, cls: 'bg-panel text-ink' }
@@ -175,7 +173,6 @@ export default function AdminDeposits() {
                       onChange={e => setConfirmedAmounts(a => ({ ...a, [dep.id]: e.target.value }))}
                       className="w-full mt-1 border border-line rounded px-2 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
                     />
-                    <span className="text-xs text-subtle">→ {creditedPreview} ₽ на баланс</span>
                   </div>
                 )}
 
@@ -218,8 +215,6 @@ export default function AdminDeposits() {
             </thead>
             <tbody>
               {deposits.map(dep => {
-                const confirmedVal = parseFloat(confirmedAmounts[dep.id] ?? '0')
-                const creditedPreview = isNaN(confirmedVal) ? '—' : (confirmedVal * 0.9).toFixed(2)
                 const isPending = dep.status === 'pending'
                 const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < 3
                 const s = STATUS_LABELS[dep.status] ?? { label: dep.status, cls: 'bg-panel text-ink' }
@@ -233,18 +228,13 @@ export default function AdminDeposits() {
                       {dep.claimed_amount.toLocaleString('ru-RU')} ₽
                     </td>
                     <td className="py-2 px-3 text-right">
-                      <div className="flex flex-col items-end gap-0.5">
-                        <input
-                          type="number"
-                          value={confirmedAmounts[dep.id] ?? ''}
-                          onChange={e => setConfirmedAmounts(a => ({ ...a, [dep.id]: e.target.value }))}
-                          disabled={!isPending}
-                          className="w-24 border border-line rounded px-2 py-1 text-right text-sm text-ink bg-canvas focus:outline-none focus:border-accent disabled:opacity-50"
-                        />
-                        {isPending && (
-                          <span className="text-xs text-subtle">→ {creditedPreview} ₽</span>
-                        )}
-                      </div>
+                      <input
+                        type="number"
+                        value={confirmedAmounts[dep.id] ?? ''}
+                        onChange={e => setConfirmedAmounts(a => ({ ...a, [dep.id]: e.target.value }))}
+                        disabled={!isPending}
+                        className="w-24 border border-line rounded px-2 py-1 text-right text-sm text-ink bg-canvas focus:outline-none focus:border-accent disabled:opacity-50"
+                      />
                     </td>
                     <td className="py-2 px-3 text-center">
                       {isRef && (
