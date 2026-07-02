@@ -17,9 +17,10 @@ interface SupportConv {
   id: string
   support_ticket_id: string
   created_at: string
-  support_tickets: { id: string; subject: string; status: string } | null
-  conversation_participants: Array<{ user_id: string; profiles: { nickname: string | null } | null }>
-  last_message?: { content: string; created_at: string; sender: { nickname: string | null } | null } | null
+  ticket_subject: string | null
+  status: string
+  participants: Array<{ id: string; nickname: string | null }>
+  last_message?: { content: string; created_at: string; sender_nickname: string | null } | null
 }
 
 export default function AdminSupport() {
@@ -61,15 +62,9 @@ export default function AdminSupport() {
       if (!res.ok) throw new Error()
       toast('Тикет закрыт', 'success')
       const patch = (c: SupportConv) =>
-        c.id === selected.id && c.support_tickets
-          ? { ...c, support_tickets: { ...c.support_tickets, status: 'closed' } }
-          : c
+        c.id === selected.id ? { ...c, status: 'closed' } : c
       setList(prev => prev.map(patch))
-      setSelected(prev =>
-        prev?.support_tickets
-          ? { ...prev, support_tickets: { ...prev.support_tickets, status: 'closed' } }
-          : prev
-      )
+      setSelected(prev => (prev ? { ...prev, status: 'closed' } : prev))
     } catch {
       toast('Ошибка при закрытии тикета', 'error')
     } finally {
@@ -78,11 +73,11 @@ export default function AdminSupport() {
   }
 
   if (selected) {
-    const ticketStatus = selected.support_tickets?.status ?? 'open'
+    const ticketStatus = selected.status ?? 'open'
     const isClosed = ticketStatus === 'closed'
     const s = STATUS_META[ticketStatus] ?? STATUS_META.open
-    const nicks = (selected.conversation_participants ?? [])
-      .map(p => p.profiles?.nickname)
+    const nicks = (selected.participants ?? [])
+      .map(p => p.nickname)
       .filter(Boolean)
       .join(', ')
 
@@ -98,7 +93,7 @@ export default function AdminSupport() {
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>
-                {selected.support_tickets?.subject ?? 'Тикет поддержки'}
+                {selected.ticket_subject ?? 'Тикет поддержки'}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.cls}`}>{s.label}</span>
             </div>
@@ -142,10 +137,10 @@ export default function AdminSupport() {
       ) : (
         <div className="bg-surface rounded-xl border border-line divide-y divide-line overflow-hidden">
           {list.map(c => {
-            const ticketStatus = c.support_tickets?.status ?? 'open'
+            const ticketStatus = c.status ?? 'open'
             const sm = STATUS_META[ticketStatus] ?? STATUS_META.open
-            const nicks = (c.conversation_participants ?? [])
-              .map(p => p.profiles?.nickname)
+            const nicks = (c.participants ?? [])
+              .map(p => p.nickname)
               .filter(Boolean)
               .join(', ')
 
@@ -160,12 +155,12 @@ export default function AdminSupport() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-ink truncate">
-                    {c.support_tickets?.subject ?? 'Тикет поддержки'}
+                    {c.ticket_subject ?? 'Тикет поддержки'}
                   </p>
                   <p className="text-xs text-subtle truncate">{nicks || 'Пользователь не найден'}</p>
                   {c.last_message && (
                     <p className="text-xs text-subtle mt-0.5 truncate">
-                      <span className="text-ink/70">{c.last_message.sender?.nickname ?? 'Пользователь'}:</span>{' '}
+                      <span className="text-ink/70">{c.last_message.sender_nickname ?? 'Пользователь'}:</span>{' '}
                       {c.last_message.content}
                     </p>
                   )}
