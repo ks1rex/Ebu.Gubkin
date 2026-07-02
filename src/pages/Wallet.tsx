@@ -238,7 +238,7 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
               placeholder="1 000"
               className={INPUT}
             />
-            <p className="text-xs text-subtle mt-1">Комиссия 10% — на баланс поступит 90% от суммы</p>
+            <p className="text-xs text-subtle mt-1">На баланс поступит вся сумма — без комиссии</p>
           </div>
           <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
             {submitting ? 'Отправляем...' : 'Отправить заявку'}
@@ -263,6 +263,19 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
   const [amount, setAmount]         = useState('')
   const [cardNumber, setCardNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [commissionPct, setCommissionPct] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    apiCall('GET', '/settings/public/withdrawal-commission-pct')
+      .then((r: { withdrawal_commission_pct: number }) => setCommissionPct(r.withdrawal_commission_pct))
+      .catch(() => setCommissionPct(null))
+  }, [open])
+
+  const parsedAmount = parseFloat(amount)
+  const willReceive = commissionPct != null && parsedAmount > 0
+    ? Math.round(parsedAmount * (1 - commissionPct / 100) * 100) / 100
+    : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -314,6 +327,11 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
             className={INPUT}
           />
           <p className="text-xs text-subtle mt-1">Доступно: {maxAmount.toLocaleString('ru-RU')} ₽</p>
+          {willReceive != null && (
+            <p className="text-xs text-subtle mt-1">
+              Комиссия за вывод {commissionPct}% — к получению: {willReceive.toLocaleString('ru-RU')} ₽
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-ink mb-1">Реквизиты (номер карты или телефон)</label>

@@ -96,7 +96,7 @@ export default function AdminFinance() {
           <table className="w-full text-sm">
             <tbody className="divide-y divide-line">
               <tr>
-                <td className="py-2 text-subtle">Комиссия обычных пополнений</td>
+                <td className="py-2 text-subtle">Комиссия с вывода средств</td>
                 <td className="py-2 text-right text-ink font-medium">{fmt(data.commission_regular)} ₽</td>
               </tr>
               <tr>
