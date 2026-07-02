@@ -1,68 +1,60 @@
-const BACKEND_URL = process.env.BACKEND_URL
-const SERVICE_KEY = process.env.SERVICE_SCHEDULE_KEY
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY
+const GUBKIN_API = 'https://lk.gubkin.ru/schedule/api/api.php'
+const STUDY_ID = 62
 
-// Все группы всех факультетов, читаем из кеша, который только что
-// заполнил prefetch-meta (был замкнутый круг: раньше список групп для
-// прогрева брался из уже закешированных schedule_* ключей, а те
-// появляются только после прогрева — на старте кеш пуст и ничего
-// никогда не прогревалось).
-async function getAllGroups() {
-  // 1. Получаем все факультеты из кеша
-  const facRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/schedule_cache` +
-    `?cache_key=eq.faculties`,
-    { headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }}
-  )
-  const facRows = await facRes.json()
-  if (!facRows.length) {
-    console.log('No faculties in cache yet, skipping groups')
-    return []
-  }
-
-  const faculties = facRows[0].data
-  const allGroups = []
-
-  // 2. Для каждого факультета берём группы из кеша
-  for (const faculty of faculties) {
-    const grpRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/schedule_cache` +
-      `?cache_key=eq.groups_${faculty.id}`,
-      { headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`
-      }}
-    )
-    const grpRows = await grpRes.json()
-    if (grpRows.length) {
-      const groups = grpRows[0].data
-      allGroups.push(...groups.map(g => g.id))
-    }
-  }
-
-  console.log(`Total groups to prefetch: ${allGroups.length}`)
-  return allGroups
+// Запрос к lk.gubkin.ru
+async function gubkinFetch(params) {
+  const url = new URL(GUBKIN_API)
+  Object.entries(params).forEach(([k,v]) =>
+    url.searchParams.set(k, v))
+  const res = await fetch(url.toString())
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
 }
 
-// Текущая и следующая неделя
+// Запись в Supabase schedule_cache
+async function saveCache(key, data, ttlHours) {
+  const expiresAt = new Date(
+    Date.now() + ttlHours * 3600000
+  ).toISOString()
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/schedule_cache`,
+    {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        cache_key: key,
+        data: data,
+        expires_at: expiresAt,
+        last_accessed: new Date().toISOString()
+      })
+    }
+  )
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Supabase error: ${err}`)
+  }
+}
+
+// Текущая и следующие 2 недели (понедельники)
 function getWeekDates() {
   const dates = []
   const now = new Date()
-  // Найти ближайший понедельник
   const day = now.getDay()
   const diff = day === 0 ? -6 : 1 - day
   const monday = new Date(now)
   monday.setDate(now.getDate() + diff)
 
-  // Текущая и следующие 2 недели
   for (let w = 0; w < 3; w++) {
     const d = new Date(monday)
     d.setDate(monday.getDate() + w * 7)
-    // Формат D-M-YYYY без ведущих нулей
     dates.push(
       `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`
     )
@@ -70,43 +62,85 @@ function getWeekDates() {
   return dates
 }
 
-async function prefetchGroup(groupId, date) {
-  await fetch(`${BACKEND_URL}/schedule/prefetch`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Service-Key': SERVICE_KEY
-    },
-    body: JSON.stringify({groupId, date, studyId: 62})
-  })
-}
-
 async function main() {
-  console.log('Fetching schedule cache...')
+  console.log('=== Schedule Cache Update ===')
 
-  // Всегда кешируем факультеты и группы
-  await fetch(`${BACKEND_URL}/schedule/prefetch-meta`, {
-    method: 'POST',
-    headers: {'X-Service-Key': SERVICE_KEY}
+  // 1. Факультеты
+  console.log('Fetching faculties...')
+  const facData = await gubkinFetch({
+    act: 'list', method: 'getFaculties'
   })
+  const faculties = facData.rows
+  await saveCache('faculties', faculties, 24)
+  console.log(`Cached ${faculties.length} faculties`)
 
-  // Небольшая пауза чтобы кеш записался
-  await new Promise(r => setTimeout(r, 2000))
-
-  const groups = await getAllGroups()
-  const dates = getWeekDates()
-
-  console.log(`Groups: ${groups.length}, Dates: ${dates}`)
-
-  for (const groupId of groups) {
-    for (const date of dates) {
-      await prefetchGroup(groupId, date)
-      // Небольшая пауза чтобы не DDoS-ить
-      await new Promise(r => setTimeout(r, 500))
+  // 2. Группы каждого факультета
+  const allGroups = []
+  for (const faculty of faculties) {
+    console.log(`Fetching groups for faculty ${faculty.id}...`)
+    try {
+      const grpData = await gubkinFetch({
+        act: 'list',
+        method: 'getFacultyGroups',
+        facultyId: faculty.id
+      })
+      const groups = grpData.rows || []
+      await saveCache(`groups_${faculty.id}`, groups, 24)
+      allGroups.push(...groups.map(g => g.id))
+      console.log(`  ${groups.length} groups`)
+      await new Promise(r => setTimeout(r, 300))
+    } catch(e) {
+      console.error(`  Error for faculty ${faculty.id}:`, e.message)
     }
   }
 
-  console.log('Done!')
+  console.log(`Total groups: ${allGroups.length}`)
+
+  // 3. Расписание для всех групп
+  const dates = getWeekDates()
+  console.log(`Dates to fetch: ${dates.join(', ')}`)
+
+  let success = 0, errors = 0
+  for (const groupId of allGroups) {
+    for (const date of dates) {
+      try {
+        const schedData = await gubkinFetch({
+          act: 'schedule',
+          date: date,
+          groupId: groupId,
+          studyId: STUDY_ID
+        })
+
+        // Берём только Москву (id=0)
+        const orgs = schedData.rows?.organizations || []
+        const moscow = orgs.find(o => o.id === 0) || orgs[0]
+
+        const cacheData = {
+          week: schedData.rows?.week?.weekRussia,
+          timeChunks: moscow?.lessonsTimeChunks || [],
+          lessons: moscow?.lessons || []
+        }
+
+        await saveCache(
+          `schedule_${groupId}_${date}`,
+          cacheData,
+          1
+        )
+        success++
+        await new Promise(r => setTimeout(r, 200))
+      } catch(e) {
+        errors++
+        console.error(
+          `Error ${groupId}/${date}:`, e.message
+        )
+      }
+    }
+  }
+
+  console.log(`Done! Success: ${success}, Errors: ${errors}`)
 }
 
-main().catch(err => { console.error(err); process.exit(1) })
+main().catch(e => {
+  console.error('Fatal:', e)
+  process.exit(1)
+})
