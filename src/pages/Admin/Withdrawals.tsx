@@ -35,6 +35,18 @@ export default function AdminWithdrawals() {
   const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
   const [acting, setActing] = useState<Record<string, boolean>>({})
+  const [commissionPct, setCommissionPct] = useState<number | null>(null)
+
+  useEffect(() => {
+    fetch(`${API}/settings/public/withdrawal-commission-pct`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then((r: { withdrawal_commission_pct: number }) => setCommissionPct(r.withdrawal_commission_pct))
+      .catch(() => setCommissionPct(null))
+  }, [token])
+
+  function payout(amount: number) {
+    return commissionPct != null ? Math.round(amount * (1 - commissionPct / 100) * 100) / 100 : null
+  }
 
   async function fetchWithdrawals() {
     setLoading(true)
@@ -97,6 +109,7 @@ export default function AdminWithdrawals() {
           {withdrawals.map(w => {
             const isPending = w.status === 'pending'
             const s = STATUS_LABELS[w.status] ?? { label: w.status, cls: 'bg-panel text-ink' }
+            const p = payout(w.amount)
             return (
               <div key={w.id} className="bg-surface border border-line rounded-xl p-4">
                 <div className="flex items-center gap-3 mb-3">
@@ -113,6 +126,13 @@ export default function AdminWithdrawals() {
                     −{w.amount.toLocaleString('ru-RU')} ₽
                   </span>
                 </div>
+
+                {p != null && (
+                  <div className="mb-3 p-2.5 bg-success/10 border border-success/30 rounded-lg">
+                    <p className="text-xs text-subtle mb-0.5">К выплате (за вычетом {commissionPct}%)</p>
+                    <p className="text-base font-bold text-success">{p.toLocaleString('ru-RU')} ₽</p>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                   <div>
@@ -155,6 +175,7 @@ export default function AdminWithdrawals() {
               <tr>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Пользователь</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Сумма</th>
+                <th className="py-2 px-3 text-right text-subtle font-medium">К выплате</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Карта</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Дата</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Статус</th>
@@ -165,6 +186,7 @@ export default function AdminWithdrawals() {
               {withdrawals.map(w => {
                 const isPending = w.status === 'pending'
                 const s = STATUS_LABELS[w.status] ?? { label: w.status, cls: 'bg-panel text-ink' }
+                const p = payout(w.amount)
                 return (
                   <tr key={w.id} className="border-b border-line last:border-0 hover:bg-panel/50">
                     <td className="py-2 px-3 text-ink">
@@ -172,6 +194,9 @@ export default function AdminWithdrawals() {
                     </td>
                     <td className="py-2 px-3 text-right font-medium">
                       {w.amount.toLocaleString('ru-RU')} ₽
+                    </td>
+                    <td className="py-2 px-3 text-right font-semibold text-success">
+                      {p != null ? `${p.toLocaleString('ru-RU')} ₽` : '—'}
                     </td>
                     <td className="py-2 px-3 text-ink font-mono text-xs">
                       {w.card_number ?? '—'}

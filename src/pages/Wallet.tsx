@@ -238,7 +238,12 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
               placeholder="1 000"
               className={INPUT}
             />
-            <p className="text-xs text-subtle mt-1">На баланс поступит вся сумма — без комиссии</p>
+            {parseFloat(amount) > 0 && (
+              <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
+                <div className="text-xs text-subtle mb-0.5">На баланс поступит (без комиссии)</div>
+                <div className="text-lg font-bold text-success">{parseFloat(amount).toLocaleString('ru-RU')} ₽</div>
+              </div>
+            )}
           </div>
           <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
             {submitting ? 'Отправляем...' : 'Отправить заявку'}
@@ -328,9 +333,10 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
           />
           <p className="text-xs text-subtle mt-1">Доступно: {maxAmount.toLocaleString('ru-RU')} ₽</p>
           {willReceive != null && (
-            <p className="text-xs text-subtle mt-1">
-              Комиссия за вывод {commissionPct}% — к получению: {willReceive.toLocaleString('ru-RU')} ₽
-            </p>
+            <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
+              <div className="text-xs text-subtle mb-0.5">К получению (комиссия за вывод {commissionPct}%)</div>
+              <div className="text-lg font-bold text-success">{willReceive.toLocaleString('ru-RU')} ₽</div>
+            </div>
           )}
         </div>
         <div>
