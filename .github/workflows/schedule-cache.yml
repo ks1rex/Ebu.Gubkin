@@ -1,0 +1,24 @@
+name: Update Schedule Cache
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # каждый час
+  workflow_dispatch:      # ручной запуск
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch and cache schedule
+        run: node scripts/fetch-schedule.js
+        env:
+          BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          SERVICE_SCHEDULE_KEY: ${{ secrets.SERVICE_SCHEDULE_KEY }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

@@ -29,18 +29,6 @@ const STUDY_ID = 62
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
 const STORAGE_KEY = 'schedule_group'
 
-// Render-хостинг бэкенда геоблокирован lk.gubkin.ru — эти запросы идут
-// напрямую из браузера пользователя (обычно в РФ), а не через наш backend.
-const GUBKIN_API = 'https://lk.gubkin.ru/schedule/api/api.php'
-
-async function gubkinFetch(params: Record<string, string | number>): Promise<any> {
-  const url = `${GUBKIN_API}?${new URLSearchParams(params as Record<string, string>)}`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`lk.gubkin.ru ${res.status}`)
-  const body = await res.json()
-  return body.rows
-}
-
 // ─── Date helpers ───────────────────────────────────────────────────────────
 
 function mondayOf(d: Date): Date {
@@ -164,9 +152,7 @@ export default function Schedule() {
 
   // load faculties once
   useEffect(() => {
-    gubkinFetch({ act: 'list', method: 'getFaculties' })
-      .then(rows => setFaculties(Array.isArray(rows) ? rows : []))
-      .catch(() => setFaculties([]))
+    apiCall('GET', '/schedule/faculties').then(rows => setFaculties(Array.isArray(rows) ? rows : [])).catch(() => setFaculties([]))
   }, [])
 
   // restore saved selection
@@ -195,7 +181,7 @@ export default function Schedule() {
   // load groups when faculty changes
   useEffect(() => {
     if (!facultyId) { setGroups([]); return }
-    gubkinFetch({ act: 'list', method: 'getFacultyGroups', facultyId })
+    apiCall('GET', `/schedule/groups?facultyId=${facultyId}`)
       .then(rows => setGroups(Array.isArray(rows) ? [...rows].sort((a, b) => (a.code ?? '').localeCompare(b.code ?? '')) : []))
       .catch(() => setGroups([]))
   }, [facultyId])
@@ -217,15 +203,10 @@ export default function Schedule() {
     setError(null)
     try {
       const date = toApiDate(monday)
-      const rows = await gubkinFetch({ act: 'schedule', date, groupId, studyId: STUDY_ID })
-      const moscow = rows.organizations?.[0]
-      setData({
-        week: rows.week?.weekRussia,
-        timeChunks: moscow?.lessonsTimeChunks ?? [],
-        lessons: moscow?.lessons ?? [],
-      })
-    } catch {
-      setError('Не удалось загрузить расписание. Сервер университета временно недоступен.')
+      const res = await apiCall('GET', `/schedule/lessons?groupId=${groupId}&date=${date}`)
+      setData(res)
+    } catch (err: any) {
+      setError(err?.message ?? 'Не удалось загрузить расписание. Попробуйте позже.')
       setData(null)
     } finally {
       setLoading(false)
