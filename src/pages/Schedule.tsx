@@ -22,7 +22,7 @@ interface Lesson {
   subgroup?: number
 }
 interface WeekInfo { type: 'lower' | 'upper'; number: number; days: { date: string; isStudyDay: boolean; weekDayNumber: number }[] }
-interface LessonsResponse { week: WeekInfo; timeChunks: string[]; lessons: Lesson[] }
+interface LessonsResponse { week: WeekInfo; timeChunks: string[]; lessons: Lesson[]; stale?: boolean }
 interface SavedGroup { groupId: number; facultyId: number; groupCode?: string; facultyName?: string; studyId?: number }
 
 const STUDY_ID = 62
@@ -65,6 +65,16 @@ function slotRange(timeChunks: string[], idxs: number[]): [string, string] {
 function teacherName(t: Teacher): string {
   const initials = [t.firstName?.[0], t.patronymic?.[0]].filter(Boolean).map(c => `${c}.`).join('')
   return [t.lastName, initials].filter(Boolean).join(' ')
+}
+
+// Backend отдаёт либо { week, timeChunks, lessons } напрямую,
+// либо { data: {...}, stale: true } когда апстрим недоступен и
+// используется устаревший кеш.
+function normalizeScheduleResponse(res: any): LessonsResponse {
+  if (res?.stale && res?.data) {
+    return { ...res.data, stale: true }
+  }
+  return res
 }
 
 // ─── Type badge ─────────────────────────────────────────────────────────────
@@ -204,7 +214,7 @@ export default function Schedule() {
     try {
       const date = toApiDate(monday)
       const res = await apiCall('GET', `/schedule/lessons?groupId=${groupId}&date=${date}`)
-      setData(res)
+      setData(normalizeScheduleResponse(res))
     } catch (err: any) {
       setError(err?.message ?? 'Не удалось загрузить расписание. Попробуйте позже.')
       setData(null)
@@ -298,6 +308,12 @@ export default function Schedule() {
             </button>
             <Chip onClick={goToday}>Сегодня</Chip>
           </div>
+
+          {data?.stale && (
+            <div className="text-xs text-yellow-400/70 text-center py-1">
+              ⚠️ Данные могут быть неактуальны — сервер университета временно недоступен
+            </div>
+          )}
 
           {loading && <ScheduleSkeleton />}
 
