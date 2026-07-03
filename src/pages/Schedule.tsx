@@ -172,7 +172,7 @@ export default function Schedule() {
       if (user) {
         try {
           const r = await apiCall('GET', '/schedule/saved-group')
-          if (r?.groupId && r?.facultyId) saved = r
+          if (r?.groupId != null && r?.facultyId != null) saved = r
         } catch { /* ignore */ }
       }
       if (!saved) {
@@ -181,8 +181,8 @@ export default function Schedule() {
           if (raw) saved = JSON.parse(raw)
         } catch { /* ignore */ }
       }
-      if (saved?.facultyId) setFacultyId(saved.facultyId)
-      if (saved?.groupId) setGroupId(saved.groupId)
+      if (saved?.facultyId != null) setFacultyId(saved.facultyId)
+      if (saved?.groupId != null) setGroupId(saved.groupId)
       setRestored(true)
     }
     restore()
@@ -190,7 +190,7 @@ export default function Schedule() {
 
   // load groups when faculty changes
   useEffect(() => {
-    if (!facultyId) { setGroups([]); return }
+    if (facultyId === '') { setGroups([]); return }
     apiCall('GET', `/schedule/groups?facultyId=${facultyId}`)
       .then(rows => setGroups(Array.isArray(rows) ? [...rows].sort((a, b) => (a.code ?? '').localeCompare(b.code ?? '')) : []))
       .catch(() => setGroups([]))
@@ -198,7 +198,7 @@ export default function Schedule() {
 
   // persist selection
   useEffect(() => {
-    if (!restored || !facultyId || !groupId) return
+    if (!restored || facultyId === '' || groupId === '') return
     const faculty = faculties.find(f => f.id === facultyId)
     const group = groups.find(g => g.id === groupId)
     const payload: SavedGroup = { groupId: groupId as number, facultyId: facultyId as number, groupCode: group?.code, facultyName: faculty?.name, studyId: STUDY_ID }
@@ -274,7 +274,7 @@ export default function Schedule() {
         <select
           value={groupId}
           onChange={e => setGroupId(e.target.value ? Number(e.target.value) : '')}
-          disabled={!facultyId}
+          disabled={facultyId === ''}
           className="w-full px-3 py-2.5 text-sm border border-line rounded-lg bg-canvas text-ink appearance-none focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors disabled:opacity-50"
         >
           <option value="">Выберите группу</option>
