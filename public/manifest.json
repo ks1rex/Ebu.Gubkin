@@ -1,0 +1,37 @@
+{
+  "name": "Ebu.Gubkin",
+  "short_name": "Ebu.Gubkin",
+  "description": "Студенческая платформа Губкинского университета",
+  "start_url": "/Ebu.Gubkin/",
+  "scope": "/Ebu.Gubkin/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1140",
+  "theme_color": "#1a1140",
+  "icons": [
+    {
+      "src": "/Ebu.Gubkin/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Ebu.Gubkin/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Ebu.Gubkin/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/Ebu.Gubkin/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
