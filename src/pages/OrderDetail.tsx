@@ -9,33 +9,35 @@ import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
 
-const S: Record<string, any> = {
-  h1: { color: '#e2e8f0', fontSize: '1.3rem', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  card: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 12, padding: '1.5rem', marginBottom: '1rem' },
-  sectionTitle: { color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' },
-  meta: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' },
-  metaItem: { color: '#64748b', fontSize: '0.85rem' },
-  metaValue: { color: '#e2e8f0', fontWeight: 500, marginTop: 2 },
-  paymentBox: { background: '#0d2620', border: '1px solid #0e8a7d', borderRadius: 10, padding: '1.25rem', marginBottom: '1rem' },
-  paymentTitle: { color: '#14a89a', fontWeight: 700, marginBottom: 8, fontSize: '1.05rem' },
-  paymentText: { color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.7 },
-  amount: { color: '#14a89a', fontSize: '1.5rem', fontWeight: 700 },
-  fileRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #1e3a4a' },
-  dlBtn: { display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: '1px solid #1e3a4a', borderRadius: 6, padding: '4px 10px', color: '#94a3b8', fontSize: '0.8rem', cursor: 'pointer' },
-  desc: { color: '#cbd5e1', lineHeight: 1.7, whiteSpace: 'pre-wrap', fontSize: '0.95rem' },
-  textarea: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.9rem', lineHeight: 1.6, resize: 'vertical', minHeight: 100, boxSizing: 'border-box' },
-  input: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '9px 12px', color: '#e2e8f0', fontSize: '0.9rem', boxSizing: 'border-box' },
-  submitBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#14a89a', border: 'none', borderRadius: 8, padding: '9px 20px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem' },
-  appsLink: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 20px', borderRadius: 8, background: '#1e3a4a', color: '#94a3b8', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 },
-  confirmBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: '#14a89a', border: 'none', borderRadius: 8, padding: '9px 18px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginRight: 8, marginBottom: 8 },
-  disputeBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1px solid #ef4444', borderRadius: 8, padding: '9px 18px', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '0.88rem', marginBottom: 8 },
-  cancelBtn: { background: 'none', border: '1px solid #334155', borderRadius: 8, padding: '8px 14px', color: '#94a3b8', cursor: 'pointer', fontSize: '0.85rem' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modal: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 14, padding: '2rem', maxWidth: 440, width: '90%' },
-  modalTitle: { color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem', marginBottom: 8 },
-  modalText: { color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' },
-  modalBtns: { display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' },
-  okBtn: { background: '#14a89a', border: 'none', borderRadius: 8, padding: '8px 20px', color: '#fff', fontWeight: 600, cursor: 'pointer' },
+const CLS = {
+  h1: 'text-slate-200 text-[1.3rem] font-bold mb-2 flex items-center gap-3 flex-wrap',
+  card: 'bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4',
+  sectionTitle: 'text-slate-400 text-[0.8rem] font-semibold uppercase tracking-[0.05em] mb-4',
+  meta: 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-4',
+  metaItem: 'text-slate-500 text-[0.85rem]',
+  metaValue: 'text-slate-200 font-medium mt-0.5',
+  paymentBox: 'bg-[#0d2620] border border-teal-legacy-hover rounded-lg p-5 mb-4',
+  paymentTitle: 'text-teal-legacy font-bold mb-2 text-[1.05rem]',
+  paymentText: 'text-slate-400 text-[0.9rem] leading-[1.7]',
+  amount: 'text-teal-legacy text-[1.5rem] font-bold',
+  fileRow: 'flex items-center gap-2.5 py-2 border-b border-[#1e3a4a]',
+  dlBtn: 'flex items-center gap-[5px] bg-transparent border border-[#1e3a4a] rounded-md py-1 px-2.5 text-slate-400 text-[0.8rem] cursor-pointer',
+  desc: 'text-slate-300 leading-[1.7] whitespace-pre-wrap text-[0.95rem]',
+  textarea: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.9rem] leading-[1.6] resize-y min-h-[100px] box-border',
+  input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[9px] px-3 text-slate-200 text-[0.9rem] box-border',
+  submitBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
+  dangerBtn: 'inline-flex items-center gap-1.5 bg-red-500 rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
+  appsLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#1e3a4a] text-slate-400 no-underline text-[0.9rem] font-medium',
+  chatLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.9rem] font-medium',
+  confirmBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-[18px] text-white font-semibold cursor-pointer text-[0.88rem] mr-2 mb-2',
+  disputeBtn: 'inline-flex items-center gap-1.5 bg-transparent border border-red-500 rounded-lg py-[9px] px-[18px] text-red-500 font-semibold cursor-pointer text-[0.88rem] mb-2',
+  cancelBtn: 'bg-transparent border border-slate-700 rounded-lg py-2 px-3.5 text-slate-400 cursor-pointer text-[0.85rem]',
+  overlay: 'fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]',
+  modal: 'bg-[#0f1923] border border-[#1e3a4a] rounded-[14px] p-8 max-w-[440px] w-[90%]',
+  modalTitle: 'text-slate-200 font-bold text-[1.1rem] mb-2',
+  modalText: 'text-slate-400 text-[0.9rem] leading-[1.6] mb-6',
+  modalBtns: 'flex gap-3 justify-end',
+  okBtn: 'bg-teal-legacy rounded-lg py-2 px-5 text-white font-semibold cursor-pointer',
 }
 
 function formatTimeLeft(deadline: string) {
@@ -152,8 +154,8 @@ export default function OrderDetail() {
     finally { setReviewSubmitting(false) }
   }
 
-  if (loading) return <Spinner />
-  if (!order) return <div style={{ color: '#f87171' }}>Заказ не найден</div>
+  if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
+  if (!order) return <div className="text-red-400">Заказ не найден</div>
 
   const shortId = order.id.slice(0, 8).toUpperCase()
   const isOwner = order.customer_id === user?.id
@@ -171,16 +173,16 @@ export default function OrderDetail() {
   const topupAmount = needsTopup ? parseFloat(order.required_topup ?? 0) : null
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
-      <div style={S.h1}>{order.title}<StatusBadge status={order.status} /></div>
+    <div className="max-w-[800px] mx-auto">
+      <div className={CLS.h1}>{order.title}<StatusBadge status={order.status} /></div>
 
-      <div style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+      <div className="text-slate-500 text-[0.85rem] mb-6 flex items-center gap-4 flex-wrap">
         <span>Заказ #{shortId} · {order.subject} · {new Date(order.created_at).toLocaleDateString('ru-RU')}</span>
         {isOwner && order.status === 'open' && (
-          <Link to={`/market/orders/${id}/applications`} style={S.appsLink}><Users size={14} /> Заявки исполнителей</Link>
+          <Link to={`/market/orders/${id}/applications`} className={CLS.appsLink}><Users size={14} /> Заявки исполнителей</Link>
         )}
         {chatStatuses.includes(order.status) && (isOwner || isExecutor || isAdmin) && (
-          <Link to={`/market/orders/${id}/chat`} style={{ ...S.appsLink, background: '#0d2620', color: '#14a89a', border: '1px solid #0e8a7d' }}>
+          <Link to={`/market/orders/${id}/chat`} className={CLS.chatLink}>
             <MessageSquare size={14} /> Перейти в чат
           </Link>
         )}
@@ -188,26 +190,26 @@ export default function OrderDetail() {
 
       {/* Awaiting topup */}
       {needsTopup && topupAmount != null && topupAmount > 0 && (
-        <div style={S.paymentBox}>
-          <div style={S.paymentTitle}>Требуется доплата</div>
-          <div style={S.paymentText}>
+        <div className={CLS.paymentBox}>
+          <div className={CLS.paymentTitle}>Требуется доплата</div>
+          <div className={CLS.paymentText}>
             Исполнитель предложил цену выше максимума. Для продолжения нужно доплатить{' '}
-            <strong style={{ color: '#14a89a' }}>{topupAmount} ₽</strong> с баланса кошелька.
+            <strong className="text-teal-legacy">{topupAmount} ₽</strong> с баланса кошелька.
           </div>
-          {actionError && <div style={{ color: '#f87171', fontSize: '0.82rem', margin: '8px 0' }}>{actionError}</div>}
+          {actionError && <div className="text-red-400 text-[0.82rem] my-2">{actionError}</div>}
           {!cancelOpen ? (
-            <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button style={S.confirmBtn} onClick={handleTopup} disabled={topupLoading}>
+            <div className="mt-3 flex gap-2 flex-wrap">
+              <button className={CLS.confirmBtn} onClick={handleTopup} disabled={topupLoading}>
                 {topupLoading ? 'Оплата...' : `Доплатить ${topupAmount} ₽ с баланса`}
               </button>
-              <button style={S.cancelBtn} onClick={() => { setActionError(''); setCancelOpen(true) }} disabled={topupLoading}>Отменить заказ</button>
+              <button className={CLS.cancelBtn} onClick={() => { setActionError(''); setCancelOpen(true) }} disabled={topupLoading}>Отменить заказ</button>
             </div>
           ) : (
-            <div style={{ marginTop: 12 }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: 8 }}>Отменить заказ? Зарезервированная сумма ({order.reserved_amount} ₽) вернётся на ваш баланс.</div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ ...S.submitBtn, background: '#ef4444' }} onClick={handleCancel} disabled={actionLoading}>{actionLoading ? 'Отмена...' : 'Да, отменить'}</button>
-                <button style={S.cancelBtn} onClick={() => { setCancelOpen(false); setActionError('') }}>Назад</button>
+            <div className="mt-3">
+              <div className="text-slate-400 text-[0.85rem] mb-2">Отменить заказ? Зарезервированная сумма ({order.reserved_amount} ₽) вернётся на ваш баланс.</div>
+              <div className="flex gap-2">
+                <button className={CLS.dangerBtn} onClick={handleCancel} disabled={actionLoading}>{actionLoading ? 'Отмена...' : 'Да, отменить'}</button>
+                <button className={CLS.cancelBtn} onClick={() => { setCancelOpen(false); setActionError('') }}>Назад</button>
               </div>
             </div>
           )}
@@ -216,16 +218,16 @@ export default function OrderDetail() {
 
       {/* Cancel open order */}
       {isOwner && order.status === 'open' && order.executor_id == null && (
-        <div style={S.card}>
+        <div className={CLS.card}>
           {!cancelOpen ? (
-            <button style={S.disputeBtn} onClick={() => { setActionError(''); setCancelOpen(true) }}>Отменить заказ</button>
+            <button className={CLS.disputeBtn} onClick={() => { setActionError(''); setCancelOpen(true) }}>Отменить заказ</button>
           ) : (
             <div>
-              <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: 8 }}>Отменить заказ? Вся зарезервированная сумма ({order.reserved_amount} ₽) будет возвращена на ваш баланс.</div>
-              {actionError && <div style={{ color: '#f87171', fontSize: '0.82rem', marginBottom: 6 }}>{actionError}</div>}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button style={{ ...S.submitBtn, background: '#ef4444' }} onClick={handleCancel} disabled={actionLoading}>{actionLoading ? 'Отмена...' : 'Да, отменить'}</button>
-                <button style={S.cancelBtn} onClick={() => { setCancelOpen(false); setActionError('') }}>Назад</button>
+              <div className="text-slate-400 text-[0.85rem] mb-2">Отменить заказ? Вся зарезервированная сумма ({order.reserved_amount} ₽) будет возвращена на ваш баланс.</div>
+              {actionError && <div className="text-red-400 text-[0.82rem] mb-1.5">{actionError}</div>}
+              <div className="flex gap-2">
+                <button className={CLS.dangerBtn} onClick={handleCancel} disabled={actionLoading}>{actionLoading ? 'Отмена...' : 'Да, отменить'}</button>
+                <button className={CLS.cancelBtn} onClick={() => { setCancelOpen(false); setActionError('') }}>Назад</button>
               </div>
             </div>
           )}
@@ -234,41 +236,41 @@ export default function OrderDetail() {
 
       {/* Confirm / dispute */}
       {(canConfirm || canDispute) && (
-        <div style={S.card}>
-          <div style={S.sectionTitle}>Завершение работы</div>
+        <div className={CLS.card}>
+          <div className={CLS.sectionTitle}>Завершение работы</div>
           {order.status === 'awaiting_confirmation' && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, marginBottom: 14 }}>
+            <div className="flex flex-wrap gap-5 mb-3.5">
               {[{ label: 'Заказчик', done: order.confirmed_by_customer }, { label: 'Исполнитель', done: order.confirmed_by_executor }].map(({ label, done }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircle size={15} style={{ color: done ? '#22c55e' : '#334155' }} />
-                  <span style={{ color: done ? '#22c55e' : '#64748b', fontSize: '0.85rem' }}>{label} подтвердил</span>
+                <div key={label} className="flex items-center gap-1.5">
+                  <CheckCircle size={15} className={done ? 'text-green-500' : 'text-slate-700'} />
+                  <span className={`text-[0.85rem] ${done ? 'text-green-500' : 'text-slate-500'}`}>{label} подтвердил</span>
                 </div>
               ))}
             </div>
           )}
           {order.status === 'awaiting_confirmation' && order.confirmation_deadline && (
-            <div style={{ color: '#f59e0b', fontSize: '0.82rem', marginBottom: 14 }}>
+            <div className="text-amber-500 text-[0.82rem] mb-3.5">
               ⏱ Автоподтверждение через {formatTimeLeft(order.confirmation_deadline)}, если вторая сторона не ответит
             </div>
           )}
           {canConfirm && (
-            <button style={S.confirmBtn} onClick={() => { setActionError(''); setConfirmModal(true) }}>
+            <button className={CLS.confirmBtn} onClick={() => { setActionError(''); setConfirmModal(true) }}>
               <CheckCircle size={15} /> Подтвердить выполнение работы
             </button>
           )}
           {canDispute && !disputeOpen && (
-            <button style={S.disputeBtn} onClick={() => { setActionError(''); setDisputeOpen(true) }}>
+            <button className={CLS.disputeBtn} onClick={() => { setActionError(''); setDisputeOpen(true) }}>
               <AlertOctagon size={15} /> Открыть спор
             </button>
           )}
           {disputeOpen && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: 6 }}>Опишите причину спора:</div>
-              <textarea style={S.textarea} value={disputeReason} onChange={e => setDisputeReason(e.target.value)} placeholder="Что именно пошло не так?" />
-              {actionError && <div style={{ color: '#f87171', fontSize: '0.82rem', margin: '6px 0' }}>{actionError}</div>}
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button style={{ ...S.submitBtn, background: '#ef4444' }} onClick={handleDispute} disabled={actionLoading || !disputeReason.trim()}>{actionLoading ? 'Отправка...' : 'Подтвердить спор'}</button>
-                <button style={S.cancelBtn} onClick={() => { setDisputeOpen(false); setDisputeReason(''); setActionError('') }}>Отмена</button>
+            <div className="mt-2">
+              <div className="text-slate-400 text-[0.82rem] mb-1.5">Опишите причину спора:</div>
+              <textarea className={CLS.textarea} value={disputeReason} onChange={e => setDisputeReason(e.target.value)} placeholder="Что именно пошло не так?" />
+              {actionError && <div className="text-red-400 text-[0.82rem] my-1.5">{actionError}</div>}
+              <div className="flex gap-2 mt-2">
+                <button className={CLS.dangerBtn} onClick={handleDispute} disabled={actionLoading || !disputeReason.trim()}>{actionLoading ? 'Отправка...' : 'Подтвердить спор'}</button>
+                <button className={CLS.cancelBtn} onClick={() => { setDisputeOpen(false); setDisputeReason(''); setActionError('') }}>Отмена</button>
               </div>
             </div>
           )}
@@ -278,33 +280,33 @@ export default function OrderDetail() {
       {/* Completed */}
       {order.status === 'completed' && (
         <>
-          <div style={{ ...S.card, borderColor: '#22c55e44', background: '#0a1f12' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#22c55e', fontWeight: 700, fontSize: '1.05rem' }}>
+          <div className="bg-[#0a1f12] border border-[#22c55e44] rounded-xl p-6 mb-4">
+            <div className="flex items-center gap-2.5 text-green-500 font-bold text-[1.05rem]">
               <CheckCircle size={20} /> Заказ завершён
             </div>
-            {order.completed_at && <div style={{ color: '#64748b', fontSize: '0.82rem', marginTop: 6 }}>{new Date(order.completed_at).toLocaleString('ru-RU')}</div>}
+            {order.completed_at && <div className="text-slate-500 text-[0.82rem] mt-1.5">{new Date(order.completed_at).toLocaleString('ru-RU')}</div>}
           </div>
-          <div style={S.card}>
-            <div style={S.sectionTitle}>Отзывы</div>
+          <div className={CLS.card}>
+            <div className={CLS.sectionTitle}>Отзывы</div>
             {(isOwner || isExecutor) && !hasReviewed && (
-              <form onSubmit={handleReviewSubmit} style={{ marginBottom: reviews?.length ? '1.5rem' : 0 }}>
-                <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: 8 }}>{isOwner ? 'Оцените исполнителя:' : 'Оцените заказчика:'}</div>
+              <form onSubmit={handleReviewSubmit} className={reviews?.length ? 'mb-6' : 'mb-0'}>
+                <div className="text-slate-400 text-[0.85rem] mb-2">{isOwner ? 'Оцените исполнителя:' : 'Оцените заказчика:'}</div>
                 <StarRating value={reviewRating} onChange={setReviewRating} size={26} gap={4} />
-                <textarea style={{ ...S.textarea, marginTop: 10 }} value={reviewComment} onChange={e => setReviewComment(e.target.value)} placeholder="Комментарий (необязательно)" />
-                {reviewError && <div style={{ color: '#f87171', fontSize: '0.82rem', marginTop: 6 }}>{reviewError}</div>}
-                <button type="submit" style={{ ...S.submitBtn, marginTop: 10 }} disabled={reviewSubmitting || !reviewRating}>{reviewSubmitting ? 'Отправка...' : 'Оставить отзыв'}</button>
+                <textarea className={`${CLS.textarea} mt-2.5`} value={reviewComment} onChange={e => setReviewComment(e.target.value)} placeholder="Комментарий (необязательно)" />
+                {reviewError && <div className="text-red-400 text-[0.82rem] mt-1.5">{reviewError}</div>}
+                <button type="submit" className={`${CLS.submitBtn} mt-2.5`} disabled={reviewSubmitting || !reviewRating}>{reviewSubmitting ? 'Отправка...' : 'Оставить отзыв'}</button>
               </form>
             )}
-            {reviews === null && <div style={{ color: '#64748b', fontSize: '0.85rem' }}>Загрузка...</div>}
+            {reviews === null && <div className="text-slate-500 text-[0.85rem]">Загрузка...</div>}
             {(reviews ?? []).map((r: any) => (
-              <div key={r.id} style={{ background: '#070d14', border: '1px solid #1e3a4a', borderRadius: 10, padding: '1rem', marginBottom: 8 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+              <div key={r.id} className="bg-[#070d14] border border-[#1e3a4a] rounded-lg p-4 mb-2">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <StarRating value={r.rating} size={14} gap={1} />
-                  <Link to={`/market/users/${r.reviewer_id}`} style={{ color: '#14a89a', fontSize: '0.82rem', fontWeight: 600, textDecoration: 'none' }}>{r.reviewer?.nickname}</Link>
-                  <span style={{ color: '#64748b', fontSize: '0.74rem' }}>{r.context === 'as_executor' ? '· о исполнителе' : '· о заказчике'}</span>
-                  <span style={{ color: '#64748b', fontSize: '0.72rem', marginLeft: 'auto' }}>{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
+                  <Link to={`/market/users/${r.reviewer_id}`} className="text-teal-legacy text-[0.82rem] font-semibold no-underline">{r.reviewer?.nickname}</Link>
+                  <span className="text-slate-500 text-[0.74rem]">{r.context === 'as_executor' ? '· о исполнителе' : '· о заказчике'}</span>
+                  <span className="text-slate-500 text-[0.72rem] ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                 </div>
-                {r.comment && <div style={{ color: '#cbd5e1', fontSize: '0.88rem', lineHeight: 1.6 }}>{r.comment}</div>}
+                {r.comment && <div className="text-slate-300 text-[0.88rem] leading-[1.6]">{r.comment}</div>}
               </div>
             ))}
           </div>
@@ -313,35 +315,35 @@ export default function OrderDetail() {
 
       {/* Disputed */}
       {order.status === 'disputed' && (
-        <div style={{ ...S.card, borderColor: '#ef444444', background: '#1f0a0a' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#ef4444', fontWeight: 700, fontSize: '1.05rem' }}>
+        <div className="bg-[#1f0a0a] border border-[#ef444444] rounded-xl p-6 mb-4">
+          <div className="flex items-center gap-2.5 text-red-500 font-bold text-[1.05rem]">
             <AlertOctagon size={20} /> Открыт спор
           </div>
-          <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: 6 }}>Ожидайте решения администратора. Средства зарезервированы до урегулирования.</div>
+          <div className="text-slate-400 text-[0.85rem] mt-1.5">Ожидайте решения администратора. Средства зарезервированы до урегулирования.</div>
         </div>
       )}
 
       {/* Apply block */}
       {order.status === 'open' && !isOwner && !isAdmin && (
-        <div style={S.card}>
-          <div style={S.sectionTitle}>{order.already_applied ? 'Ваша заявка' : 'Откликнуться на заказ'}</div>
+        <div className={CLS.card}>
+          <div className={CLS.sectionTitle}>{order.already_applied ? 'Ваша заявка' : 'Откликнуться на заказ'}</div>
           {order.already_applied ? (
-            <div style={{ color: '#22c55e', fontSize: '0.9rem' }}>
+            <div className="text-green-500 text-[0.9rem]">
               ✓ Заявка подана · статус: {({'pending': 'на рассмотрении', 'accepted': 'принята', 'rejected': 'отклонена'} as Record<string,string>)[order.my_application_status] ?? order.my_application_status}
             </div>
           ) : (
-            <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <form onSubmit={handleApply} className="flex flex-col gap-3">
               <div>
-                <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: 5 }}>Ваша цена (₽) <span style={{ color: '#ef4444' }}>*</span><span style={{ color: '#64748b', fontWeight: 400, marginLeft: 6 }}>— можно предложить выше или ниже бюджета</span></div>
-                <input style={{ ...S.input, maxWidth: 200 }} type="number" min="1" step="0.01" placeholder="500" value={applyPrice} onChange={e => setApplyPrice(e.target.value)} required />
+                <div className="text-slate-400 text-[0.82rem] mb-[5px]">Ваша цена (₽) <span className="text-red-500">*</span><span className="text-slate-500 font-normal ml-1.5">— можно предложить выше или ниже бюджета</span></div>
+                <input className={`${CLS.input} max-w-[200px]`} type="number" min="1" step="0.01" placeholder="500" value={applyPrice} onChange={e => setApplyPrice(e.target.value)} required />
               </div>
               <div>
-                <div style={{ color: '#94a3b8', fontSize: '0.82rem', marginBottom: 5 }}>Сообщение заказчику <span style={{ color: '#ef4444' }}>*</span></div>
-                <textarea style={S.textarea} placeholder="Расскажите почему подходите..." value={applyMsg} onChange={e => setApplyMsg(e.target.value)} required />
+                <div className="text-slate-400 text-[0.82rem] mb-[5px]">Сообщение заказчику <span className="text-red-500">*</span></div>
+                <textarea className={CLS.textarea} placeholder="Расскажите почему подходите..." value={applyMsg} onChange={e => setApplyMsg(e.target.value)} required />
               </div>
-              {applyError && <div style={{ color: '#f87171', fontSize: '0.85rem' }}>{applyError}{applyError.includes('заблокирован') && <> · <Link to="/support" style={{ color: '#14a89a' }}>Поддержка</Link></>}</div>}
+              {applyError && <div className="text-red-400 text-[0.85rem]">{applyError}{applyError.includes('заблокирован') && <> · <Link to="/support" className="text-teal-legacy">Поддержка</Link></>}</div>}
               <div>
-                <button type="submit" style={S.submitBtn} disabled={applyLoading}><Send size={14} />{applyLoading ? 'Отправка...' : 'Отправить заявку'}</button>
+                <button type="submit" className={CLS.submitBtn} disabled={applyLoading}><Send size={14} />{applyLoading ? 'Отправка...' : 'Отправить заявку'}</button>
               </div>
             </form>
           )}
@@ -350,34 +352,34 @@ export default function OrderDetail() {
 
 
       {/* Order info */}
-      <div style={S.card}>
-        <div style={S.sectionTitle}>Детали заказа</div>
-        <div style={S.meta}>
-          <div style={S.metaItem}>Тип заказа<div style={S.metaValue}>{{ order: 'Заказ', service: 'Услуга' }[order.order_type as string] ?? order.order_type}</div></div>
-          <div style={S.metaItem}>Сумма исполнителю<div style={S.metaValue}>{order.final_amount ?? order.base_amount} ₽</div></div>
+      <div className={CLS.card}>
+        <div className={CLS.sectionTitle}>Детали заказа</div>
+        <div className={CLS.meta}>
+          <div className={CLS.metaItem}>Тип заказа<div className={CLS.metaValue}>{{ order: 'Заказ', service: 'Услуга' }[order.order_type as string] ?? order.order_type}</div></div>
+          <div className={CLS.metaItem}>Сумма исполнителю<div className={CLS.metaValue}>{order.final_amount ?? order.base_amount} ₽</div></div>
           {parseFloat(order.deposit_amount ?? 0) > 0 && (
-            <div style={S.metaItem}>Залог<div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 2 }}><Shield size={13} style={{ color: '#f59e0b' }} /><span style={{ color: '#f59e0b', fontWeight: 500 }}>{order.deposit_amount} ₽</span></div></div>
+            <div className={CLS.metaItem}>Залог<div className="flex items-center gap-[5px] mt-0.5"><Shield size={13} className="text-amber-500" /><span className="text-amber-500 font-medium">{order.deposit_amount} ₽</span></div></div>
           )}
-          <div style={S.metaItem}>Зарезервировано<div style={S.amount}>{order.reserved_amount} ₽</div></div>
-          {order.customer && <div style={S.metaItem}>Заказчик<div style={S.metaValue}><Link to={`/market/users/${order.customer_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
-          {order.executor && <div style={S.metaItem}>Исполнитель<div style={S.metaValue}><Link to={`/market/users/${order.executor_id}`} style={{ color: '#14a89a', textDecoration: 'none' }}><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
+          <div className={CLS.metaItem}>Зарезервировано<div className={CLS.amount}>{order.reserved_amount} ₽</div></div>
+          {order.customer && <div className={CLS.metaItem}>Заказчик<div className={CLS.metaValue}><Link to={`/market/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
+          {order.executor && <div className={CLS.metaItem}>Исполнитель<div className={CLS.metaValue}><Link to={`/market/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
         </div>
-        <div style={S.sectionTitle}>Описание</div>
-        <div style={S.desc}>{order.description}</div>
+        <div className={CLS.sectionTitle}>Описание</div>
+        <div className={CLS.desc}>{order.description}</div>
       </div>
 
       {/* Attachments */}
       {order.order_attachments?.length > 0 && (
-        <div style={S.card}>
-          <div style={S.sectionTitle}>Файлы ({order.order_attachments.length})</div>
+        <div className={CLS.card}>
+          <div className={CLS.sectionTitle}>Файлы ({order.order_attachments.length})</div>
           {order.order_attachments.map((att: any) => (
-            <div key={att.id} style={S.fileRow}>
-              <FileText size={16} style={{ color: '#14a89a', flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#e2e8f0', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.file_name}</div>
-                <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{(att.file_size / 1024).toFixed(0)} КБ · {att.visibility === 'public' ? 'Видно всем' : 'После выбора исполнителя'}</div>
+            <div key={att.id} className={CLS.fileRow}>
+              <FileText size={16} className="text-teal-legacy shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-slate-200 text-[0.88rem] overflow-hidden text-ellipsis whitespace-nowrap">{att.file_name}</div>
+                <div className="text-slate-500 text-xs">{(att.file_size / 1024).toFixed(0)} КБ · {att.visibility === 'public' ? 'Видно всем' : 'После выбора исполнителя'}</div>
               </div>
-              <button style={S.dlBtn} onClick={() => handleDownload(att)} disabled={dlLoading === att.id}>
+              <button className={CLS.dlBtn} onClick={() => handleDownload(att)} disabled={dlLoading === att.id}>
                 <Download size={13} />{dlLoading === att.id ? '...' : 'Скачать'}
               </button>
             </div>
@@ -387,20 +389,20 @@ export default function OrderDetail() {
 
       {/* Confirm modal */}
       {confirmModal && (
-        <div style={S.overlay} onClick={() => !actionLoading && setConfirmModal(false)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <CheckCircle size={20} style={{ color: '#14a89a' }} />
-              <div style={S.modalTitle}>Подтвердить выполнение?</div>
+        <div className={CLS.overlay} onClick={() => !actionLoading && setConfirmModal(false)}>
+          <div className={CLS.modal} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-2.5 mb-3">
+              <CheckCircle size={20} className="text-teal-legacy" />
+              <div className={CLS.modalTitle}>Подтвердить выполнение?</div>
             </div>
-            <div style={S.modalText}>
+            <div className={CLS.modalText}>
               Вы подтверждаете, что работа {isOwner ? 'принята и выполнена согласно договорённостям' : 'выполнена в полном объёме'}?
-              {isExecutor && <><br /><br />После подтверждения обеими сторонами на ваш баланс будет начислена сумма <strong style={{ color: '#14a89a' }}>{order.final_amount ?? order.base_amount} ₽</strong>.</>}
+              {isExecutor && <><br /><br />После подтверждения обеими сторонами на ваш баланс будет начислена сумма <strong className="text-teal-legacy">{order.final_amount ?? order.base_amount} ₽</strong>.</>}
             </div>
-            {actionError && <div style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: 12 }}>{actionError}</div>}
-            <div style={S.modalBtns}>
-              <button style={{ ...S.cancelBtn, cursor: 'pointer' }} onClick={() => setConfirmModal(false)} disabled={actionLoading}>Отмена</button>
-              <button style={S.okBtn} onClick={handleConfirm} disabled={actionLoading}>{actionLoading ? 'Обработка...' : 'Да, подтверждаю'}</button>
+            {actionError && <div className="text-red-400 text-[0.85rem] mb-3">{actionError}</div>}
+            <div className={CLS.modalBtns}>
+              <button className={`${CLS.cancelBtn} cursor-pointer`} onClick={() => setConfirmModal(false)} disabled={actionLoading}>Отмена</button>
+              <button className={CLS.okBtn} onClick={handleConfirm} disabled={actionLoading}>{actionLoading ? 'Обработка...' : 'Да, подтверждаю'}</button>
             </div>
           </div>
         </div>

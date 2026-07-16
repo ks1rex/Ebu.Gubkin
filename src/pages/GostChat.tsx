@@ -99,7 +99,8 @@ export default function GostChat() {
         <div style={{ display: 'flex', gap: 8 }}>
           {docxUrl ? (
             <a href={docxUrl} target="_blank" rel="noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', border: '1px solid #14a89a', borderRadius: 8, color: '#14a89a', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>
+              className="border border-teal-legacy text-teal-legacy"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>
               <Download size={13} /> DOCX
             </a>
           ) : (
@@ -133,7 +134,7 @@ export default function GostChat() {
         {messages.map(msg => (
           <div key={msg.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row' }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', background: msg.role === 'user' ? '#1e3a4a' : '#0d2620' }}>
-              {msg.role === 'user' ? <User size={15} style={{ color: '#94a3b8' }} /> : <Bot size={15} style={{ color: '#14a89a' }} />}
+              {msg.role === 'user' ? <User size={15} style={{ color: '#94a3b8' }} /> : <Bot size={15} className="text-teal-legacy" />}
             </div>
             <div style={{
               maxWidth: '75%', padding: '10px 14px', borderRadius: 14,
@@ -151,7 +152,7 @@ export default function GostChat() {
         {sending && (
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d2620' }}>
-              <Bot size={15} style={{ color: '#14a89a' }} />
+              <Bot size={15} className="text-teal-legacy" />
             </div>
             <div style={{ padding: '10px 14px', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 14, borderTopLeftRadius: 4 }}>
               <Loader2 size={16} style={{ color: '#64748b', animation: 'spin 1s linear infinite' }} />
@@ -174,7 +175,8 @@ export default function GostChat() {
           style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.5, padding: '4px 8px' }}
         />
         <button type="submit" disabled={!input.trim() || sending}
-          style={{ width: 36, height: 36, borderRadius: 10, background: '#14a89a', border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginBottom: 2, opacity: (!input.trim() || sending) ? 0.4 : 1 }}>
+          className="bg-teal-legacy"
+          style={{ width: 36, height: 36, borderRadius: 10, border: 'none', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, marginBottom: 2, opacity: (!input.trim() || sending) ? 0.4 : 1 }}>
           {sending ? <Loader2 size={16} /> : <Send size={16} />}
         </button>
       </form>

@@ -9,18 +9,12 @@ import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 
-const S: Record<string, any> = {
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: 12 },
-  h1: { display: 'flex', alignItems: 'center', gap: 10, color: '#e2e8f0', fontSize: '1.4rem', fontWeight: 700 },
-  usage: { color: '#64748b', fontSize: '0.8rem', fontWeight: 500 },
-  newBtn: { display: 'flex', alignItems: 'center', gap: 6, background: '#14a89a', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'none', whiteSpace: 'nowrap' },
-  row: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' },
-  link: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none', flexWrap: 'wrap' },
-  title: { color: '#e2e8f0', fontWeight: 600, fontSize: '0.95rem' },
-  subject: { color: '#64748b', fontSize: '0.78rem', marginTop: 2 },
-  amount: { color: '#14a89a', fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap' },
-  hiddenBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b44', borderRadius: 10, padding: '2px 7px', fontSize: '0.72rem', fontWeight: 600 },
-  toggleBtn: (active: boolean) => ({ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: `1px solid ${active ? '#14a89a' : '#334155'}`, borderRadius: 7, padding: '6px 12px', color: active ? '#14a89a' : '#64748b', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500, flexShrink: 0 }),
+const CLS = {
+  newBtn: 'flex items-center gap-[6px] bg-teal-legacy text-white rounded-lg py-2 px-4 text-[0.9rem] font-semibold cursor-pointer no-underline whitespace-nowrap',
+  toggleBtn: (active: boolean) =>
+    `flex items-center gap-[5px] bg-transparent border rounded-[7px] py-[6px] px-3 text-[0.8rem] cursor-pointer font-medium shrink-0 ${
+      active ? 'border-teal-legacy text-teal-legacy' : 'border-slate-700 text-slate-500'
+    }`,
 }
 
 const ORDER_TYPE_LABEL: Record<string, string> = { order: 'Заказ', service: 'Услуга' }
@@ -55,16 +49,16 @@ export default function MyOrders() {
     finally { setToggling(t => ({ ...t, [id]: false })) }
   }
 
-  if (loading) return <Spinner />
+  if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
-      <div style={S.header}>
-        <div style={S.h1}>
+    <div className="max-w-[800px] mx-auto">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="flex items-center gap-2.5 text-slate-200 text-[1.4rem] font-bold">
           Мои заказы
-          {usage && <span style={S.usage}>использовано {usage.used} из {usage.limit}</span>}
+          {usage && <span className="text-slate-500 text-[0.8rem] font-medium">использовано {usage.used} из {usage.limit}</span>}
         </div>
-        <Link to="/market/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>
+        <Link to="/market/orders/new" className={CLS.newBtn}><PlusCircle size={16} /> Создать заказ</Link>
       </div>
 
       {orders.length === 0 ? (
@@ -72,27 +66,27 @@ export default function MyOrders() {
           icon={ClipboardList}
           title="Заказов пока нет"
           subtitle="Создайте первый заказ — исполнители откликнутся уже сегодня"
-          action={<Link to="/market/orders/new" style={S.newBtn}><PlusCircle size={16} /> Создать заказ</Link>}
+          action={<Link to="/market/orders/new" className={CLS.newBtn}><PlusCircle size={16} /> Создать заказ</Link>}
         />
       ) : (
         orders.map((order: any) => (
-          <div key={order.id} style={{ ...S.row, opacity: order.is_hidden ? 0.6 : 1 }}>
-            <Link to={`/market/orders/${order.id}`} style={S.link}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={S.title}>{order.title}</div>
-                <div style={S.subject}>
+          <div key={order.id} className={`bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-4 px-5 mb-2 flex items-center gap-4 flex-wrap ${order.is_hidden ? 'opacity-60' : 'opacity-100'}`}>
+            <Link to={`/market/orders/${order.id}`} className="flex-1 min-w-0 flex items-center gap-4 no-underline flex-wrap">
+              <div className="flex-1 min-w-0">
+                <div className="text-slate-200 font-semibold text-[0.95rem]">{order.title}</div>
+                <div className="text-slate-500 text-[0.78rem] mt-0.5">
                   {order.subject} · {ORDER_TYPE_LABEL[order.order_type] ?? order.order_type} · {formatDate(order.created_at)}
                 </div>
               </div>
-              {order.is_hidden && <span style={S.hiddenBadge}>Скрыто</span>}
+              {order.is_hidden && <span className="inline-flex items-center gap-1 bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-lg py-0.5 px-[7px] text-[0.72rem] font-semibold">Скрыто</span>}
               <StatusBadge status={order.status} />
-              <div style={S.amount}>{formatCurrency(order.reserved_amount)}</div>
-              <ChevronRight size={16} style={{ color: '#334155', flexShrink: 0 }} />
+              <div className="text-teal-legacy font-bold text-base whitespace-nowrap">{formatCurrency(order.reserved_amount)}</div>
+              <ChevronRight size={16} className="text-slate-700 shrink-0" />
             </Link>
             {order.status === 'open' && (
               <button
                 type="button"
-                style={S.toggleBtn(!order.is_hidden)}
+                className={CLS.toggleBtn(!order.is_hidden)}
                 onClick={() => handleToggle(order.id, order.is_hidden)}
                 disabled={toggling[order.id]}
                 title={order.is_hidden ? 'Показать' : 'Скрыть'}

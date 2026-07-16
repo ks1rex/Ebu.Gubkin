@@ -5,18 +5,17 @@ import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
 
-const S: Record<string, any> = {
-  page: { maxWidth: 720, margin: '0 auto' },
-  h1: { color: '#e2e8f0', fontSize: '1.4rem', fontWeight: 700, marginBottom: '1.5rem' },
-  section: { marginBottom: '1.5rem' },
-  label: { display: 'block', color: '#94a3b8', fontSize: '0.82rem', marginBottom: 6 },
-  hint: { color: '#64748b', fontSize: '0.76rem', marginTop: 4 },
-  input: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.95rem', boxSizing: 'border-box' },
-  textarea: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.95rem', minHeight: 110, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' },
-  dropzone: (over: boolean) => ({ border: `2px dashed ${over ? '#14a89a' : '#1e3a4a'}`, borderRadius: 10, padding: '2rem', textAlign: 'center', cursor: 'pointer', background: over ? '#0d2620' : 'transparent', transition: 'all 0.15s', marginBottom: '1rem' }),
-  fileRow: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12 },
-  btn: { background: '#14a89a', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 28px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' },
-  error: { color: '#f87171', background: '#2d1515', borderRadius: 6, padding: '10px 14px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.88rem' },
+const CLS = {
+  label: 'block text-slate-400 text-[0.82rem] mb-1.5',
+  input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.95rem] box-border',
+  dropzone: (over: boolean) =>
+    `border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-150 mb-4 ${
+      over ? 'border-teal-legacy bg-[#0d2620]' : 'border-[#1e3a4a] bg-transparent'
+    }`,
+  toggleVisBtn: (isPublic: boolean) =>
+    `flex items-center gap-[5px] py-1 px-2.5 rounded-md border text-[0.78rem] cursor-pointer bg-transparent ${
+      isPublic ? 'border-teal-legacy-hover text-teal-legacy' : 'border-slate-700 text-slate-500'
+    }`,
 }
 
 interface FileItem { id: string; file: File; visibility: 'public' | 'after_assignment' }
@@ -98,47 +97,47 @@ export default function NewOrder() {
   }
 
   return (
-    <div style={S.page}>
-      <div style={S.h1}>Новый заказ</div>
+    <div className="max-w-[720px] mx-auto">
+      <div className="text-slate-200 text-[1.4rem] font-bold mb-6">Новый заказ</div>
       <form onSubmit={handleSubmit}>
         {error && (
-          <div style={S.error}>
+          <div className="text-red-400 bg-[#2d1515] rounded-md py-[10px] px-3.5 mb-4 flex items-center gap-2 text-[0.88rem]">
             <AlertCircle size={16} />
             <span>
               {error}
-              {error.includes('заблокирован') && <> · <Link to="/support" style={{ color: '#14a89a' }}>Написать в поддержку</Link></>}
-              {error.includes('средств') && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Пополнить кошелёк</Link></>}
-              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Купите VIP — до 10 объявлений</Link></>}
+              {error.includes('заблокирован') && <> · <Link to="/support" className="text-teal-legacy">Написать в поддержку</Link></>}
+              {error.includes('средств') && <> · <Link to="/wallet" className="text-teal-legacy">Пополнить кошелёк</Link></>}
+              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" className="text-teal-legacy">Купите VIP — до 10 объявлений</Link></>}
             </span>
           </div>
         )}
 
-        <div style={S.section}>
-          <label style={S.label}>Заголовок заказа</label>
-          <input style={S.input} value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: Помогите с курсовой по маркетингу" maxLength={120} />
+        <div className="mb-6">
+          <label className={CLS.label}>Заголовок заказа</label>
+          <input className={CLS.input} value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: Помогите с курсовой по маркетингу" maxLength={120} />
         </div>
 
-        <div style={S.section}>
-          <label style={S.label}>Описание / требования</label>
-          <textarea style={S.textarea} value={description} onChange={e => setDescription(e.target.value)} placeholder="Подробно опишите задание, требования, формат сдачи..." />
+        <div className="mb-6">
+          <label className={CLS.label}>Описание / требования</label>
+          <textarea className={`${CLS.input} min-h-[110px] resize-y font-[inherit]`} value={description} onChange={e => setDescription(e.target.value)} placeholder="Подробно опишите задание, требования, формат сдачи..." />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
-            <label style={S.label}>Предмет / дисциплина</label>
-            <input style={S.input} value={subject} onChange={e => setSubject(e.target.value)} placeholder="Маркетинг, Математика, Физика..." />
+            <label className={CLS.label}>Предмет / дисциплина</label>
+            <input className={CLS.input} value={subject} onChange={e => setSubject(e.target.value)} placeholder="Маркетинг, Математика, Физика..." />
           </div>
           <div>
-            <label style={S.label}>Ваш бюджет, ₽</label>
-            <input style={S.input} type="number" min="1" step="1" value={baseAmount} onChange={e => setBaseAmount(e.target.value)} placeholder="500" />
-            <div style={S.hint}>Исполнитель может предложить другую цену</div>
+            <label className={CLS.label}>Ваш бюджет, ₽</label>
+            <input className={CLS.input} type="number" min="1" step="1" value={baseAmount} onChange={e => setBaseAmount(e.target.value)} placeholder="500" />
+            <div className="text-slate-500 text-[0.76rem] mt-1">Исполнитель может предложить другую цену</div>
           </div>
         </div>
 
         {categories.length > 0 && (
-          <div style={S.section}>
-            <label style={S.label}>Категория</label>
-            <select style={S.input} value={category} onChange={e => setCategory(e.target.value)}>
+          <div className="mb-6">
+            <label className={CLS.label}>Категория</label>
+            <select className={CLS.input} value={category} onChange={e => setCategory(e.target.value)}>
               <option value="">Не выбрана</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -146,42 +145,44 @@ export default function NewOrder() {
         )}
 
         {amount > 0 && (
-          <div style={{ background: insufficient ? '#1f0808' : '#0d2620', border: `1px solid ${insufficient ? '#ef4444' : '#0e8a7d'}`, borderRadius: 8, padding: '14px 16px', marginBottom: '1.5rem' }}>
-            <div style={{ color: '#64748b', fontSize: '0.78rem', marginBottom: 6 }}>Сумма заказа — списывается с вашего баланса</div>
-            <div style={{ color: insufficient ? '#f87171' : '#14a89a', fontSize: '1.3rem', fontWeight: 700 }}>{formatCurrency(amount)}</div>
-            <div style={{ marginTop: 8, fontSize: '0.82rem', color: insufficient ? '#f87171' : '#64748b' }}>
+          <div className={`rounded-lg py-[14px] px-4 mb-6 border ${insufficient ? 'bg-[#1f0808] border-[#ef4444]' : 'bg-[#0d2620] border-teal-legacy-hover'}`}>
+            <div className="text-slate-500 text-[0.78rem] mb-1.5">Сумма заказа — списывается с вашего баланса</div>
+            <div className={`text-[1.3rem] font-bold ${insufficient ? 'text-red-400' : 'text-teal-legacy'}`}>{formatCurrency(amount)}</div>
+            <div className={`mt-2 text-[0.82rem] ${insufficient ? 'text-red-400' : 'text-slate-500'}`}>
               Ваш баланс: {formatCurrency(balance)}
-              {insufficient && <> — недостаточно средств. <Link to="/wallet" style={{ color: '#14a89a' }}>Пополнить кошелёк</Link></>}
+              {insufficient && <> — недостаточно средств. <Link to="/wallet" className="text-teal-legacy">Пополнить кошелёк</Link></>}
             </div>
           </div>
         )}
 
-        <div style={S.section}>
-          <label style={S.label}>Файлы (необязательно)</label>
-          <div style={S.dropzone(dragOver)} onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files) }} onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onClick={() => fileInputRef.current?.click()}>
-            <Upload size={24} style={{ color: '#14a89a', marginBottom: 8 }} />
-            <div style={{ color: '#94a3b8', marginBottom: 4 }}>Перетащите файлы сюда или нажмите</div>
-            <div style={{ color: '#64748b', fontSize: '0.78rem' }}>Максимум 10 МБ на файл</div>
-            <input ref={fileInputRef} type="file" multiple style={{ display: 'none' }} onChange={e => addFiles(e.target.files)} />
+        <div className="mb-6">
+          <label className={CLS.label}>Файлы (необязательно)</label>
+          <div className={CLS.dropzone(dragOver)} onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files) }} onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onClick={() => fileInputRef.current?.click()}>
+            <Upload size={24} className="text-teal-legacy mb-2" />
+            <div className="text-slate-400 mb-1">Перетащите файлы сюда или нажмите</div>
+            <div className="text-slate-500 text-[0.78rem]">Максимум 10 МБ на файл</div>
+            <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => addFiles(e.target.files)} />
           </div>
           {files.map(({ id, file, visibility }) => (
-            <div key={id} style={S.fileRow}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#e2e8f0', fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</div>
-                <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{(file.size / 1024).toFixed(0)} КБ</div>
+            <div key={id} className="bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 mb-1.5 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-slate-200 text-[0.88rem] overflow-hidden text-ellipsis whitespace-nowrap">{file.name}</div>
+                <div className="text-slate-500 text-xs">{(file.size / 1024).toFixed(0)} КБ</div>
               </div>
-              <button type="button" style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 6, border: `1px solid ${visibility === 'public' ? '#0e8a7d' : '#334155'}`, background: 'transparent', color: visibility === 'public' ? '#14a89a' : '#64748b', fontSize: '0.78rem', cursor: 'pointer' }} onClick={() => toggleVisibility(id)}>
+              <button type="button" className={CLS.toggleVisBtn(visibility === 'public')} onClick={() => toggleVisibility(id)}>
                 {visibility === 'public' ? <Eye size={13} /> : <Lock size={13} />}
                 {visibility === 'public' ? 'Видно всем' : 'После выбора'}
               </button>
-              <button type="button" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center' }} onClick={() => setFiles(prev => prev.filter(f => f.id !== id))}>
+              <button type="button" className="bg-transparent border-none text-slate-500 cursor-pointer flex items-center" onClick={() => setFiles(prev => prev.filter(f => f.id !== id))}>
                 <X size={16} />
               </button>
             </div>
           ))}
         </div>
 
-        <button style={{ ...S.btn, opacity: (insufficient || loading) ? 0.5 : 1, cursor: (insufficient || loading) ? 'not-allowed' : 'pointer' }} type="submit" disabled={loading || insufficient}>
+        <button
+          className={`bg-teal-legacy text-white rounded-lg py-[11px] px-7 text-base font-semibold ${(insufficient || loading) ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'}`}
+          type="submit" disabled={loading || insufficient}>
           {loading ? 'Создание заказа...' : 'Разместить заказ'}
         </button>
       </form>

@@ -7,19 +7,12 @@ import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 
-const S: Record<string, any> = {
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: 12 },
-  h1: { display: 'flex', alignItems: 'center', gap: 10, color: '#e2e8f0', fontSize: '1.3rem', fontWeight: 700 },
-  usage: { color: '#64748b', fontSize: '0.8rem', fontWeight: 500 },
-  newBtn: { background: '#14a89a', border: 'none', borderRadius: 8, padding: '9px 18px', color: '#fff', fontWeight: 600, textDecoration: 'none', fontSize: '0.88rem' },
-  card: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 12, padding: '1.15rem', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  info: { flex: 1, minWidth: 0 },
-  cardTitle: { color: '#e2e8f0', fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none' },
-  meta: { color: '#64748b', fontSize: '0.78rem', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' },
-  badge: (color: string) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, background: color + '22', color, border: `1px solid ${color}44`, borderRadius: 10, padding: '2px 7px', fontSize: '0.72rem', fontWeight: 600 }),
-  actions: { display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 },
-  iconBtn: (active: boolean) => ({ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: `1px solid ${active ? '#14a89a' : '#334155'}`, borderRadius: 7, padding: '6px 12px', color: active ? '#14a89a' : '#64748b', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 500 }),
-  editLink: { display: 'flex', alignItems: 'center', gap: 5, color: '#64748b', textDecoration: 'none', fontSize: '0.8rem', border: '1px solid #334155', borderRadius: 7, padding: '6px 12px' },
+const CLS = {
+  badge: 'inline-flex items-center gap-1 bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-lg py-0.5 px-[7px] text-[0.72rem] font-semibold',
+  iconBtn: (active: boolean) =>
+    `flex items-center gap-[5px] bg-transparent border rounded-[7px] py-[6px] px-3 text-[0.8rem] cursor-pointer font-medium ${
+      active ? 'border-teal-legacy text-teal-legacy' : 'border-slate-700 text-slate-500'
+    }`,
 }
 
 export default function ServicesMine() {
@@ -55,36 +48,36 @@ export default function ServicesMine() {
 
   return (
     <div>
-      <div style={S.header}>
-        <div style={S.h1}>
+      <div className="flex justify-between items-center mb-6 gap-3">
+        <div className="flex items-center gap-2.5 text-slate-200 text-[1.3rem] font-bold">
           Мои услуги
-          {usage && <span style={S.usage}>использовано {usage.used} из {usage.limit}</span>}
+          {usage && <span className="text-slate-500 text-[0.8rem] font-medium">использовано {usage.used} из {usage.limit}</span>}
         </div>
-        <Link to="/market/services/new" style={S.newBtn}>+ Новая услуга</Link>
+        <Link to="/market/services/new" className="bg-teal-legacy rounded-lg py-[9px] px-[18px] text-white font-semibold no-underline text-[0.88rem]">+ Новая услуга</Link>
       </div>
 
-      {loading ? <Spinner /> : listings.length === 0 ? (
+      {loading ? <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ /> : listings.length === 0 ? (
         <EmptyState title="У вас нет услуг">
-          <Link to="/market/services/new" style={{ color: '#14a89a' }}>Создать первую</Link>
+          <Link to="/market/services/new" className="text-teal-legacy">Создать первую</Link>
         </EmptyState>
       ) : (
         listings.map((l: any) => (
-          <div key={l.id} style={{ ...S.card, opacity: l.is_active ? 1 : 0.6 }}>
-            <div style={S.info}>
-              <Link to={`/market/services/${l.id}`} style={S.cardTitle}>{l.title}</Link>
-              <div style={S.meta}>
+          <div key={l.id} className={`bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-[1.15rem] mb-2 flex items-center gap-3 flex-wrap ${l.is_active ? 'opacity-100' : 'opacity-60'}`}>
+            <div className="flex-1 min-w-0">
+              <Link to={`/market/services/${l.id}`} className="text-slate-200 font-semibold text-[0.95rem] no-underline">{l.title}</Link>
+              <div className="text-slate-500 text-[0.78rem] mt-1 flex gap-2.5 flex-wrap">
                 <span>{formatCurrency(l.price)}</span>
-                {parseFloat(l.deposit_amount ?? 0) > 0 && <span style={S.badge('#f59e0b')}><Shield size={10} />Залог {formatCurrency(l.deposit_amount)}</span>}
-                {!l.is_active && <span style={S.badge('#f59e0b')}>Скрыто</span>}
+                {parseFloat(l.deposit_amount ?? 0) > 0 && <span className={CLS.badge}><Shield size={10} />Залог {formatCurrency(l.deposit_amount)}</span>}
+                {!l.is_active && <span className={CLS.badge}>Скрыто</span>}
                 <span>{formatDate(l.created_at)}</span>
               </div>
             </div>
-            <div style={S.actions}>
-              <button style={S.iconBtn(l.is_active)} onClick={() => handleToggle(l.id, l.is_active)} disabled={toggling[l.id]} title={l.is_active ? 'Скрыть' : 'Активировать'}>
+            <div className="flex gap-2 items-center shrink-0">
+              <button className={CLS.iconBtn(l.is_active)} onClick={() => handleToggle(l.id, l.is_active)} disabled={toggling[l.id]} title={l.is_active ? 'Скрыть' : 'Активировать'}>
                 {l.is_active ? <Eye size={14} /> : <EyeOff size={14} />}
                 {l.is_active ? 'Активна' : 'Скрыта'}
               </button>
-              <Link to={`/market/services/${l.id}/edit`} style={S.editLink}><Edit size={13} />Изменить</Link>
+              <Link to={`/market/services/${l.id}/edit`} className="flex items-center gap-[5px] text-slate-500 no-underline text-[0.8rem] border border-slate-700 rounded-[7px] py-[6px] px-3"><Edit size={13} />Изменить</Link>
             </div>
           </div>
         ))

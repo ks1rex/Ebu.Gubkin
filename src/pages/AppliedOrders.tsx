@@ -8,21 +8,12 @@ import { formatCurrency, formatDate } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 
-const APP_STATUS: Record<string, { label: string; color: string }> = {
-  pending:  { label: 'На рассмотрении', color: '#f59e0b' },
-  accepted: { label: 'Принята',         color: '#22c55e' },
-  rejected: { label: 'Отклонена',       color: '#64748b' },
+const APP_STATUS: Record<string, { label: string; badgeCls: string }> = {
+  pending:  { label: 'На рассмотрении', badgeCls: 'bg-[#f59e0b22] text-[#f59e0b] border-[#f59e0b44]' },
+  accepted: { label: 'Принята',         badgeCls: 'bg-[#22c55e22] text-[#22c55e] border-[#22c55e44]' },
+  rejected: { label: 'Отклонена',       badgeCls: 'bg-[#64748b22] text-[#64748b] border-[#64748b44]' },
 }
 const TYPE_LABEL: Record<string, string> = { order: 'Заказ', service: 'Услуга' }
-
-const S: Record<string, any> = {
-  h1: { color: '#e2e8f0', fontSize: '1.4rem', fontWeight: 700, marginBottom: '1.5rem' },
-  row: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none', flexWrap: 'wrap' },
-  title: { color: '#e2e8f0', fontWeight: 600, fontSize: '0.95rem' },
-  meta:  { color: '#64748b', fontSize: '0.78rem', marginTop: 2 },
-  appBadge: (color: string) => ({ display: 'inline-block', padding: '2px 9px', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600, background: color + '22', color, border: `1px solid ${color}44`, whiteSpace: 'nowrap' }),
-  price: { color: '#14a89a', fontWeight: 700, whiteSpace: 'nowrap', fontSize: '0.95rem' },
-}
 
 export default function AppliedOrders() {
   const { user } = useAuth()
@@ -37,35 +28,35 @@ export default function AppliedOrders() {
       .finally(() => setLoading(false))
   }, [user])
 
-  if (loading) return <Spinner />
+  if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
-      <div style={S.h1}>Мои отклики</div>
+    <div className="max-w-[800px] mx-auto">
+      <div className="text-slate-200 text-[1.4rem] font-bold mb-6">Мои отклики</div>
 
       {items.length === 0 ? (
         <EmptyState
           icon={Inbox}
           title="Откликов пока нет"
           subtitle="Перейдите на биржу заказов и откликнитесь на понравившийся заказ"
-          action={<Link to="/market/orders" style={{ background: '#14a89a', color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: '0.9rem' }}>Биржа заказов</Link>}
+          action={<Link to="/market/orders" className="bg-teal-legacy text-white no-underline rounded-lg py-2 px-[18px] font-semibold text-[0.9rem]">Биржа заказов</Link>}
         />
       ) : (
         items.map((item: any) => {
           const order = item.orders
           const appMeta = APP_STATUS[item.status] ?? APP_STATUS.pending
           return (
-            <Link key={item.id} to={`/market/orders/${order?.id}`} style={S.row}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={S.title}>{order?.title ?? 'Заказ'}</div>
-                <div style={S.meta}>
+            <Link key={item.id} to={`/market/orders/${order?.id}`} className="bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-4 px-5 mb-2 flex items-center gap-4 no-underline flex-wrap">
+              <div className="flex-1 min-w-0">
+                <div className="text-slate-200 font-semibold text-[0.95rem]">{order?.title ?? 'Заказ'}</div>
+                <div className="text-slate-500 text-[0.78rem] mt-0.5">
                   {order?.subject} · {TYPE_LABEL[order?.order_type] ?? order?.order_type} · {formatDate(item.created_at)}
                 </div>
               </div>
-              <span style={S.appBadge(appMeta.color)}>{appMeta.label}</span>
+              <span className={`inline-block py-0.5 px-[9px] rounded-xl text-xs font-semibold whitespace-nowrap border ${appMeta.badgeCls}`}>{appMeta.label}</span>
               {order && <StatusBadge status={order.status} />}
-              {item.proposed_amount && <div style={S.price}>{formatCurrency(item.proposed_amount)}</div>}
-              <ChevronRight size={16} style={{ color: '#334155', flexShrink: 0 }} />
+              {item.proposed_amount && <div className="text-teal-legacy font-bold whitespace-nowrap text-[0.95rem]">{formatCurrency(item.proposed_amount)}</div>}
+              <ChevronRight size={16} className="text-slate-700 shrink-0" />
             </Link>
           )
         })

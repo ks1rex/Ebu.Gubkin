@@ -25,6 +25,8 @@ export default {
         lav:  '#c4b5fd',
         pink: '#f5a3e8',
         gold: '#ffd27a',
+        // ponytail: legacy teal from pre-integration reshbirga frontend — Биржа only, not a themed accent. Remove once Биржа is migrated (see docs/AUDIT_DESIGN_2026.md §1)
+        'teal-legacy': { DEFAULT: '#14a89a', hover: '#0e8a7d' },
         // Разделители
         line: 'rgba(255,255,255,.14)',
         // Статусы

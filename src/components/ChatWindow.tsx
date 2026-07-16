@@ -13,13 +13,13 @@ const S: Record<string, any> = {
   messagesArea: { flex: 1, overflowY: 'auto', padding: '12px 0', display: 'flex', flexDirection: 'column', gap: 8, minHeight: 0 },
   ownBubble:   { alignSelf: 'flex-end',   maxWidth: '70%', background: '#0d2620', border: '1px solid #0e8a7d', borderRadius: '14px 14px 4px 14px',  padding: '9px 13px' },
   otherBubble: { alignSelf: 'flex-start', maxWidth: '70%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: '14px 14px 14px 4px', padding: '9px 13px' },
-  senderName: { color: '#14a89a', fontSize: '0.75rem', fontWeight: 600, marginBottom: 4 },
+  senderName: { fontSize: '0.75rem', fontWeight: 600, marginBottom: 4 },
   msgText:    { color: '#e2e8f0', fontSize: '0.9rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
   msgTime:    { color: '#64748b', fontSize: '0.7rem', marginTop: 4, textAlign: 'right' },
   contactFlag: { display: 'inline-flex', alignItems: 'center', gap: 4, color: '#f59e0b', fontSize: '0.7rem', marginTop: 4 },
   attRow: { display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, padding: '5px 8px', background: 'rgba(255,255,255,0.04)', borderRadius: 6 },
   attName: { color: '#94a3b8', fontSize: '0.78rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  dlBtn: { background: 'none', border: 'none', color: '#14a89a', cursor: 'pointer', padding: '2px 4px', flexShrink: 0 },
+  dlBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', flexShrink: 0 },
   inputArea: { borderTop: '1px solid #1e3a4a', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 },
   filesPreview: { display: 'flex', gap: 6, flexWrap: 'wrap' },
   fileChip: { display: 'flex', alignItems: 'center', gap: 5, background: '#1e3a4a', borderRadius: 6, padding: '3px 8px', fontSize: '0.78rem', color: '#94a3b8' },
@@ -157,14 +157,14 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               {msg.is_admin_message ? (
                 <div style={S.adminBadge}><ShieldCheck size={11} />Администратор</div>
               ) : (
-                !isOwn && <div style={S.senderName}><VipName name={msg.sender?.nickname ?? 'Пользователь'} isVip={msg.sender?.is_vip} badgeSize="sm" /></div>
+                !isOwn && <div className="text-teal-legacy" style={S.senderName}><VipName name={msg.sender?.nickname ?? 'Пользователь'} isVip={msg.sender?.is_vip} badgeSize="sm" /></div>
               )}
               <div style={S.msgText}>{msg.content}</div>
               {msg.message_attachments?.map((att: any) => (
                 <div key={att.id} style={S.attRow}>
                   <span style={S.attName}>{att.file_name}</span>
                   <span style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{(att.file_size / 1024).toFixed(0)} КБ</span>
-                  <button style={S.dlBtn} onClick={() => handleDownload(msg, att)}><Download size={13} /></button>
+                  <button className="text-teal-legacy" style={S.dlBtn} onClick={() => handleDownload(msg, att)}><Download size={13} /></button>
                 </div>
               ))}
               <div style={S.msgTime}>
@@ -189,7 +189,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             </button>
           </div>
           <div style={S.lockedBanner}>
-            Чат заблокирован до продления VIP · <Link to="/wallet" style={{ color: '#14a89a' }}>Продлить VIP</Link>
+            Чат заблокирован до продления VIP · <Link to="/wallet" className="text-teal-legacy">Продлить VIP</Link>
           </div>
         </div>
       ) : (
@@ -222,7 +222,8 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               rows={1}
             />
             <button
-              style={{ background: sendDisabled ? '#1e3a4a' : '#14a89a', border: 'none', borderRadius: 8, padding: '10px 14px', cursor: sendDisabled ? 'default' : 'pointer', color: sendDisabled ? '#64748b' : '#fff', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, flexShrink: 0, fontSize: '0.88rem' }}
+              className={sendDisabled ? '' : 'bg-teal-legacy'}
+              style={{ background: sendDisabled ? '#1e3a4a' : undefined, border: 'none', borderRadius: 8, padding: '10px 14px', cursor: sendDisabled ? 'default' : 'pointer', color: sendDisabled ? '#64748b' : '#fff', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, flexShrink: 0, fontSize: '0.88rem' }}
               onClick={doSend}
               disabled={sendDisabled}
             >
@@ -233,7 +234,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             <div style={S.sendErr}>
               {sendError}
               {sendError.includes('заблокирован') && (
-                <> · <Link to="/support" style={{ color: '#14a89a' }}>Написать в поддержку</Link></>
+                <> · <Link to="/support" className="text-teal-legacy">Написать в поддержку</Link></>
               )}
             </div>
           )}

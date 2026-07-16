@@ -8,21 +8,8 @@ import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
 
-const S: Record<string, any> = {
-  page: { maxWidth: 720, margin: '0 auto' },
-  card: { background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 12, padding: '1.5rem', marginBottom: '1rem' },
-  title: { color: '#e2e8f0', fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.75rem' },
-  desc: { color: '#94a3b8', fontSize: '0.92rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: '1rem' },
-  owner: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' },
-  ownerLink: { color: '#14a89a', fontWeight: 600, textDecoration: 'none', fontSize: '0.9rem' },
-  rating: { display: 'flex', alignItems: 'center', gap: 4, color: '#f59e0b', fontSize: '0.82rem' },
-  badge: (color: string) => ({ display: 'inline-flex', alignItems: 'center', gap: 5, background: color + '22', color, border: `1px solid ${color}44`, borderRadius: 12, padding: '4px 10px', fontSize: '0.78rem', fontWeight: 600, marginRight: 8, marginBottom: 6 }),
-  price: { color: '#14a89a', fontSize: '1.6rem', fontWeight: 700 },
-  depositNote: { color: '#f59e0b', fontSize: '0.83rem' },
-  contactBanner: { background: '#1a0a00', border: '1px solid #ef444444', borderRadius: 10, padding: '12px 14px', marginBottom: '1rem', fontSize: '0.85rem', color: '#fca5a5', lineHeight: 1.5 },
-  textarea: { width: '100%', background: '#0a1420', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.92rem', minHeight: 80, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' },
-  label: { color: '#94a3b8', fontSize: '0.82rem', marginBottom: 4, display: 'block' },
-  err: { color: '#f87171', fontSize: '0.84rem' },
+const CLS = {
+  badge: 'inline-flex items-center gap-[5px] bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-xl py-1 px-2.5 text-[0.78rem] font-semibold mr-2 mb-1.5',
 }
 
 export default function ServiceDetail() {
@@ -44,8 +31,8 @@ export default function ServiceDetail() {
       .finally(() => setLoading(false))
   }, [id])
 
-  if (loading) return <Spinner />
-  if (!listing) return <div style={{ color: '#f87171', padding: '2rem' }}>Услуга не найдена</div>
+  if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
+  if (!listing) return <div className="text-red-400 p-8">Услуга не найдена</div>
 
   const price = parseFloat(listing.price)
   const deposit = parseFloat(listing.deposit_amount ?? 0)
@@ -71,46 +58,50 @@ export default function ServiceDetail() {
   }
 
   return (
-    <div style={S.page}>
-      <div style={S.card}>
-        <div style={S.title}>{listing.title}</div>
-        <div style={S.owner}>
-          <Link to={`/market/users/${listing.owner_id}`} style={S.ownerLink}><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
+    <div className="max-w-[720px] mx-auto">
+      <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4">
+        <div className="text-slate-200 text-[1.3rem] font-bold mb-3">{listing.title}</div>
+        <div className="flex items-center gap-2 mb-4">
+          <Link to={`/market/users/${listing.owner_id}`} className="text-teal-legacy font-semibold no-underline text-[0.9rem]"><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
           {parseFloat(listing.owner?.rating_as_executor ?? 0) > 0 && (
-            <div style={S.rating}>
+            <div className="flex items-center gap-1 text-amber-500 text-[0.82rem]">
               <Star size={12} fill="#f59e0b" />{parseFloat(listing.owner.rating_as_executor).toFixed(1)}
-              <span style={{ color: '#64748b' }}>({listing.owner.reviews_count_executor})</span>
+              <span className="text-slate-500">({listing.owner.reviews_count_executor})</span>
             </div>
           )}
         </div>
         <div>
-          {deposit > 0 && <span style={S.badge('#f59e0b')}><Shield size={12} />Залог {formatCurrency(deposit)}</span>}
+          {deposit > 0 && <span className={CLS.badge}><Shield size={12} />Залог {formatCurrency(deposit)}</span>}
         </div>
-        <div style={S.desc}>{listing.description}</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
-          <div style={S.price}>{formatCurrency(price)}</div>
-          {deposit > 0 && <div style={S.depositNote}>+ залог {formatCurrency(deposit)} (вернётся после завершения)</div>}
+        <div className="text-slate-400 text-[0.92rem] leading-[1.6] whitespace-pre-wrap mb-4">{listing.description}</div>
+        <div className="flex items-baseline gap-2.5 flex-wrap mt-1.5">
+          <div className="text-teal-legacy text-[1.6rem] font-bold">{formatCurrency(price)}</div>
+          {deposit > 0 && <div className="text-amber-500 text-[0.83rem]">+ залог {formatCurrency(deposit)} (вернётся после завершения)</div>}
         </div>
-        {deposit > 0 && <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: 4 }}>Итого к списанию: {formatCurrency(total)}</div>}
+        {deposit > 0 && <div className="text-slate-500 text-[0.85rem] mt-1">Итого к списанию: {formatCurrency(total)}</div>}
       </div>
 
       {!isOwner && profile && (
-        <div style={S.card}>
-          <form onSubmit={handleOrder} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ color: '#e2e8f0', fontWeight: 600, marginBottom: 4 }}>Заказать услугу</div>
+        <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4">
+          <form onSubmit={handleOrder} className="flex flex-col gap-3">
+            <div className="text-slate-200 font-semibold mb-1">Заказать услугу</div>
             <div>
-              <label style={S.label}>Комментарий к заказу (необязательно)</label>
-              <textarea style={S.textarea} value={comment} onChange={e => setComment(e.target.value)} placeholder="Уточните детали, пожелания, удобное время..." />
+              <label className="text-slate-400 text-[0.82rem] mb-1 block">Комментарий к заказу (необязательно)</label>
+              <textarea className="w-full bg-[#0a1420] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.92rem] min-h-[80px] resize-y font-[inherit] box-border" value={comment} onChange={e => setComment(e.target.value)} placeholder="Уточните детали, пожелания, удобное время..." />
             </div>
             <div>
-              <div style={{ color: '#64748b', fontSize: '0.82rem' }}>К списанию: <strong style={{ color: '#14a89a' }}>{formatCurrency(total)}</strong>{deposit > 0 && <> ({formatCurrency(price)} + залог {formatCurrency(deposit)})</>}</div>
-              <div style={{ fontSize: '0.82rem', color: insufficient ? '#f87171' : '#64748b', marginTop: 6 }}>
+              <div className="text-slate-500 text-[0.82rem]">К списанию: <strong className="text-teal-legacy">{formatCurrency(total)}</strong>{deposit > 0 && <> ({formatCurrency(price)} + залог {formatCurrency(deposit)})</>}</div>
+              <div className={`text-[0.82rem] mt-1.5 ${insufficient ? 'text-red-400' : 'text-slate-500'}`}>
                 Ваш баланс: {formatCurrency(balance)}
-                {insufficient && <> — <Link to="/wallet" style={{ color: '#14a89a' }}>пополнить кошелёк</Link></>}
+                {insufficient && <> — <Link to="/wallet" className="text-teal-legacy">пополнить кошелёк</Link></>}
               </div>
             </div>
-            {error && <div style={S.err}>{error}</div>}
-            <button style={{ background: (insufficient || ordering) ? '#1e3a4a' : '#14a89a', border: 'none', borderRadius: 8, padding: '11px 24px', color: (insufficient || ordering) ? '#64748b' : '#fff', fontWeight: 600, cursor: (insufficient || ordering) ? 'not-allowed' : 'pointer', fontSize: '0.95rem' }} type="submit" disabled={insufficient || ordering}>
+            {error && <div className="text-red-400 text-[0.84rem]">{error}</div>}
+            <button
+              className={`rounded-lg py-[11px] px-6 font-semibold text-[0.95rem] ${
+                (insufficient || ordering) ? 'bg-[#1e3a4a] text-slate-500 cursor-not-allowed' : 'bg-teal-legacy text-white cursor-pointer'
+              }`}
+              type="submit" disabled={insufficient || ordering}>
               {ordering ? 'Оформление...' : `Заказать за ${formatCurrency(total)}`}
             </button>
           </form>
@@ -118,9 +109,9 @@ export default function ServiceDetail() {
       )}
 
       {isOwner && (
-        <div style={{ display: 'flex', gap: 10 }}>
-          <Link to={`/market/services/${id}/edit`} style={{ background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '9px 18px', color: '#e2e8f0', textDecoration: 'none', fontWeight: 500, fontSize: '0.88rem' }}>Редактировать</Link>
-          <Link to="/market/services/mine" style={{ color: '#64748b', fontSize: '0.85rem', padding: '9px 0', textDecoration: 'none' }}>← Мои услуги</Link>
+        <div className="flex gap-2.5">
+          <Link to={`/market/services/${id}/edit`} className="bg-[#1e3a4a] rounded-lg py-[9px] px-[18px] text-slate-200 no-underline font-medium text-[0.88rem]">Редактировать</Link>
+          <Link to="/market/services/mine" className="text-slate-500 text-[0.85rem] py-[9px] no-underline">← Мои услуги</Link>
         </div>
       )}
     </div>

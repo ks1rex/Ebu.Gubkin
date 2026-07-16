@@ -27,8 +27,8 @@ export default function ServiceEdit() {
     finally { setSaving(false) }
   }
 
-  if (pageLoading) return <Spinner />
-  if (!listing) return <div style={{ color: '#f87171', padding: '2rem' }}>Услуга не найдена</div>
+  if (pageLoading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
+  if (!listing) return <div className="text-red-400 p-8">Услуга не найдена</div>
 
   return <ServiceForm title="Редактировать услугу" initial={listing} onSubmit={handleSubmit} loading={saving} error={error} errorCode={errorCode} cancelTo={`/market/services/${id}`} />
 }

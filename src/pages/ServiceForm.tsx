@@ -4,22 +4,9 @@ import { AlertCircle } from 'lucide-react'
 import { formatCurrency } from '../lib/format'
 import { apiCall } from '../lib/api'
 
-const S: Record<string, any> = {
-  page: { maxWidth: 680, margin: '0 auto' },
-  h1: { color: '#e2e8f0', fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem' },
-  section: { marginBottom: '1.25rem' },
-  label: { display: 'block', color: '#94a3b8', fontSize: '0.82rem', marginBottom: 6 },
-  input: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.93rem', boxSizing: 'border-box' },
-  textarea: { width: '100%', background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.93rem', minHeight: 120, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' },
-  row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' },
-  checkRow: { display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
-  checkbox: { width: 18, height: 18, marginTop: 2, accentColor: '#14a89a', flexShrink: 0 },
-  checkLabel: { color: '#e2e8f0', fontSize: '0.9rem', cursor: 'pointer' },
-  checkDesc: { color: '#64748b', fontSize: '0.76rem', marginTop: 3 },
-  subfield: { marginTop: 8, paddingLeft: 28 },
-  btn: { background: '#14a89a', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 28px', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' },
-  cancelLink: { color: '#64748b', fontSize: '0.85rem', marginLeft: 16, textDecoration: 'none' },
-  err: { color: '#f87171', background: '#2d1515', borderRadius: 6, padding: '10px 14px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.88rem' },
+const CLS = {
+  input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.93rem] box-border',
+  label: 'block text-slate-400 text-[0.82rem] mb-1.5',
 }
 
 interface Props {
@@ -61,69 +48,69 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
   const dep = hasDeposit ? (parseFloat(String(depositAmt)) || 0) : 0
 
   return (
-    <div style={S.page}>
-      <div style={S.h1}>{title}</div>
+    <div className="max-w-[680px] mx-auto">
+      <div className="text-slate-200 text-[1.3rem] font-bold mb-6">{title}</div>
       <form onSubmit={handleSubmit}>
         {error && (
-          <div style={S.err}>
+          <div className="text-red-400 bg-[#2d1515] rounded-md py-[10px] px-3.5 mb-4 flex items-center gap-2 text-[0.88rem]">
             <AlertCircle size={16} />
             <span>
               {error}
-              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" style={{ color: '#14a89a' }}>Купите VIP — до 10 объявлений</Link></>}
+              {errorCode === 'LISTING_LIMIT_REACHED' && <> · <Link to="/wallet" className="text-teal-legacy">Купите VIP — до 10 объявлений</Link></>}
             </span>
           </div>
         )}
 
-        <div style={S.section}>
-          <label style={S.label}>Заголовок услуги</label>
-          <input style={S.input} value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Например: Репетиторство по математике (ЕГЭ)" maxLength={200} required />
+        <div className="mb-5">
+          <label className={CLS.label}>Заголовок услуги</label>
+          <input className={CLS.input} value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Например: Репетиторство по математике (ЕГЭ)" maxLength={200} required />
         </div>
 
-        <div style={S.section}>
-          <label style={S.label}>Описание</label>
-          <textarea style={S.textarea} value={description} onChange={e => setDescription(e.target.value)} placeholder="Опишите услугу, условия работы, что включено..." required />
+        <div className="mb-5">
+          <label className={CLS.label}>Описание</label>
+          <textarea className={`${CLS.input} min-h-[120px] resize-y font-[inherit]`} value={description} onChange={e => setDescription(e.target.value)} placeholder="Опишите услугу, условия работы, что включено..." required />
         </div>
 
-        <div style={S.row}>
+        <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label style={S.label}>Цена, ₽</label>
-            <input style={S.input} type="number" min="1" step="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="1500" required />
+            <label className={CLS.label}>Цена, ₽</label>
+            <input className={CLS.input} type="number" min="1" step="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="1500" required />
           </div>
           <div>
-            <label style={S.label}>Стоимость{dep > 0 ? ` + залог = ${formatCurrency(amt + dep)}` : ''}</label>
-            <div style={{ color: '#64748b', fontSize: '0.82rem', paddingTop: 10 }}>{amt > 0 ? formatCurrency(amt) : '—'}</div>
+            <label className={CLS.label}>Стоимость{dep > 0 ? ` + залог = ${formatCurrency(amt + dep)}` : ''}</label>
+            <div className="text-slate-500 text-[0.82rem] pt-2.5">{amt > 0 ? formatCurrency(amt) : '—'}</div>
           </div>
         </div>
 
         {categories.length > 0 && (
-          <div style={S.section}>
-            <label style={S.label}>Категория</label>
-            <select style={S.input} value={category} onChange={e => setCategory(e.target.value)}>
+          <div className="mb-5">
+            <label className={CLS.label}>Категория</label>
+            <select className={CLS.input} value={category} onChange={e => setCategory(e.target.value)}>
               <option value="">Не выбрана</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         )}
 
-        <div style={S.section}>
-          <div style={S.checkRow}>
-            <input id="hasDeposit" type="checkbox" style={S.checkbox} checked={hasDeposit} onChange={e => setHasDeposit(e.target.checked)} />
+        <div className="mb-5">
+          <div className="flex items-start gap-2.5 mb-2">
+            <input id="hasDeposit" type="checkbox" className="w-[18px] h-[18px] mt-0.5 accent-teal-legacy shrink-0" checked={hasDeposit} onChange={e => setHasDeposit(e.target.checked)} />
             <div>
-              <label htmlFor="hasDeposit" style={S.checkLabel}>Требуется залог</label>
-              <div style={S.checkDesc}>Залог возвращается заказчику после успешного завершения, или переходит исполнителю при споре</div>
+              <label htmlFor="hasDeposit" className="text-slate-200 text-[0.9rem] cursor-pointer">Требуется залог</label>
+              <div className="text-slate-500 text-[0.76rem] mt-[3px]">Залог возвращается заказчику после успешного завершения, или переходит исполнителю при споре</div>
             </div>
           </div>
           {hasDeposit && (
-            <div style={S.subfield}>
-              <label style={S.label}>Сумма залога, ₽</label>
-              <input style={{ ...S.input, maxWidth: 200 }} type="number" min="1" step="1" value={depositAmt} onChange={e => setDepositAmt(e.target.value)} placeholder="500" required={hasDeposit} />
+            <div className="mt-2 pl-7">
+              <label className={CLS.label}>Сумма залога, ₽</label>
+              <input className={`${CLS.input} max-w-[200px]`} type="number" min="1" step="1" value={depositAmt} onChange={e => setDepositAmt(e.target.value)} placeholder="500" required={hasDeposit} />
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button style={S.btn} type="submit" disabled={loading}>{loading ? 'Сохранение...' : 'Сохранить'}</button>
-          <Link to={cancelTo} style={S.cancelLink}>Отмена</Link>
+        <div className="flex items-center">
+          <button className="bg-teal-legacy text-white rounded-lg py-[11px] px-7 text-base font-semibold cursor-pointer" type="submit" disabled={loading}>{loading ? 'Сохранение...' : 'Сохранить'}</button>
+          <Link to={cancelTo} className="text-slate-500 text-[0.85rem] ml-4 no-underline">Отмена</Link>
         </div>
       </form>
     </div>
