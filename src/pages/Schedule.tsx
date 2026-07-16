@@ -80,9 +80,9 @@ function normalizeScheduleResponse(res: any): LessonsResponse {
 // ─── Type badge ─────────────────────────────────────────────────────────────
 
 function typeBadgeClass(type: string): string {
-  if (type.includes('Лекция')) return 'bg-blue-500/20 text-blue-400'
-  if (type.includes('Практика')) return 'bg-green-500/20 text-green-400'
-  if (type.includes('Лаборатор')) return 'bg-yellow-500/20 text-yellow-400'
+  if (type.includes('Лекция')) return 'bg-accent/10 text-accent'
+  if (type.includes('Практика')) return 'bg-success/10 text-success'
+  if (type.includes('Лаборатор')) return 'bg-warning/10 text-warning'
   return 'bg-white/[.1] text-subtle'
 }
 

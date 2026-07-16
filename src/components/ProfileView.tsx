@@ -285,7 +285,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                     </Link>
                     <span className="text-subtle text-xs ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                   </div>
-                  {r.text && <p className="text-[13.5px] text-[#e6e1f7] leading-relaxed">{r.text}</p>}
+                  {r.text && <p className="text-[13.5px] text-ink/90 leading-relaxed">{r.text}</p>}
                 </GlassCard>
               ))}
             </div>

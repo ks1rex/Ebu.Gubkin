@@ -120,10 +120,10 @@ function MoneyChart({ points }: { points: ChartPoint[] }) {
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-32">
-        <path d={area('income')} fill="#4ade80" opacity={0.15} />
-        <path d={area('expense')} fill="#f87171" opacity={0.15} />
-        <path d={line('income')} fill="none" stroke="#4ade80" strokeWidth={2} />
-        <path d={line('expense')} fill="none" stroke="#f87171" strokeWidth={2} />
+        <path d={area('income')} className="fill-success" opacity={0.15} />
+        <path d={area('expense')} className="fill-error" opacity={0.15} />
+        <path d={line('income')} fill="none" className="stroke-success" strokeWidth={2} />
+        <path d={line('expense')} fill="none" className="stroke-error" strokeWidth={2} />
         {points.map((p, i) => (
           <g key={p.month}>
             <circle cx={x(i)} cy={y(p.income)} r={6} fill="transparent"><title>{p.month}: +{p.income.toLocaleString('ru-RU')} ₽</title></circle>
@@ -135,8 +135,8 @@ function MoneyChart({ points }: { points: ChartPoint[] }) {
         {points.map(p => <span key={p.month}>{p.month}</span>)}
       </div>
       <div className="flex items-center gap-4 text-xs text-subtle mt-2">
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#4ade80]" /> доходы</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-[#f87171]" /> расходы</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-success" /> доходы</span>
+        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-error" /> расходы</span>
       </div>
     </div>
   )

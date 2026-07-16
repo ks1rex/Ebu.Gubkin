@@ -115,7 +115,7 @@ function PostCard({
           {post.author?.level != null && (
             <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md text-lav bg-white/[.08]">Ур. {post.author.level}</span>
           )}
-          {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-[#08221c] bg-gold">Автор</span>}
+          {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-canvas bg-gold">Автор</span>}
           {post.moderation_status === 'flagged' && isAdmin && (
             <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>
           )}
@@ -123,7 +123,7 @@ function PostCard({
           <span className="text-[12.5px] text-subtle ml-auto">{timeAgo(post.created_at)}</span>
         </div>
 
-        <p className="text-[14.5px] leading-relaxed text-[#e6e1f7] whitespace-pre-wrap break-words">{post.content}</p>
+        <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>
 
         <div className="mt-4 flex items-center gap-2.5 flex-wrap">
           <ReactionBar

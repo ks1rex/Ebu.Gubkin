@@ -19,7 +19,8 @@ const ICONS: Record<string, any> = {
   MessageCircle, BookOpen, Briefcase, Megaphone, MessagesSquare,
 }
 
-const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7dd3fc', '#fbbf24']
+// pink, mint, lav, accent, gold — token hexes from tailwind.config.ts (kept as hex since alpha suffixes are string-concatenated below)
+const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7c3aed', '#ffd27a']
 function catColor(seed: string) {
   let h = 0
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
@@ -203,7 +204,7 @@ export default function Forum() {
                 <button
                   key={t.key}
                   onClick={() => setHotSort(t.key)}
-                  className={`text-sm font-semibold px-3.5 py-1.5 rounded-[9px] transition-colors ${hotSort === t.key ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+                  className={`text-sm font-semibold px-3.5 py-1.5 rounded-[9px] transition-colors ${hotSort === t.key ? 'text-[#1a1140] bg-gradient-to-br from-lav to-lav/40' : 'text-subtle'}`}
                 >{t.label}</button>
               ))}
             </div>
