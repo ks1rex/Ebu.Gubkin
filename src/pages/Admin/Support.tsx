@@ -4,8 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import ChatWindow from '../../components/ChatWindow'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   open:     { label: 'Открыт',   cls: 'bg-accent-subtle text-accent' },
@@ -26,7 +25,6 @@ interface SupportConv {
 export default function AdminSupport() {
   const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [list, setList] = useState<SupportConv[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,11 +34,7 @@ export default function AdminSupport() {
   async function fetchList() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/conversations?type=support_ticket&limit=100`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/conversations?type=support_ticket&limit=100')
       setList(data.conversations ?? [])
     } catch {
       toast('Не удалось загрузить тикеты', 'error')
@@ -49,17 +43,13 @@ export default function AdminSupport() {
     }
   }
 
-  useEffect(() => { if (token) fetchList() }, [token])
+  useEffect(() => { if (session?.access_token) fetchList() }, [session])
 
   async function closeTicket() {
     if (!selected?.support_ticket_id) return
     setClosing(true)
     try {
-      const res = await fetch(`${API}/admin/support/tickets/${selected.support_ticket_id}/close`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PATCH', `/admin/support/tickets/${selected.support_ticket_id}/close`)
       toast('Тикет закрыт', 'success')
       const patch = (c: SupportConv) =>
         c.id === selected.id ? { ...c, status: 'closed' } : c
@@ -87,26 +77,28 @@ export default function AdminSupport() {
           <div>
             <button
               onClick={() => setSelected(null)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 6, padding: 0 }}
+              className="text-slate-500"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 6, padding: 0 }}
             >
               <ArrowLeft size={14} /> Все тикеты
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>
+              <span className="text-slate-200" style={{ fontWeight: 700, fontSize: '1.1rem' }}>
                 {selected.ticket_subject ?? 'Тикет поддержки'}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.cls}`}>{s.label}</span>
             </div>
-            {nicks && <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: 2 }}>Участники: {nicks}</p>}
+            {nicks && <p className="text-slate-500" style={{ fontSize: '0.8rem', marginTop: 2 }}>Участники: {nicks}</p>}
           </div>
           {!isClosed && (
             <button
               onClick={closeTicket}
               disabled={closing}
+              className="text-slate-400"
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '7px 16px', background: '#1e2a3a', border: '1px solid #2d3f55',
-                borderRadius: 8, color: '#94a3b8', cursor: closing ? 'default' : 'pointer',
+                borderRadius: 8, cursor: closing ? 'default' : 'pointer',
                 fontSize: '0.85rem', opacity: closing ? 0.6 : 1,
               }}
             >

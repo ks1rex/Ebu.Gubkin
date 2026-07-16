@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, X } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface FinanceSummary {
   commission_regular: number
@@ -21,9 +19,7 @@ function fmt(n: number) {
 }
 
 export default function AdminFinance() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [data, setData] = useState<FinanceSummary | null>(null)
   const [loading, setLoading] = useState(true)
@@ -34,11 +30,7 @@ export default function AdminFinance() {
   async function fetchData() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/finance/summary`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      setData(await res.json())
+      setData(await apiCall('GET', '/admin/finance/summary'))
     } catch {
       toast('Не удалось загрузить финансовые данные', 'error')
     } finally {
@@ -53,15 +45,7 @@ export default function AdminFinance() {
     if (isNaN(amount)) { toast('Введите корректную сумму', 'error'); return }
     setSaving(true)
     try {
-      const res = await fetch(`${API}/admin/finance/expenses`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ amount }),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PATCH', '/admin/finance/expenses', { amount })
       toast('Расходы обновлены', 'success')
       setShowExpenseModal(false)
       fetchData()

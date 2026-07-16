@@ -3,8 +3,7 @@ import { Loader2, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface FlaggedMessage {
   id: string
@@ -25,7 +24,6 @@ interface FlaggedMessage {
 export default function AdminChatMod() {
   const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [messages, setMessages] = useState<FlaggedMessage[]>([])
   const [loading,  setLoading]  = useState(true)
@@ -36,11 +34,7 @@ export default function AdminChatMod() {
     setLoading(true)
     try {
       const reviewed = showAll ? '' : '&reviewed=false'
-      const res = await fetch(`${API}/admin/chat-moderation?${reviewed}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      setMessages(await res.json())
+      setMessages(await apiCall('GET', `/admin/chat-moderation?${reviewed}`))
     } catch {
       toast('Не удалось загрузить сообщения', 'error')
     } finally {
@@ -48,16 +42,12 @@ export default function AdminChatMod() {
     }
   }
 
-  useEffect(() => { fetchMessages() }, [token, showAll])
+  useEffect(() => { fetchMessages() }, [session, showAll])
 
   async function markReviewed(msgId: string) {
     setActing(a => ({ ...a, [msgId]: true }))
     try {
-      const res = await fetch(`${API}/admin/chat-moderation/${msgId}/review`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PATCH', `/admin/chat-moderation/${msgId}/review`)
       toast('Отмечено как проверено', 'success')
       setMessages(msgs => msgs.map(m => m.id === msgId ? { ...m, moderation_reviewed: true } : m))
     } catch {

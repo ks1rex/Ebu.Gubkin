@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 type Status = 'idle' | 'running' | 'waiting_captcha' | 'done' | 'error'
 
@@ -18,9 +16,7 @@ interface WarmupState {
 }
 
 export default function AdminScheduleWarmup() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [state, setState] = useState<WarmupState | null>(null)
   const [loading, setLoading] = useState(true)
@@ -30,11 +26,7 @@ export default function AdminScheduleWarmup() {
 
   async function fetchStatus() {
     try {
-      const res = await fetch(`${API}/admin/schedule-warmup/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data: WarmupState = await res.json()
+      const data: WarmupState = await apiCall('GET', '/admin/schedule-warmup/status')
       setState(data)
       return data
     } catch {
@@ -63,11 +55,7 @@ export default function AdminScheduleWarmup() {
   async function start() {
     setBusy(true)
     try {
-      const res = await fetch(`${API}/admin/schedule-warmup/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', '/admin/schedule-warmup/start')
       await fetchStatus()
     } catch {
       toast('Не удалось запустить прогрев', 'error')
@@ -79,11 +67,7 @@ export default function AdminScheduleWarmup() {
   async function cancel() {
     setBusy(true)
     try {
-      const res = await fetch(`${API}/admin/schedule-warmup/cancel`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', '/admin/schedule-warmup/cancel')
       await fetchStatus()
     } catch {
       toast('Не удалось отменить прогрев', 'error')
@@ -96,16 +80,7 @@ export default function AdminScheduleWarmup() {
     if (!answer.trim()) return
     setBusy(true)
     try {
-      const res = await fetch(`${API}/admin/schedule-warmup/solve-captcha`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ answer: answer.trim() }),
-      })
-      if (!res.ok) throw new Error()
-      const data: { success: boolean } = await res.json()
+      const data: { success: boolean } = await apiCall('POST', '/admin/schedule-warmup/solve-captcha', { answer: answer.trim() })
       setAnswer('')
       if (data.success) {
         toast('Капча принята, прогрев продолжается', 'success')

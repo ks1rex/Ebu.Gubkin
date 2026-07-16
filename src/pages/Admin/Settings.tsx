@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Plus, Pencil, Trash2, Check } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface SiteSettings {
   site: Record<string, string>
@@ -71,9 +69,7 @@ const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
 const ADMIN_SETTING_KEYS = ADMIN_SETTING_GROUPS.flatMap(g => g.keys)
 
 export default function AdminSettings() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [depositText, setDepositText] = useState('')
@@ -91,11 +87,7 @@ export default function AdminSettings() {
   async function fetchSettings() {
     setLoadingSettings(true)
     try {
-      const res = await fetch(`${API}/admin/settings`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data: SiteSettings = await res.json()
+      const data: SiteSettings = await apiCall('GET', '/admin/settings')
       setDepositText(data.site?.deposit_instructions ?? data.site?.payment_requisites ?? '')
       const vals: Record<string, string> = {}
       ADMIN_SETTING_KEYS.forEach(({ key }) => {
@@ -112,11 +104,7 @@ export default function AdminSettings() {
   async function fetchCategories() {
     setLoadingCats(true)
     try {
-      const res = await fetch(`${API}/admin/forum/categories`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/forum/categories')
       setCategories(Array.isArray(data) ? data : (data.data ?? []))
     } catch {
       toast('Не удалось загрузить категории', 'error')
@@ -133,15 +121,7 @@ export default function AdminSettings() {
   async function saveDepositInstructions() {
     setSavingKey('deposit_instructions')
     try {
-      const res = await fetch(`${API}/admin/settings/deposit_instructions`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ value: depositText }),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PUT', '/admin/settings/deposit_instructions', { value: depositText })
       toast('Реквизиты сохранены', 'success')
     } catch {
       toast('Ошибка при сохранении', 'error')
@@ -153,15 +133,7 @@ export default function AdminSettings() {
   async function saveAdminSetting(key: string) {
     setSavingKey(key)
     try {
-      const res = await fetch(`${API}/admin/admin-settings/${key}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ value: adminValues[key] }),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PUT', `/admin/admin-settings/${key}`, { value: adminValues[key] })
       toast('Настройка сохранена', 'success')
     } catch {
       toast('Ошибка при сохранении', 'error')
@@ -173,20 +145,12 @@ export default function AdminSettings() {
   async function createCategory() {
     setCatActing(a => ({ ...a, new: true }))
     try {
-      const res = await fetch(`${API}/admin/forum/categories`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: newCatForm.name,
-          description: newCatForm.description || null,
-          icon_name: newCatForm.icon_name || null,
-          sort_order: parseInt(newCatForm.sort_order) || 0,
-        }),
+      await apiCall('POST', '/admin/forum/categories', {
+        name: newCatForm.name,
+        description: newCatForm.description || null,
+        icon_name: newCatForm.icon_name || null,
+        sort_order: parseInt(newCatForm.sort_order) || 0,
       })
-      if (!res.ok) throw new Error()
       toast('Категория создана', 'success')
       setNewCatForm(EMPTY_FORM)
       setShowNewCatForm(false)
@@ -201,20 +165,12 @@ export default function AdminSettings() {
   async function updateCategory(id: string) {
     setCatActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/forum/categories/${id}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: editForm.name,
-          description: editForm.description || null,
-          icon_name: editForm.icon_name || null,
-          sort_order: parseInt(editForm.sort_order) || 0,
-        }),
+      await apiCall('PATCH', `/admin/forum/categories/${id}`, {
+        name: editForm.name,
+        description: editForm.description || null,
+        icon_name: editForm.icon_name || null,
+        sort_order: parseInt(editForm.sort_order) || 0,
       })
-      if (!res.ok) throw new Error()
       toast('Категория обновлена', 'success')
       setEditingCat(null)
       fetchCategories()
@@ -229,11 +185,7 @@ export default function AdminSettings() {
     if (!confirm('Удалить категорию?')) return
     setCatActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/forum/categories/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('DELETE', `/admin/forum/categories/${id}`)
       toast('Категория удалена', 'success')
       setCategories(c => c.filter(x => x.id !== id))
     } catch {
@@ -393,7 +345,7 @@ export default function AdminSettings() {
                       <button
                         onClick={() => deleteCategory(cat.id)}
                         disabled={catActing[cat.id]}
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-subtle hover:text-error transition-colors disabled:opacity-50"
+                        className="p-1.5 rounded-lg hover:bg-error/10 text-subtle hover:text-error transition-colors disabled:opacity-50"
                       >
                         {catActing[cat.id] ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                       </button>

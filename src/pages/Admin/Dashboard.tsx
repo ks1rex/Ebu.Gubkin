@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, Users, ShoppingBag, Scale, ArrowDownCircle, ArrowUpCircle, HeadphonesIcon, TrendingUp } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface AdminStats {
   total_users: number
@@ -44,9 +42,7 @@ function StatCard({ icon, label, value, sub, linkTo }: StatCardProps) {
 const ACTIVE_STATUSES = ['open', 'in_progress', 'awaiting_confirmation', 'disputed']
 
 export default function AdminDashboard() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [pendingDeposits, setPendingDeposits] = useState<number | null>(null)
@@ -56,28 +52,18 @@ export default function AdminDashboard() {
   async function fetchAll() {
     setLoading(true)
     try {
-      const headers = { Authorization: `Bearer ${token}` }
-
-      const [statsRes, depositsRes, withdrawalsRes] = await Promise.all([
-        fetch(`${API}/admin/stats`, { headers }),
-        fetch(`${API}/admin/deposits?status=pending`, { headers }),
-        fetch(`${API}/admin/withdrawals?status=pending`, { headers }),
-      ])
-
-      if (!statsRes.ok) throw new Error('Ошибка загрузки статистики')
-
-      const statsData = await statsRes.json()
+      const statsData = await apiCall('GET', '/admin/stats')
       setStats(statsData)
 
-      if (depositsRes.ok) {
-        const d = await depositsRes.json()
+      try {
+        const d = await apiCall('GET', '/admin/deposits?status=pending')
         setPendingDeposits(Array.isArray(d) ? d.length : (d.data?.length ?? 0))
-      }
+      } catch { /* non-fatal — leave pendingDeposits as '—' */ }
 
-      if (withdrawalsRes.ok) {
-        const w = await withdrawalsRes.json()
+      try {
+        const w = await apiCall('GET', '/admin/withdrawals?status=pending')
         setPendingWithdrawals(Array.isArray(w) ? w.length : (w.data?.length ?? 0))
-      }
+      } catch { /* non-fatal — leave pendingWithdrawals as '—' */ }
     } catch (e) {
       toast('Не удалось загрузить статистику', 'error')
     } finally {

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Check, X } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface DepositRequest {
   id: string
@@ -32,9 +30,7 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 }
 
 export default function AdminDeposits() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [deposits, setDeposits] = useState<DepositRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,12 +41,8 @@ export default function AdminDeposits() {
   async function fetchDeposits() {
     setLoading(true)
     try {
-      const url = showAll ? `${API}/admin/deposits` : `${API}/admin/deposits?status=pending`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const path = showAll ? '/admin/deposits' : '/admin/deposits?status=pending'
+      const data = await apiCall('GET', path)
       const list: DepositRequest[] = Array.isArray(data) ? data : (data.data ?? [])
       setDeposits(list)
       // init confirmed amounts
@@ -76,15 +68,7 @@ export default function AdminDeposits() {
     }
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/deposits/${id}/confirm`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ confirmed_amount }),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', `/admin/deposits/${id}/confirm`, { confirmed_amount })
       toast('Пополнение подтверждено', 'success')
       fetchDeposits()
     } catch {
@@ -97,11 +81,7 @@ export default function AdminDeposits() {
   async function reject(id: string) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/deposits/${id}/reject`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', `/admin/deposits/${id}/reject`)
       toast('Заявка отклонена', 'success')
       fetchDeposits()
     } catch {

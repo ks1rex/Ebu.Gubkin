@@ -1,10 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface AdminUser {
   id: string
@@ -21,9 +19,7 @@ interface AdminUser {
 type Filter = 'all' | 'banned' | 'admins'
 
 export default function AdminUsers() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,11 +30,7 @@ export default function AdminUsers() {
   async function fetchUsers() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/users`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/users')
       setUsers(Array.isArray(data) ? data : (data.data ?? []))
     } catch {
       toast('Не удалось загрузить пользователей', 'error')
@@ -52,15 +44,7 @@ export default function AdminUsers() {
   async function patchUser(id: string, patch: { is_banned?: boolean; is_admin?: boolean }) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/users/${id}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(patch),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PATCH', `/admin/users/${id}`, patch)
       toast('Обновлено', 'success')
       setUsers(u => u.map(x => x.id === id ? { ...x, ...patch } : x))
     } catch {

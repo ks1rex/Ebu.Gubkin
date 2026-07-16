@@ -4,8 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import ChatWindow from '../../components/ChatWindow'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface Participant {
   user_id: string
@@ -30,7 +29,6 @@ const INPUT = 'px-3 py-1.5 rounded-lg border border-line bg-canvas text-ink text
 export default function AdminConversations() {
   const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [convs, setConvs] = useState<Conversation[]>([])
   const [total, setTotal] = useState(0)
@@ -48,11 +46,7 @@ export default function AdminConversations() {
       const params = new URLSearchParams({ page: String(p), limit: String(LIMIT) })
       if (search) params.set('search', search)
       if (type)   params.set('type',   type)
-      const res = await fetch(`${API}/admin/conversations?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', `/admin/conversations?${params}`)
       setConvs(data.conversations ?? [])
       setTotal(data.total ?? 0)
       setPage(p)
@@ -63,7 +57,7 @@ export default function AdminConversations() {
     }
   }
 
-  useEffect(() => { fetchConvs(1) }, [token])
+  useEffect(() => { fetchConvs(1) }, [session])
 
   const totalPages = Math.ceil(total / LIMIT)
 
@@ -80,19 +74,20 @@ export default function AdminConversations() {
         <div style={{ marginBottom: 12 }}>
           <button
             onClick={() => setSelected(null)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 6, padding: 0 }}
+            className="text-slate-500"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', marginBottom: 6, padding: 0 }}
           >
             <ArrowLeft size={14} /> Все чаты
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>
+            <span className="text-slate-200" style={{ fontWeight: 700, fontSize: '1.1rem' }}>
               {title ?? 'Без названия'}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isOrder ? 'bg-accent-subtle text-accent' : 'bg-panel text-subtle'}`}>
               {isOrder ? 'Заказ' : 'Поддержка'}
             </span>
           </div>
-          {nicks && <p style={{ color: '#64748b', fontSize: '0.8rem', marginTop: 2 }}>Участники: {nicks}</p>}
+          {nicks && <p className="text-slate-500" style={{ fontSize: '0.8rem', marginTop: 2 }}>Участники: {nicks}</p>}
         </div>
 
         <ChatWindow conversationId={selected.id} adminMode />

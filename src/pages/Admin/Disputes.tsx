@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Scale } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface Dispute {
   id: string
@@ -31,9 +29,7 @@ interface DisputeState {
 }
 
 export default function AdminDisputes() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [disputes, setDisputes] = useState<Dispute[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,11 +38,7 @@ export default function AdminDisputes() {
   async function fetchDisputes() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/disputes?status=open`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/disputes?status=open')
       const list: Dispute[] = Array.isArray(data) ? data : (data.data ?? [])
       setDisputes(list)
       const initial: Record<string, DisputeState> = {}
@@ -71,20 +63,12 @@ export default function AdminDisputes() {
     const st = states[dispute.id]
     updateState(dispute.id, { acting: true })
     try {
-      const res = await fetch(`${API}/admin/disputes/${dispute.id}/resolve`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resolution,
-          admin_comment: st.comment || undefined,
-          ban_customer: st.banCustomer || undefined,
-          ban_executor: st.banExecutor || undefined,
-        }),
+      await apiCall('POST', `/admin/disputes/${dispute.id}/resolve`, {
+        resolution,
+        admin_comment: st.comment || undefined,
+        ban_customer: st.banCustomer || undefined,
+        ban_executor: st.banExecutor || undefined,
       })
-      if (!res.ok) throw new Error()
       toast('Спор разрешён', 'success')
       fetchDisputes()
     } catch {

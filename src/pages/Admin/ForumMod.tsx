@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Check, Trash2, UserX } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface FlaggedPost {
   id: string
@@ -33,9 +31,7 @@ interface ForumReport {
 type Tab = 'flagged' | 'reports'
 
 export default function AdminForumMod() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [tab, setTab] = useState<Tab>('flagged')
   const [flagged, setFlagged] = useState<FlaggedPost[]>([])
@@ -46,11 +42,7 @@ export default function AdminForumMod() {
   async function fetchFlagged() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/forum/flagged`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/forum/flagged')
       setFlagged(Array.isArray(data) ? data : (data.data ?? []))
     } catch {
       toast('Не удалось загрузить AI-флаги', 'error')
@@ -62,11 +54,7 @@ export default function AdminForumMod() {
   async function fetchReports() {
     setLoading(true)
     try {
-      const res = await fetch(`${API}/admin/forum/reports`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await apiCall('GET', '/admin/forum/reports')
       setReports(Array.isArray(data) ? data : (data.data ?? []))
     } catch {
       toast('Не удалось загрузить жалобы', 'error')
@@ -83,11 +71,7 @@ export default function AdminForumMod() {
   async function approvePost(id: string) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/forum/posts/${id}/approve`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', `/admin/forum/posts/${id}/approve`)
       toast('Пост одобрен', 'success')
       setFlagged(f => f.filter(p => p.id !== id))
     } catch {
@@ -100,11 +84,7 @@ export default function AdminForumMod() {
   async function deletePost(id: string) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/forum/posts/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('DELETE', `/admin/forum/posts/${id}`)
       toast('Пост удалён', 'success')
       setFlagged(f => f.filter(p => p.id !== id))
       setReports(r => r.filter(p => p.post_id !== id))
@@ -115,18 +95,23 @@ export default function AdminForumMod() {
     }
   }
 
+  async function resolveReport(reportId: string, action: 'dismiss' | 'delete_post') {
+    setActing(a => ({ ...a, [reportId]: true }))
+    try {
+      await apiCall('POST', `/admin/forum/reports/${reportId}/resolve`, { action })
+      toast(action === 'delete_post' ? 'Пост удалён' : 'Жалоба оставлена без действий', 'success')
+      setReports(r => r.filter(x => x.id !== reportId))
+    } catch {
+      toast('Ошибка при обработке жалобы', 'error')
+    } finally {
+      setActing(a => ({ ...a, [reportId]: false }))
+    }
+  }
+
   async function banUser(userId: string, key: string) {
     setActing(a => ({ ...a, [key]: true }))
     try {
-      const res = await fetch(`${API}/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ is_banned: true }),
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('PATCH', `/admin/users/${userId}`, { is_banned: true })
       toast('Пользователь заблокирован', 'success')
     } catch {
       toast('Ошибка при бане', 'error')
@@ -238,18 +223,19 @@ export default function AdminForumMod() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setReports(r => r.filter(x => x.id !== report.id))}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-line text-ink rounded-lg hover:bg-panel transition-colors"
+                    onClick={() => resolveReport(report.id, 'dismiss')}
+                    disabled={acting[report.id]}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-line text-ink rounded-lg hover:bg-panel disabled:opacity-50 transition-colors"
                   >
-                    <Check size={12} />
+                    {acting[report.id] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                     Оставить
                   </button>
                   <button
-                    onClick={() => deletePost(report.post_id)}
-                    disabled={acting[report.post_id]}
+                    onClick={() => resolveReport(report.id, 'delete_post')}
+                    disabled={acting[report.id]}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-error text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
-                    {acting[report.post_id] ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                    {acting[report.id] ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
                     Удалить пост
                   </button>
                 </div>

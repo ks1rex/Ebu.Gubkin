@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Check, X } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
-
-const API = import.meta.env.VITE_BACKEND_URL as string
+import { apiCall } from '../../lib/api'
 
 interface WithdrawalRequest {
   id: string
@@ -27,9 +25,7 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 }
 
 export default function AdminWithdrawals() {
-  const { session } = useAuth()
   const toast = useToast()
-  const token = session?.access_token
 
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,11 +34,10 @@ export default function AdminWithdrawals() {
   const [commissionPct, setCommissionPct] = useState<number | null>(null)
 
   useEffect(() => {
-    fetch(`${API}/settings/public/withdrawal-commission-pct`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => res.ok ? res.json() : Promise.reject())
+    apiCall('GET', '/settings/public/withdrawal-commission-pct')
       .then((r: { withdrawal_commission_pct: number }) => setCommissionPct(r.withdrawal_commission_pct))
       .catch(() => setCommissionPct(null))
-  }, [token])
+  }, [])
 
   function payout(amount: number) {
     return commissionPct != null ? Math.round(amount * (1 - commissionPct / 100) * 100) / 100 : null
@@ -51,14 +46,10 @@ export default function AdminWithdrawals() {
   async function fetchWithdrawals() {
     setLoading(true)
     try {
-      const url = showAll
-        ? `${API}/admin/withdrawals`
-        : `${API}/admin/withdrawals?status=pending`
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const path = showAll
+        ? '/admin/withdrawals'
+        : '/admin/withdrawals?status=pending'
+      const data = await apiCall('GET', path)
       setWithdrawals(Array.isArray(data) ? data : (data.data ?? []))
     } catch {
       toast('Не удалось загрузить заявки на вывод', 'error')
@@ -72,11 +63,7 @@ export default function AdminWithdrawals() {
   async function act(id: string, action: 'confirm' | 'reject') {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      const res = await fetch(`${API}/admin/withdrawals/${id}/${action}`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error()
+      await apiCall('POST', `/admin/withdrawals/${id}/${action}`)
       toast(action === 'confirm' ? 'Выплата подтверждена' : 'Заявка отклонена', 'success')
       fetchWithdrawals()
     } catch {
