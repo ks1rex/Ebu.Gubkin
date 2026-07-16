@@ -138,9 +138,9 @@ export default function AdminLedger() {
                     </td>
                     <td className="py-2 px-3 text-center">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        tx.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        tx.status === 'rejected'  ? 'bg-red-100 text-red-800' :
-                        'bg-yellow-100 text-yellow-800'
+                        tx.status === 'completed' ? 'bg-success/10 text-success' :
+                        tx.status === 'rejected'  ? 'bg-error/10 text-error' :
+                        'bg-warning/10 text-warning'
                       }`}>
                         {tx.status === 'completed' ? 'Выполнено' : tx.status === 'rejected' ? 'Отклонено' : 'В обработке'}
                       </span>

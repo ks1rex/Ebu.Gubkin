@@ -7,14 +7,14 @@ import { timeAgo } from '../../lib/timeAgo'
 const API = import.meta.env.VITE_BACKEND_URL as string
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  open:                   { label: 'Открыт',         cls: 'bg-blue-100 text-blue-800'   },
-  pending_payment:        { label: 'Ожидает оплаты', cls: 'bg-yellow-100 text-yellow-800' },
-  in_progress:            { label: 'В работе',       cls: 'bg-purple-100 text-purple-800' },
-  awaiting_topup:         { label: 'Нужна доплата',  cls: 'bg-orange-100 text-orange-800' },
-  awaiting_confirmation:  { label: 'Ожидает подтв.', cls: 'bg-indigo-100 text-indigo-800' },
-  completed:              { label: 'Завершён',        cls: 'bg-green-100 text-green-800'  },
-  disputed:               { label: 'Спор',            cls: 'bg-red-100 text-red-800'      },
-  cancelled:              { label: 'Отменён',         cls: 'bg-gray-100 text-gray-600'    },
+  open:                   { label: 'Открыт',         cls: 'bg-accent/10 text-accent'   },
+  pending_payment:        { label: 'Ожидает оплаты', cls: 'bg-warning/10 text-warning' },
+  in_progress:            { label: 'В работе',       cls: 'bg-lav/10 text-lav' },
+  awaiting_topup:         { label: 'Нужна доплата',  cls: 'bg-gold/10 text-gold' },
+  awaiting_confirmation:  { label: 'Ожидает подтв.', cls: 'bg-mint/10 text-mint' },
+  completed:              { label: 'Завершён',        cls: 'bg-success/10 text-success'  },
+  disputed:               { label: 'Спор',            cls: 'bg-error/10 text-error'      },
+  cancelled:              { label: 'Отменён',         cls: 'bg-panel text-subtle'    },
 }
 
 const ALL_STATUSES = Object.keys(STATUS_LABELS)

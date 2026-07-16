@@ -10,7 +10,7 @@ const LABELS: Record<string, string> = {
 }
 
 const COLORS: Record<string, string> = {
-  open:                  '#14a89a',
+  open:                  '#7c3aed', // ponytail: accent.DEFAULT from tailwind.config.ts — no shared CSS var yet
   awaiting_topup:        '#f59e0b',
   assigned:              '#6366f1',
   in_progress:           '#3b82f6',

@@ -93,7 +93,7 @@ function TokenPanel({
     >
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
             {unlimited ? <Infinity size={20} className="text-purple-400" /> : <Coins size={20} className="text-purple-400" />}
           </div>
           <div>

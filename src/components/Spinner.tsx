@@ -1,6 +1,7 @@
 const spin = `@keyframes mkt_spin { to { transform: rotate(360deg); } }`
 
-export default function Spinner({ size = 32, color = '#14a89a', text = 'Загрузка...' }: { size?: number; color?: string; text?: string }) {
+// ponytail: no shared CSS var for Tailwind tokens yet — keep in sync with accent.DEFAULT in tailwind.config.ts
+export default function Spinner({ size = 32, color = '#7c3aed', text = 'Загрузка...' }: { size?: number; color?: string; text?: string }) {
   return (
     <>
       <style>{spin}</style>

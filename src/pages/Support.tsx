@@ -132,7 +132,7 @@ export default function Support() {
             </div>
           ) : tickets.length === 0 ? (
             <div className="flex flex-col items-center gap-4 py-12">
-              <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center">
                 <MessageCircle className="w-10 h-10 text-purple-400" />
               </div>
               <div className="text-center">
