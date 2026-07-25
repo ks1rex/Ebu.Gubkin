@@ -3,6 +3,7 @@ import { Paperclip, Send, Download, X, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
+import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
 import VipName from './VipBadge'
 
@@ -130,7 +131,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (ENTER_SENDS_MESSAGE && e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       if (!sending && (text.trim() || files.length > 0)) doSend()
     }
@@ -215,7 +216,9 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             )}
             <textarea
               style={S.textarea}
-              placeholder="Напишите сообщение... (Enter — отправить, Shift+Enter — перенос)"
+              placeholder={ENTER_SENDS_MESSAGE
+                ? 'Напишите сообщение... (Enter — отправить, Shift+Enter — перенос)'
+                : 'Напишите сообщение...'}
               value={text}
               onChange={e => setText(e.target.value)}
               onKeyDown={handleKeyDown}

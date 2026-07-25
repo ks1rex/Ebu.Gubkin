@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, FormEvent } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Send, Download, Bot, User, Loader2, ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
 
 const GOST = import.meta.env.VITE_GOST_URL as string
@@ -169,8 +170,10 @@ export default function GostChat() {
           ref={textareaRef}
           value={input}
           onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e as any) } }}
-          placeholder="Напишите требование к документу... (Enter — отправить, Shift+Enter — перенос)"
+          onKeyDown={e => { if (ENTER_SENDS_MESSAGE && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e as any) } }}
+          placeholder={ENTER_SENDS_MESSAGE
+            ? 'Напишите требование к документу... (Enter — отправить, Shift+Enter — перенос)'
+            : 'Напишите требование к документу...'}
           rows={3}
           style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.5, padding: '4px 8px' }}
         />
