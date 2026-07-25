@@ -22,6 +22,7 @@ interface VipPricing {
   monthBasePrice: number
   yearBasePrice: number
   discountPercent: number
+  gostTokenDiscountPercent: number
 }
 
 const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
@@ -679,7 +680,7 @@ export default function Wallet() {
             <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink"><Crown size={16} className="text-gold" /> VIP</h3>
             <ul className="flex flex-col gap-2 text-[13px] text-ink/90 mb-3">
               <li>· Приоритет объявлений на бирже</li>
-              <li>· Скидка на ГОСТ-токены</li>
+              <li>· Скидка{vipPricing?.gostTokenDiscountPercent ? ` ${vipPricing.gostTokenDiscountPercent}%` : ''} на ГОСТ-токены</li>
               <li>· Косметика: бейдж, рамка аватара, цветной ник</li>
             </ul>
             <p className="text-xs text-subtle mb-4">На 10 уровне — бесплатно</p>

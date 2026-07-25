@@ -1,18 +1,244 @@
-import { Crown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Crown, TrendingUp, Sparkles, Coins } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import { apiCall } from '../lib/api'
+import { formatDate } from '../lib/format'
+import { LEVEL_NAMES, levelProgress } from '../lib/gamification'
 import { GlassCard, Button } from '../components/glass'
+import { VipBadge } from '../components/VipBadge'
 
-// ponytail: заглушка — содержимое страницы делается отдельной задачей,
-// здесь только чтобы «Подробнее →» из кошелька вело на живой роут.
+interface VipPricing {
+  monthPrice: number
+  yearPrice: number
+  monthBasePrice: number
+  yearBasePrice: number
+  discountPercent: number
+  gostTokenDiscountPercent: number
+}
+
+// Same rule the backend applies (utils/vip.js vipDiscountPct): +10% per level,
+// level 10 an explicit exception at 100%.
+const LEVEL_DISCOUNTS = Array.from({ length: 10 }, (_, i) => ({
+  level: i + 1,
+  discount: i + 1 >= 10 ? 100 : i * 10,
+}))
+
+// Reputation grants, mirrored from the backend calls to addReputation()
+// (reshbirga: routes/forum.js, routes/orders.js). Keep in sync.
+const REP_SOURCES = [
+  { amount: '+50', what: 'Завершённый заказ на бирже — исполнителю' },
+  { amount: '+30', what: 'Полученный отзыв с оценкой 5★' },
+  { amount: '+15', what: 'Полученный отзыв с оценкой 4★' },
+  { amount: '+25', what: 'Ваша тема на форуме набрала 200 просмотров (один раз)' },
+  { amount: '+10', what: 'Ваша тема на форуме набрала 50 просмотров (один раз)' },
+  { amount: '+5',  what: 'Создание темы на форуме' },
+  { amount: '+2',  what: 'Ответ в теме на форуме' },
+]
+
+const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
+
 export default function VipInfo() {
+  const { profile, isVip } = useAuth()
+  const [pricing, setPricing] = useState<VipPricing | null>(null)
+  const [stats, setStats] = useState<{ level?: number; reputation?: number; next_level_reputation?: number | null } | null>(null)
+
+  useEffect(() => {
+    apiCall('GET', '/wallet/vip/price').then(setPricing).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (!profile?.id) return
+    apiCall('GET', `/profile/${profile.id}/public`).then(setStats).catch(() => {})
+  }, [profile?.id])
+
+  const level = stats?.level
+  const progress = level != null && stats?.reputation != null
+    ? levelProgress(level, stats.reputation, stats.next_level_reputation)
+    : null
+
   return (
-    <GlassCard className="rounded-[26px] px-8 py-7 max-w-[640px]">
-      <h1 className="text-2xl font-bold tracking-[-.5px] text-ink flex items-center gap-2 mb-3">
-        <Crown size={22} className="text-gold" /> VIP-статус
-      </h1>
-      <p className="text-sm text-subtle leading-relaxed mb-5">
-        Подробное описание возможностей VIP скоро появится здесь. Оформить подписку можно в кошельке.
-      </p>
-      <Button to="/wallet" variant="mint">В кошелёк</Button>
-    </GlassCard>
+    <div className="max-w-[760px] flex flex-col gap-4">
+      {/* Hero */}
+      <GlassCard className="rounded-[26px] px-8 py-7">
+        <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Подписка</div>
+        <h1 className="text-[32px] leading-[1.08] tracking-[-1px] font-bold mt-2.5 text-ink flex items-center gap-3">
+          <Crown size={28} className="text-gold shrink-0" /> VIP-статус
+        </h1>
+        <p className="mt-2.5 text-sm text-subtle max-w-[520px] leading-relaxed">
+          Приоритет на бирже, скидка на ГОСТ-токены и заметное оформление профиля.
+          Чем выше ваш уровень — тем дешевле подписка.
+        </p>
+      </GlassCard>
+
+      {/* Что даёт */}
+      <GlassCard className="rounded-[20px] p-6">
+        <h2 className="text-lg font-bold text-ink mb-4">Что даёт VIP</h2>
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-3.5">
+            <div className="w-10 h-10 rounded-[12px] bg-accent/[.18] grid place-items-center shrink-0">
+              <TrendingUp size={18} className="text-lav" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-ink mb-1">Приоритет на бирже</h3>
+              <p className="text-[13px] text-subtle leading-relaxed">
+                Ваши заказы и услуги показываются выше обычных при любой сортировке —
+                и «по рейтингу», и «по новизне».
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3.5">
+            <div className="w-10 h-10 rounded-[12px] bg-pink/[.18] grid place-items-center shrink-0">
+              <Sparkles size={18} className="text-pink" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-ink mb-1 flex items-center gap-2">
+                Косметика <VipBadge size="sm" />
+              </h3>
+              <p className="text-[13px] text-subtle leading-relaxed mb-2">
+                Три элемента, которые видно везде, где показан ваш ник — на бирже,
+                форуме, в чатах и профиле:
+              </p>
+              <ul className="text-[13px] text-ink/90 flex flex-col gap-1">
+                <li>· Градиентная плашка с короной «VIP» рядом с ником</li>
+                <li>· Градиентная заливка самого никнейма</li>
+                <li>· Градиентная рамка со свечением вокруг аватара</li>
+              </ul>
+              <p className="text-xs text-subtle mt-2 leading-relaxed">
+                Оформление одинаково для всех уровней и исчезает автоматически,
+                когда подписка истекает.
+              </p>
+            </div>
+          </div>
+
+          {(pricing?.gostTokenDiscountPercent ?? 0) > 0 && (
+            <div className="flex gap-3.5">
+              <div className="w-10 h-10 rounded-[12px] bg-mint/[.15] grid place-items-center shrink-0">
+                <Coins size={18} className="text-mint" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-ink mb-1">
+                  Скидка {pricing!.gostTokenDiscountPercent}% на ГОСТ-токены
+                </h3>
+                <p className="text-[13px] text-subtle leading-relaxed">
+                  Применяется автоматически при покупке токенов, пока VIP активен.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </GlassCard>
+
+      {/* Тарифы */}
+      <GlassCard className="rounded-[20px] p-6">
+        <h2 className="text-lg font-bold text-ink mb-1">Тарифы и скидка по уровню</h2>
+        <p className="text-[13px] text-subtle mb-4 leading-relaxed">
+          Базовые цены: месяц — {rub(pricing?.monthBasePrice ?? 300)}, год — {rub(pricing?.yearBasePrice ?? 1500)}.
+          Скидка зависит от вашего уровня и применяется автоматически.
+        </p>
+
+        <div className="overflow-x-auto -mx-1 px-1">
+          <table className="w-full text-[13px] border-collapse">
+            <thead>
+              <tr className="text-subtle text-left">
+                <th className="font-medium py-2 pr-3">Уровень</th>
+                <th className="font-medium py-2 pr-3">Скидка</th>
+                <th className="font-medium py-2 pr-3">Месяц</th>
+                <th className="font-medium py-2">Год</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LEVEL_DISCOUNTS.map(row => {
+                const isCurrent = row.level === level
+                const base = { m: pricing?.monthBasePrice ?? 300, y: pricing?.yearBasePrice ?? 1500 }
+                const price = (b: number) => Math.round(b * (100 - row.discount)) / 100
+                return (
+                  <tr
+                    key={row.level}
+                    className={`border-t border-white/[.08] ${isCurrent ? 'bg-accent/[.14] text-ink font-semibold' : 'text-ink/85'}`}
+                  >
+                    <td className="py-2 pr-3 rounded-l-lg">
+                      {row.level}{isCurrent && <span className="text-lav font-normal"> · вы</span>}
+                    </td>
+                    <td className="py-2 pr-3">{row.discount}%</td>
+                    <td className="py-2 pr-3">{row.discount === 100 ? 'бесплатно' : rub(price(base.m))}</td>
+                    <td className="py-2 rounded-r-lg">{row.discount === 100 ? 'бесплатно' : rub(price(base.y))}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="text-xs text-subtle mt-4 leading-relaxed">
+          Повторная покупка не перезаписывает срок, а добавляет дни к уже имеющемуся —
+          можно продлевать сколько угодно раз, в том числе пока подписка ещё активна.
+        </p>
+      </GlassCard>
+
+      {/* Уровень */}
+      <GlassCard className="rounded-[20px] p-6">
+        <h2 className="text-lg font-bold text-ink mb-4">Как получить уровень</h2>
+
+        {level != null && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-ink">Уровень {level} — {LEVEL_NAMES[level] ?? ''}</span>
+              <span className="text-xs text-subtle">{stats?.reputation ?? 0} репутации</span>
+            </div>
+            {progress ? (
+              <>
+                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
+                </div>
+                <div className="text-xs text-subtle mt-1.5">
+                  ещё {progress.remaining} репутации до следующего уровня
+                </div>
+              </>
+            ) : (
+              <div className="text-xs text-subtle">Максимальный уровень — VIP для вас бесплатный.</div>
+            )}
+          </div>
+        )}
+
+        <p className="text-[13px] text-subtle mb-3 leading-relaxed">
+          Уровень поднимается за репутацию. Репутация начисляется автоматически:
+        </p>
+        <ul className="flex flex-col gap-1.5">
+          {REP_SOURCES.map(s => (
+            <li key={s.what} className="flex gap-3 text-[13px] text-ink/90">
+              <b className="text-mint font-semibold w-9 shrink-0 text-right">{s.amount}</b>
+              <span className="leading-relaxed">{s.what}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-subtle mt-3 leading-relaxed">
+          Всего 10 уровней. Порог 10-го — 18 000 репутации.
+        </p>
+      </GlassCard>
+
+      {/* Действие */}
+      <GlassCard className="rounded-[20px] p-6 !bg-gradient-to-br !from-accent/[.18] !to-pink/[.16]">
+        {isVip ? (
+          <div className="flex items-center gap-3">
+            <Crown size={20} className="text-gold shrink-0" />
+            <p className="text-sm text-ink">
+              VIP активен до <span className="font-semibold">{formatDate(profile?.vip_expires_at)}</span>
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:justify-between">
+            <p className="text-sm text-subtle leading-relaxed">
+              {pricing?.monthPrice === 0
+                ? 'Ваш уровень даёт VIP без списания с баланса.'
+                : 'Оформить можно в кошельке — сумма спишется с баланса.'}
+            </p>
+            <Button to="/wallet" variant="mint" className="shrink-0">
+              {pricing?.monthPrice === 0 ? 'Активировать бесплатно' : 'Купить VIP'}
+            </Button>
+          </div>
+        )}
+      </GlassCard>
+    </div>
   )
 }

@@ -97,7 +97,7 @@ export default function App() {
               <Route path="chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             </Route>
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-            <Route path="vip-info" element={<VipInfo />} />
+            <Route path="vip-info" element={<ProtectedRoute><VipInfo /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="login"           element={<Login />} />
             <Route path="register"        element={<Register />} />
