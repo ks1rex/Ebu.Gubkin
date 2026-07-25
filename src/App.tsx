@@ -14,6 +14,7 @@ import Market        from './pages/Market'
 import Gost          from './pages/Gost'
 import GostLayout    from './components/GostLayout'
 import Wallet        from './pages/Wallet'
+import VipInfo       from './pages/VipInfo'
 import Profile       from './pages/Profile'
 import Login         from './pages/Login'
 import Register      from './pages/Register'
@@ -96,6 +97,7 @@ export default function App() {
               <Route path="chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
             </Route>
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+            <Route path="vip-info" element={<VipInfo />} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="login"           element={<Login />} />
             <Route path="register"        element={<Register />} />
