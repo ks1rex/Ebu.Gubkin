@@ -3,9 +3,9 @@ import { Crown, TrendingUp, Sparkles, Coins } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatDate } from '../lib/format'
-import { LEVEL_NAMES, levelProgress } from '../lib/gamification'
 import { GlassCard, Button } from '../components/glass'
 import { VipBadge } from '../components/VipBadge'
+import LevelProgressBar from '../components/LevelProgressBar'
 
 interface VipPricing {
   monthPrice: number
@@ -52,9 +52,6 @@ export default function VipInfo() {
   }, [profile?.id])
 
   const level = stats?.level
-  const progress = level != null && stats?.reputation != null
-    ? levelProgress(level, stats.reputation, stats.next_level_reputation)
-    : null
 
   return (
     <div className="max-w-[760px] flex flex-col gap-4">
@@ -182,22 +179,12 @@ export default function VipInfo() {
 
         {level != null && (
           <div className="mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-ink">Уровень {level} — {LEVEL_NAMES[level] ?? ''}</span>
-              <span className="text-xs text-subtle">{stats?.reputation ?? 0} репутации</span>
-            </div>
-            {progress ? (
-              <>
-                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
-                </div>
-                <div className="text-xs text-subtle mt-1.5">
-                  ещё {progress.remaining} репутации до следующего уровня
-                </div>
-              </>
-            ) : (
-              <div className="text-xs text-subtle">Максимальный уровень — VIP для вас бесплатный.</div>
-            )}
+            <LevelProgressBar
+              level={level}
+              reputation={stats?.reputation ?? 0}
+              nextLevelReputation={stats?.next_level_reputation}
+              maxLevelNote="Максимальный уровень — VIP для вас бесплатный."
+            />
           </div>
         )}
 

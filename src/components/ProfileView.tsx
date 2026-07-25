@@ -9,6 +9,7 @@ import Modal from './Modal'
 import { GlassCard, Avatar, Stars } from './glass'
 import { LEVEL_NAMES, LEVEL_THRESHOLDS, levelProgress, ACHIEVEMENTS } from '../lib/gamification'
 import VipName from './VipBadge'
+import LevelProgressBar from './LevelProgressBar'
 
 // Matches GET /profile/:id/public's recent_activity — shape differs by type
 // (see reshbirga backend/src/routes/profile.js).
@@ -139,18 +140,11 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           {profile.level != null && (
             <button onClick={() => setLevelModalOpen(true)} className="block w-full text-left">
               <GlassCard hover className="rounded-[18px] p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-ink">Уровень {profile.level} — {LEVEL_NAMES[profile.level] ?? ''}</span>
-                  <span className="text-xs text-subtle">{profile.reputation ?? 0} репутации</span>
-                </div>
-                {progress && (
-                  <>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-lav to-mint rounded-full" style={{ width: `${progress.pct}%` }} />
-                    </div>
-                    <div className="text-xs text-subtle mt-1.5">ещё {progress.remaining} репутации до следующего уровня</div>
-                  </>
-                )}
+                <LevelProgressBar
+                  level={profile.level}
+                  reputation={profile.reputation ?? 0}
+                  nextLevelReputation={profile.next_level_reputation}
+                />
               </GlassCard>
             </button>
           )}
