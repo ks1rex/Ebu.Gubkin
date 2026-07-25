@@ -54,7 +54,7 @@ export default function VipInfo() {
   const level = stats?.level
 
   return (
-    <div className="max-w-[760px] flex flex-col gap-4">
+    <div className="max-w-[760px] mx-auto flex flex-col gap-4">
       {/* Hero */}
       <GlassCard className="rounded-[26px] px-8 py-7">
         <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Подписка</div>
