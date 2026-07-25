@@ -245,7 +245,7 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
   return (
     <Modal open={open} onClose={onClose} title="Пополнение баланса">
       <div className="space-y-4">
-        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed">
+        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed whitespace-pre-line">
           {instructions ??
             'Переведите нужную сумму по реквизитам администратора, затем заполните форму ниже. Пополнение подтверждается вручную в течение рабочего дня.'}
         </div>
@@ -468,12 +468,15 @@ export default function Wallet() {
   }
 
   async function fetchInstructions() {
+    // ponytail: админка сохраняет реквизиты под ключом deposit_instructions,
+    // а миграция 0013 засеяла пустой payment_requisites — читаем оба, приоритет у нового.
     const { data } = await supabase
       .from('site_settings')
-      .select('value')
-      .eq('key', 'payment_requisites')
-      .maybeSingle()
-    setInstructions(data?.value ?? null)
+      .select('key, value')
+      .in('key', ['deposit_instructions', 'payment_requisites'])
+    const byKey = Object.fromEntries((data ?? []).map(r => [r.key, r.value]))
+    const value = byKey.deposit_instructions || byKey.payment_requisites
+    setInstructions(value?.trim() ? value : null)
   }
 
   async function copyReferralLink() {
