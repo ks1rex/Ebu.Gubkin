@@ -21,9 +21,12 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0" onClick={onClose} />
-      <div className={`relative bg-surface border border-line rounded-xl shadow-xl w-full ${maxWidth} max-h-[90vh] overflow-y-auto animate-slide-up`}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-line sticky top-0 bg-surface rounded-t-xl">
+      <div
+        className="absolute inset-0 bg-canvas/45 backdrop-blur-[8px] backdrop-brightness-[.7]"
+        onClick={onClose}
+      />
+      <div className={`relative bg-panel border border-line rounded-xl shadow-2xl w-full ${maxWidth} max-h-[90vh] overflow-y-auto animate-modal-in`}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-line sticky top-0 bg-panel rounded-t-xl">
           <h2 className="font-semibold text-ink">{title}</h2>
           <button
             onClick={onClose}

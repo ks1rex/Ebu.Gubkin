@@ -42,11 +42,16 @@ export default {
       },
       animation: {
         'slide-up': 'slideUp 0.15s ease-out',
+        'modal-in': 'modalIn 0.22s ease-out',
       },
       keyframes: {
         slideUp: {
           '0%':   { opacity: '0', transform: 'translateY(6px)' },
           '100%': { opacity: '1', transform: 'translateY(0)'   },
+        },
+        modalIn: {
+          '0%':   { opacity: '0', transform: 'translateY(12px) scale(.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)'      },
         },
       },
     },
