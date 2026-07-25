@@ -50,8 +50,16 @@ export default function Navbar() {
         </div>
       </Link>
 
-      {/* Навигация (desktop) */}
-      <nav className="hidden md:flex items-center gap-1 flex-1 ml-1.5">
+      {/* Навигация (desktop).
+          Порог xl (1280), а не md (768): горизонтальному меню нужно ~1150-1220px
+          (логотип ~165 + 6 пунктов с px-4 ~640 + пилюля кошелька/аватар/выход
+          ~180-270 + mx/px/gap шапки 112). На md оно не влезало никуда, кроме
+          настоящего десктопа: iPhone в ландшафте — это 667-956px, iPad в
+          портрете — 768px, и там меню обрезалось справа.
+          Плюс боковые safe-area (index.css) в ландшафте съедают ещё ~88px, а
+          медиазапрос их не видит — он считает от вьюпорта, а не от доступной
+          шапке ширины, поэтому запас должен быть с большим отрывом. */}
+      <nav className="hidden xl:flex items-center gap-1 flex-1 ml-1.5">
         {items.map(({ label, to, frozen }) => (
           frozen && !profile?.is_admin ? (
             <button
@@ -137,7 +145,7 @@ export default function Navbar() {
 
         {/* Burger (mobile only) */}
         <button
-          className="md:hidden flex items-center justify-center w-10 h-10 rounded-[14px] text-subtle hover:text-ink hover:bg-white/[.06] transition-colors"
+          className="xl:hidden flex items-center justify-center w-10 h-10 rounded-[14px] text-subtle hover:text-ink hover:bg-white/[.06] transition-colors"
           onClick={() => setMenuOpen(v => !v)}
           aria-label="Меню"
         >
@@ -147,7 +155,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 mt-2 p-3 rounded-[20px] bg-[#241551]/95 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.6)]">
+        <div className="xl:hidden absolute top-full left-0 right-0 mt-2 p-3 rounded-[20px] bg-[#241551]/95 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.6)]">
           <nav className="flex flex-col gap-1">
             {items.map(({ label, to, frozen }) => (
               frozen && !profile?.is_admin ? (
