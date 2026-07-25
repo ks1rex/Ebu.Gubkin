@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
 import { Paperclip, Send, Download, X, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
+import { autoGrowTextarea, CHAT_TEXTAREA_MAX_H } from '../lib/autoGrowTextarea'
 import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
 import VipName from './VipBadge'
@@ -26,7 +27,7 @@ const S: Record<string, any> = {
   fileChip: { display: 'flex', alignItems: 'center', gap: 5, background: '#1e3a4a', borderRadius: 6, padding: '3px 8px', fontSize: '0.78rem', color: '#94a3b8' },
   fileChipX: { background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0, display: 'flex' },
   inputRow: { display: 'flex', gap: 8, alignItems: 'flex-end' },
-  textarea: { flex: 1, background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 10, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.9rem', resize: 'none', lineHeight: 1.5, minHeight: 42, maxHeight: 120, boxSizing: 'border-box' },
+  textarea: { flex: 1, background: '#0f1923', border: '1px solid #1e3a4a', borderRadius: 10, padding: '10px 12px', color: '#e2e8f0', fontSize: '0.9rem', resize: 'none', lineHeight: 1.5, minHeight: 42, maxHeight: CHAT_TEXTAREA_MAX_H, overflowY: 'auto', boxSizing: 'border-box' },
   attachBtn: { background: '#1e3a4a', border: 'none', borderRadius: 8, padding: '10px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', flexShrink: 0 },
   readonlyBanner: { textAlign: 'center', padding: '10px', color: '#64748b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
   sendErr: { color: '#f87171', fontSize: '0.82rem' },
@@ -58,6 +59,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const atBottomRef = useRef(true)
 
   const basePath = adminMode ? `/admin/conversations/${conversationId}/messages` : `/conversations/${conversationId}/messages`
@@ -85,6 +87,11 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   useEffect(() => {
     if (atBottomRef.current) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Высота поля следует за текстом: рост при переносах строк, возврат к одной
+  // строке после успешной отправки (doSend чистит text только при успехе, так
+  // что при ошибке сохранённый черновик остаётся с правильной высотой).
+  useLayoutEffect(() => { autoGrowTextarea(textareaRef.current) }, [text])
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget
@@ -215,6 +222,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               </button>
             )}
             <textarea
+              ref={textareaRef}
               style={S.textarea}
               placeholder={ENTER_SENDS_MESSAGE
                 ? 'Напишите сообщение... (Enter — отправить, Shift+Enter — перенос)'

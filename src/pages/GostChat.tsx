@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, FormEvent } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, FormEvent } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Send, Download, Bot, User, Loader2, ArrowLeft } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { autoGrowTextarea, CHAT_TEXTAREA_MAX_H } from '../lib/autoGrowTextarea'
 import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
 
@@ -42,6 +43,11 @@ export default function GostChat() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Рост поля под длинное требование; при ошибке send() возвращает черновик
+  // через setInput(text) — состояние здесь ведущее, поэтому высота вернётся
+  // вместе с текстом.
+  useLayoutEffect(() => { autoGrowTextarea(textareaRef.current) }, [input])
 
   async function send(e: FormEvent) {
     e.preventDefault()
@@ -175,7 +181,11 @@ export default function GostChat() {
             ? 'Напишите требование к документу... (Enter — отправить, Shift+Enter — перенос)'
             : 'Напишите требование к документу...'}
           rows={3}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.5, padding: '4px 8px' }}
+          // minHeight 4.5em = те же 3 строки, что даёт rows={3} (lineHeight 1.5 ×
+          // 3): без нижней границы авторост сжал бы поле до одной строки на
+          // первом же символе. В em, а не в px, чтобы держаться за font-size —
+          // на мобильном он поднимается до 16px (см. index.css, зум iOS).
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none', color: '#e2e8f0', fontSize: '0.88rem', lineHeight: 1.5, padding: '4px 8px', minHeight: '4.5em', maxHeight: CHAT_TEXTAREA_MAX_H, overflowY: 'auto' }}
         />
         <button type="submit" disabled={!input.trim() || sending}
           className="bg-teal-legacy"
