@@ -34,7 +34,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+      {/* left-4 на мобильном: с `right-4 w-full` контейнер был шириной во весь
+          вьюпорт и вылезал за левый край на 16px. */}
+      <div
+        className="fixed bottom-4 left-4 right-4 sm:left-auto sm:w-full z-50 flex flex-col gap-2 max-w-sm pointer-events-none"
+        style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+      >
         {toasts.map(t => {
           const { Icon, border, icon } = CONF[t.type]
           return (
@@ -46,7 +51,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <p className="text-sm text-ink flex-1">{t.message}</p>
               <button
                 onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
-                className="text-subtle hover:text-ink transition-colors shrink-0"
+                aria-label="Закрыть"
+                className="text-subtle hover:text-ink transition-colors shrink-0 -m-2 p-2"
               >
                 <X size={14} />
               </button>

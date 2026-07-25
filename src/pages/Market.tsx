@@ -101,10 +101,10 @@ export default function Market() {
   return (
     <div>
       {/* Hero */}
-      <GlassCard className="rounded-[26px] px-8 py-7 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div>
+      <GlassCard className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7 mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 sm:gap-6">
+        <div className="min-w-0">
           <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Биржа · фриланс между студентами</div>
-          <h1 className="text-[34px] leading-[1.06] tracking-[-1px] font-bold mt-2.5 text-ink">
+          <h1 className="text-[26px] sm:text-[34px] leading-[1.06] tracking-[-1px] font-bold mt-2.5 text-ink">
             Найди исполнителя или <em className="not-italic bg-gradient-to-r from-mint to-pink bg-clip-text text-transparent">заработай сам</em>
           </h1>
           <p className="mt-2.5 text-sm text-subtle max-w-[440px] leading-relaxed">
@@ -115,7 +115,7 @@ export default function Market() {
             <div><b className="block text-2xl font-bold text-mint">{counts?.listings_count ?? 0}</b><span className="text-xs text-subtle">услуг</span></div>
           </div>
         </div>
-        <Button to="/market/orders/new" variant="pri">＋ Разместить заказ</Button>
+        <Button to="/market/orders/new" variant="pri" className="justify-center sm:shrink-0">＋ Разместить заказ</Button>
       </GlassCard>
 
       {/* Pending reviews */}
@@ -141,11 +141,11 @@ export default function Market() {
         <div className="flex gap-1 bg-white/[.07] border border-white/[.12] rounded-[13px] p-1">
           <button
             onClick={() => setMode('orders')}
-            className={`font-semibold text-sm px-5 py-2 rounded-[10px] whitespace-nowrap transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+            className={`font-semibold text-sm px-5 py-2.5 min-h-[40px] rounded-[10px] whitespace-nowrap transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
           >Заказы</button>
           <button
             onClick={() => setMode('services')}
-            className={`font-semibold text-sm px-5 py-2 rounded-[10px] whitespace-nowrap transition-colors ${mode === 'services' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+            className={`font-semibold text-sm px-5 py-2.5 min-h-[40px] rounded-[10px] whitespace-nowrap transition-colors ${mode === 'services' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
           >Услуги</button>
         </div>
         <div className="flex items-center gap-2 bg-white/[.07] border border-white/[.12] rounded-[14px] px-3.5 py-2.5 text-sm flex-1 min-w-[180px] max-w-sm">
@@ -162,7 +162,8 @@ export default function Market() {
           <Chip active={sort === 'new'} onClick={() => setSort('new')}>По новизне</Chip>
         </div>
         {user && (
-          <div className="flex gap-4 text-[13px] text-subtle ml-auto">
+          /* flex-wrap: три ссылки (~300px) не влезали в 288px и вылезали за край */
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13px] text-subtle sm:ml-auto">
             <Link to="/market/orders/mine" className="hover:text-ink transition-colors">Мои заказы</Link>
             <Link to="/market/orders/applied" className="hover:text-ink transition-colors">Мои отклики</Link>
             <Link to="/market/services/new" className="hover:text-ink transition-colors">Разместить услугу</Link>

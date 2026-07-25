@@ -16,6 +16,12 @@
       linear-gradient(160deg, #1a1140 0%, #241551 50%, #2a0f4a 100%);
     background-attachment: fixed;
     color: #f4f1ff;
+    /* Боковые safe-area (iPhone в ландшафте) — один раз на body, чтобы весь
+       поток страницы был внутри безопасной зоны. Верх/низ задаются точечно:
+       sticky-шапка и position:fixed-элементы (модалки, тосты) считаются от
+       вьюпорта и padding на body не видят. */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 
@@ -26,5 +32,19 @@
   .bg-surface, .bg-panel {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+  }
+}
+
+/* iOS Safari принудительно зумит вьюпорт при фокусе на поле с font-size < 16px,
+   и обратно не отзумивает — страница остаётся «поехавшей». Формы по всему сайту
+   используют text-sm (14px) и inline-стили в чате (0.9rem), поэтому проще
+   поднять размер один раз здесь, чем править каждое поле.
+   ponytail: !important обязателен — .text-sm (класс) специфичнее селектора по
+   тегу, а у textarea в ChatWindow размер и вовсе в inline-style. */
+@media (max-width: 639px) {
+  input:not([type='checkbox']):not([type='radio']),
+  textarea,
+  select {
+    font-size: 16px !important;
   }
 }

@@ -11,7 +11,11 @@ export default function Layout() {
 
       <div className="relative z-10 flex flex-col flex-1">
         <Navbar />
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-8">
+        {/* pb: safe-area под home indicator iOS (viewport-fit=cover в index.html) */}
+        <main
+          className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-8"
+          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
+        >
           <Outlet />
         </main>
       </div>

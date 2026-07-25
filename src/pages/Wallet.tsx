@@ -25,7 +25,8 @@ interface VipPricing {
   gostTokenDiscountPercent: number
 }
 
-const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
+// nbsp перед ₽: с обычным пробелом «1 500 ₽» рвётся на две строки в узких ячейках/кнопках.
+const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
 
 // Prices come from the backend (admin_settings + the user's level discount) —
 // never hardcoded here, so a level-10 user sees the free-activation flow.
@@ -172,25 +173,29 @@ function TxRow({ tx }: { tx: Transaction }) {
   const date   = new Date(tx.created_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
 
   return (
-    <div className="flex items-center gap-3.5 py-3.5 px-1">
-      <div className={`w-11 h-11 rounded-[13px] flex items-center justify-center shrink-0 ${income ? 'bg-mint/[.15]' : 'bg-error/[.15]'}`}>
+    <div className="flex items-center gap-2.5 sm:gap-3.5 py-3.5 px-1">
+      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-[13px] flex items-center justify-center shrink-0 ${income ? 'bg-mint/[.15]' : 'bg-error/[.15]'}`}>
         {income
           ? <Plus  size={16} className="text-mint" />
           : <Minus size={16} className="text-error" />
         }
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[14.5px] font-semibold text-ink">{TX_LABELS[tx.type] ?? tx.type}</p>
+        <p className="text-[14.5px] font-semibold text-ink truncate">{TX_LABELS[tx.type] ?? tx.type}</p>
         {tx.admin_comment && (
           <p className="text-xs text-subtle truncate mt-0.5">{tx.admin_comment}</p>
         )}
+        {/* ponytail: на мобильном статус уезжает под заголовок — иконка + бейдж +
+            сумма в одну строку не влезают в 264px и название сжималось до нуля.
+            Дублирующий span дешевле, чем перекладывать всю строку на grid. */}
+        <span className={`sm:hidden inline-block mt-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg ${status.cls}`}>{status.label}</span>
       </div>
-      <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ${status.cls}`}>{status.label}</span>
-      <div className="text-right shrink-0 min-w-[96px]">
-        <p className={`text-base font-bold ${income ? 'text-mint' : 'text-ink'}`}>
+      <span className={`hidden sm:inline-block text-[11px] font-semibold px-2.5 py-1 rounded-lg shrink-0 ${status.cls}`}>{status.label}</span>
+      <div className="text-right shrink-0 sm:min-w-[96px]">
+        <p className={`text-sm sm:text-base font-bold whitespace-nowrap ${income ? 'text-mint' : 'text-ink'}`}>
           {income ? '+' : '−'}{Math.abs(tx.amount).toLocaleString('ru-RU')} ₽
         </p>
-        <span className="text-xs text-subtle">{date}</span>
+        <span className="text-xs text-subtle whitespace-nowrap">{date}</span>
       </div>
     </div>
   )
@@ -506,7 +511,7 @@ export default function Wallet() {
         <div className="min-w-0">
           {/* Баланс */}
           <GlassCard
-            className="rounded-[26px] px-8 py-7 mb-4 relative overflow-hidden !border-white/20"
+            className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7 mb-4 relative overflow-hidden !border-white/20"
             style={{ background: 'linear-gradient(135deg, rgba(124,58,237,.5), rgba(219,39,119,.4) 60%, rgba(14,165,233,.4))' }}
           >
             <div className="absolute w-[280px] h-[280px] rounded-full -right-20 -top-32 pointer-events-none"
@@ -516,8 +521,10 @@ export default function Wallet() {
               <Skeleton className="h-14 w-48 my-2" />
             ) : (
               <div className="flex items-baseline gap-2.5 mt-2 mb-1 relative">
-                <span className="text-[54px] font-extrabold tracking-[-2px] leading-none text-white">{currentBalance.toLocaleString('ru-RU')}</span>
-                <span className="text-2xl font-semibold opacity-85 text-white">₽</span>
+                {/* 54px не влезает в 224px контента на 320px-экране при
+                    шестизначном балансе — карточка с overflow-hidden обрезала цифры */}
+                <span className="text-[38px] sm:text-[54px] font-extrabold tracking-[-2px] leading-none text-white">{currentBalance.toLocaleString('ru-RU')}</span>
+                <span className="text-xl sm:text-2xl font-semibold opacity-85 text-white">₽</span>
               </div>
             )}
             <p className="text-[13px] text-white/75 relative">Доступно к выводу и оплате на платформе · рубли</p>
@@ -532,14 +539,14 @@ export default function Wallet() {
           </GlassCard>
 
           {/* Мини-статы */}
-          <div className="grid grid-cols-2 gap-3.5 mb-4">
-            <GlassCard className="rounded-[18px] p-5 min-w-0">
-              <div className="text-[12.5px] text-subtle whitespace-nowrap">↓ Получено</div>
-              <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-mint whitespace-nowrap">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
+          <div className="grid grid-cols-2 gap-3 sm:gap-3.5 mb-4">
+            <GlassCard className="rounded-[18px] p-3.5 sm:p-5 min-w-0">
+              <div className="text-[12px] sm:text-[12.5px] text-subtle whitespace-nowrap">↓ Получено</div>
+              <b className="block text-base sm:text-2xl font-bold mt-2 tracking-[-.5px] text-mint whitespace-nowrap">+{totalIncome.toLocaleString('ru-RU')} ₽</b>
             </GlassCard>
-            <GlassCard className="rounded-[18px] p-5 min-w-0">
-              <div className="text-[12.5px] text-subtle whitespace-nowrap">↑ Потрачено</div>
-              <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-ink whitespace-nowrap">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
+            <GlassCard className="rounded-[18px] p-3.5 sm:p-5 min-w-0">
+              <div className="text-[12px] sm:text-[12.5px] text-subtle whitespace-nowrap">↑ Потрачено</div>
+              <b className="block text-base sm:text-2xl font-bold mt-2 tracking-[-.5px] text-ink whitespace-nowrap">−{totalExpense.toLocaleString('ru-RU')} ₽</b>
             </GlassCard>
           </div>
 
@@ -590,7 +597,8 @@ export default function Wallet() {
           </GlassCard>
 
           {/* История операций */}
-          <div className="flex items-center mb-3.5">
+          {/* flex-wrap: заголовок + три чипа фильтра (~384px) не влезали в 288px */}
+          <div className="flex items-center flex-wrap gap-y-2 mb-3.5">
             <div className="text-[13px] tracking-wide uppercase text-subtle font-semibold">История транзакций</div>
             <div className="ml-auto flex gap-2">
               <Chip active={txFilter === 'all'} onClick={() => setTxFilter('all')}>Все</Chip>
@@ -653,13 +661,16 @@ export default function Wallet() {
                 {(['month', 'year'] as const).map((plan, i) => {
                   const price = plan === 'month' ? vipPricing?.monthPrice : vipPricing?.yearPrice
                   const base  = plan === 'month' ? vipPricing?.monthBasePrice : vipPricing?.yearBasePrice
+                  // !whitespace-normal: у Button в базе whitespace-nowrap, а
+                  // «Месяц — 300 ₽ активировать бесплатно» (10 уровень) не
+                  // влезает в 248px сайдбара на мобильном.
                   return (
                     <Button
                       key={plan}
                       variant={i === 0 ? 'mint' : 'ghost'}
                       disabled={!vipPricing}
                       onClick={() => openVipPurchase(plan)}
-                      className="w-full justify-center"
+                      className="w-full justify-center text-center !whitespace-normal"
                     >
                       {VIP_PLAN_LABEL[plan]}
                       {vipPricing && price !== undefined && base !== undefined && (

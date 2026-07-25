@@ -43,14 +43,22 @@ export default function BuyTokensModal({ walletBalance, tokenPrice, token, onClo
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
-      <div className="bg-surface border border-line rounded-2xl w-full max-w-sm shadow-xl">
-        <div className="flex items-center justify-between p-5 border-b border-line">
-          <div className="flex items-center gap-2">
-            <Coins size={18} className="text-accent" />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+      style={{
+        paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
+      }}
+    >
+      {/* max-h + overflow-y-auto: с открытой клавиатурой вьюпорт ~300px и кнопка
+          «Купить» оказывалась за пределами экрана без возможности доскроллить */}
+      <div className="bg-surface border border-line rounded-2xl w-full max-w-sm shadow-xl max-h-[90dvh] overflow-y-auto">
+        <div className="flex items-center justify-between pl-5 pr-3 py-3 border-b border-line">
+          <div className="flex items-center gap-2 min-w-0">
+            <Coins size={18} className="text-accent shrink-0" />
             <h2 className="font-semibold text-ink">Купить ГОСТ-токены</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg text-subtle hover:text-ink hover:bg-panel transition-colors">
+          <button onClick={onClose} aria-label="Закрыть" className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-subtle hover:text-ink hover:bg-panel transition-colors">
             <X size={16} />
           </button>
         </div>
@@ -89,7 +97,7 @@ export default function BuyTokensModal({ walletBalance, tokenPrice, token, onClo
             <p className="text-xs text-error">Недостаточно средств. Пополните кошелёк.</p>
           )}
 
-          <div className="flex gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 px-4 py-2 text-sm border border-line rounded-lg text-ink hover:bg-panel transition-colors">
               Отмена

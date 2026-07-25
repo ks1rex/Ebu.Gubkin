@@ -2,7 +2,13 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1140">
   <title>Ebu.Gubkin</title>
+  <!-- Фон под тему: этот файл — промежуточный редирект для всех deep-link'ов
+       (GitHub Pages отдаёт его на любой путь, кроме /), и на белом дефолте он
+       давал заметную белую вспышку при холодном запуске PWA с иконки. -->
+  <style>html,body{margin:0;height:100%;background:#1a1140}</style>
   <script>
     // Store the full URL so index.html can restore it via history.replaceState.
     // This makes React Router work on GitHub Pages (sub-path deployment).

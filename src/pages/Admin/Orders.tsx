@@ -108,8 +108,9 @@ export default function AdminOrders() {
         <div className="text-center py-16 text-subtle text-sm">Нет заказов</div>
       ) : (
         <>
-          <div className="bg-surface rounded-xl border border-line overflow-hidden">
-            <table className="w-full text-sm">
+          {/* overflow-x-auto, а не overflow-hidden: 6 колонок обрезались на мобильном */}
+          <div className="bg-surface rounded-xl border border-line overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="bg-panel border-b border-line">
                 <tr>
                   <th className="py-2 px-3 text-left text-subtle font-medium">Заказ</th>

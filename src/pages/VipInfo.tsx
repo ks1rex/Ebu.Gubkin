@@ -35,7 +35,8 @@ const REP_SOURCES = [
   { amount: '+2',  what: 'Ответ в теме на форуме' },
 ]
 
-const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
+// nbsp перед ₽: с обычным пробелом «1 500 ₽» рвётся на две строки в узких ячейках/кнопках.
+const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
 
 export default function VipInfo() {
   const { profile, isVip } = useAuth()
@@ -56,9 +57,9 @@ export default function VipInfo() {
   return (
     <div className="max-w-[760px] mx-auto flex flex-col gap-4">
       {/* Hero */}
-      <GlassCard className="rounded-[26px] px-8 py-7">
+      <GlassCard className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7">
         <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Подписка</div>
-        <h1 className="text-[32px] leading-[1.08] tracking-[-1px] font-bold mt-2.5 text-ink flex items-center gap-3">
+        <h1 className="text-[26px] sm:text-[32px] leading-[1.08] tracking-[-1px] font-bold mt-2.5 text-ink flex items-center gap-3">
           <Crown size={28} className="text-gold shrink-0" /> VIP-статус
         </h1>
         <p className="mt-2.5 text-sm text-subtle max-w-[520px] leading-relaxed">
@@ -127,15 +128,18 @@ export default function VipInfo() {
       </GlassCard>
 
       {/* Тарифы */}
-      <GlassCard className="rounded-[20px] p-6">
+      <GlassCard className="rounded-[20px] p-5 sm:p-6">
         <h2 className="text-lg font-bold text-ink mb-1">Тарифы и скидка по уровню</h2>
         <p className="text-[13px] text-subtle mb-4 leading-relaxed">
           Базовые цены: месяц — {rub(pricing?.monthBasePrice ?? 300)}, год — {rub(pricing?.yearBasePrice ?? 1500)}.
           Скидка зависит от вашего уровня и применяется автоматически.
         </p>
 
-        <div className="overflow-x-auto -mx-1 px-1">
-          <table className="w-full text-[13px] border-collapse">
+        {/* whitespace-nowrap + full-bleed на мобильном: 4 колонки в 272px
+            сжимались и «1 500 ₽»/«бесплатно» переносились по слогам. Теперь
+            таблица честно скроллится по горизонтали (как в Schedule). */}
+        <div className="overflow-x-auto -mx-5 px-5 sm:-mx-1 sm:px-1">
+          <table className="w-full text-[13px] border-collapse whitespace-nowrap">
             <thead>
               <tr className="text-subtle text-left">
                 <th className="font-medium py-2 pr-3">Уровень</th>

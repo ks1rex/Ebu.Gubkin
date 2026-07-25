@@ -92,7 +92,7 @@ export default function Applications() {
 
       {modal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]" onClick={() => !acting && setModal(null)}>
-          <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-[14px] p-8 max-w-[440px] w-[90%]" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-[14px] p-5 sm:p-8 max-w-[440px] w-[90%] max-h-[90dvh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-2.5 mb-2.5">
               <AlertTriangle size={20} className="text-teal-legacy" />
               <div className="text-slate-200 font-bold text-[1.1rem]">Выбрать исполнителя?</div>
@@ -102,7 +102,7 @@ export default function Applications() {
               {modal.proposed_amount && <> с ценой <strong>{modal.proposed_amount} ₽</strong></>}.
               <br />Остальные заявки будут отклонены. Отменить это действие нельзя.
             </div>
-            <div className="flex gap-3 justify-end">
+            <div className="flex flex-wrap gap-3 justify-end">
               <button className="bg-transparent border border-slate-700 rounded-lg py-2 px-4 text-slate-400 cursor-pointer" onClick={() => setModal(null)} disabled={acting}>Отмена</button>
               <button className="bg-teal-legacy rounded-lg py-2 px-5 text-white font-semibold cursor-pointer" onClick={handleSelect} disabled={acting}>{acting ? 'Обработка...' : 'Подтвердить выбор'}</button>
             </div>

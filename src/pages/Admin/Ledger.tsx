@@ -106,8 +106,10 @@ export default function AdminLedger() {
       ) : entries.length === 0 ? (
         <div className="text-center py-16 text-subtle text-sm">Нет записей</div>
       ) : (
-        <div className="bg-surface rounded-xl border border-line overflow-hidden">
-          <table className="w-full text-sm">
+        // overflow-x-auto, а не overflow-hidden: 6 колонок не сжимаются
+        // в 240px и обрезались на мобильном без возможности доскроллить
+        <div className="bg-surface rounded-xl border border-line overflow-x-auto">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-panel border-b border-line">
               <tr>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Пользователь</th>

@@ -13,7 +13,7 @@ const CLS = {
   h1: 'text-slate-200 text-[1.3rem] font-bold mb-2 flex items-center gap-3 flex-wrap',
   card: 'bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4',
   sectionTitle: 'text-slate-400 text-[0.8rem] font-semibold uppercase tracking-[0.05em] mb-4',
-  meta: 'grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mb-4',
+  meta: 'grid grid-cols-[repeat(auto-fill,minmax(min(180px,100%),1fr))] gap-4 mb-4',
   metaItem: 'text-slate-500 text-[0.85rem]',
   metaValue: 'text-slate-200 font-medium mt-0.5',
   paymentBox: 'bg-[#0d2620] border border-teal-legacy-hover rounded-lg p-5 mb-4',
@@ -33,10 +33,10 @@ const CLS = {
   disputeBtn: 'inline-flex items-center gap-1.5 bg-transparent border border-red-500 rounded-lg py-[9px] px-[18px] text-red-500 font-semibold cursor-pointer text-[0.88rem] mb-2',
   cancelBtn: 'bg-transparent border border-slate-700 rounded-lg py-2 px-3.5 text-slate-400 cursor-pointer text-[0.85rem]',
   overlay: 'fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]',
-  modal: 'bg-[#0f1923] border border-[#1e3a4a] rounded-[14px] p-8 max-w-[440px] w-[90%]',
+  modal: 'bg-[#0f1923] border border-[#1e3a4a] rounded-[14px] p-5 sm:p-8 max-w-[440px] w-[90%] max-h-[90dvh] overflow-y-auto',
   modalTitle: 'text-slate-200 font-bold text-[1.1rem] mb-2',
   modalText: 'text-slate-400 text-[0.9rem] leading-[1.6] mb-6',
-  modalBtns: 'flex gap-3 justify-end',
+  modalBtns: 'flex flex-wrap gap-3 justify-end',
   okBtn: 'bg-teal-legacy rounded-lg py-2 px-5 text-white font-semibold cursor-pointer',
 }
 

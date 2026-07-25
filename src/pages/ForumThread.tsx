@@ -278,11 +278,11 @@ export default function ForumThread() {
         <div className="min-w-0">
           {/* Thread header */}
           {thread && (
-            <GlassCard className="rounded-[24px] px-7 py-6 mb-4">
+            <GlassCard className="rounded-[24px] px-5 py-5 sm:px-7 sm:py-6 mb-4">
               <div className="flex items-start gap-2 flex-wrap mb-3.5">
                 {thread.is_pinned && <Pin size={15} className="text-lav mt-1 shrink-0" />}
                 {thread.is_locked && <Lock size={15} className="text-subtle mt-1 shrink-0" />}
-                <h1 className="text-[30px] font-bold leading-[1.18] tracking-[-.6px] text-ink">{thread.title}</h1>
+                <h1 className="text-[24px] sm:text-[30px] font-bold leading-[1.18] tracking-[-.6px] text-ink min-w-0 break-words">{thread.title}</h1>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={44} radius={13} isVip={thread.author?.is_vip} />

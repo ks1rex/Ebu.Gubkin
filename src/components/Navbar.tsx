@@ -30,15 +30,23 @@ export default function Navbar() {
   const items = user ? NAV_ITEMS_AUTH : NAV_ITEMS_PUBLIC
 
   return (
-    <header className="sticky top-0 z-50 mx-3.5 sm:mx-6 mt-5 mb-2 px-4 sm:px-5 py-3.5 rounded-[20px] bg-surface border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45),inset_0_1px_0_rgba(255,255,255,.18)] flex items-center gap-6">
+    // safe-area: при black-translucent контент уезжает под «шторку» iOS —
+    // сдвигаем и стартовую позицию (marginTop), и точку залипания (top).
+    <header
+      className="sticky z-50 mx-3.5 sm:mx-6 mb-2 px-3 sm:px-5 py-3.5 rounded-[20px] bg-surface border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45),inset_0_1px_0_rgba(255,255,255,.18)] flex items-center gap-3 sm:gap-6"
+      style={{
+        top: 'env(safe-area-inset-top)',
+        marginTop: 'calc(1.25rem + env(safe-area-inset-top))',
+      }}
+    >
       {/* Логотип */}
-      <Link to="/" onClick={close} className="flex items-center gap-3 shrink-0">
-        <img src={logoMark} alt="Ebu.Gubkin" className="w-12 h-12 object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.4)]" />
+      <Link to="/" onClick={close} className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <img src={logoMark} alt="Ebu.Gubkin" className="w-10 h-10 sm:w-12 sm:h-12 object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.4)]" />
         <div className="leading-none">
-          <span className="font-bold text-[21px] tracking-[-.5px] text-ink">
+          <span className="font-bold text-[17px] sm:text-[21px] tracking-[-.5px] text-ink">
             Ebu<span className="bg-gradient-to-r from-mint to-lav bg-clip-text text-transparent font-bold">.Gubkin</span>
           </span>
-          <span className="block text-[10px] tracking-[2px] text-subtle font-normal mt-1">ДЛЯ СТУДЕНТОВ</span>
+          <span className="block text-[9px] sm:text-[10px] tracking-[1.5px] sm:tracking-[2px] text-subtle font-normal mt-1">ДЛЯ СТУДЕНТОВ</span>
         </div>
       </Link>
 
@@ -116,9 +124,11 @@ export default function Navbar() {
             >
               Войти
             </Link>
+            {/* На узких экранах логотип + «Регистрация» + бургер не влезают
+                в 320px — кнопка уходит в мобильное меню (как и «Войти»). */}
             <Link
               to="/register"
-              className="px-4 py-2.5 text-sm font-semibold text-[#1a1140] bg-gradient-to-br from-white to-[#e9e4ff] rounded-[13px] shadow-[0_10px_26px_rgba(0,0,0,.28)]"
+              className="hidden sm:inline-flex px-4 py-2.5 text-sm font-semibold text-[#1a1140] bg-gradient-to-br from-white to-[#e9e4ff] rounded-[13px] shadow-[0_10px_26px_rgba(0,0,0,.28)]"
             >
               Регистрация
             </Link>
@@ -187,13 +197,22 @@ export default function Navbar() {
               </button>
             )}
             {!user && (
-              <Link
-                to="/login"
-                onClick={close}
-                className="px-3.5 py-2.5 rounded-xl text-sm font-medium text-subtle hover:text-ink hover:bg-white/[.06] transition-colors"
-              >
-                Войти
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  onClick={close}
+                  className="px-3.5 py-2.5 rounded-xl text-sm font-medium text-subtle hover:text-ink hover:bg-white/[.06] transition-colors"
+                >
+                  Войти
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={close}
+                  className="px-3.5 py-2.5 rounded-xl text-sm font-semibold text-center text-[#1a1140] bg-gradient-to-br from-white to-[#e9e4ff]"
+                >
+                  Регистрация
+                </Link>
+              </>
             )}
           </nav>
         </div>

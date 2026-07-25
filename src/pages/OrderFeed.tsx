@@ -66,7 +66,7 @@ export default function OrderFeed() {
           subtitle={search ? 'Попробуйте изменить запрос или очистить поиск' : 'Загляните позже — исполнители ждут новых заказов'}
         />
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(300px,100%),1fr))] gap-4">
           {orders.map((order: any) => {
             const isOwner = order.customer_id === user?.id
             return (

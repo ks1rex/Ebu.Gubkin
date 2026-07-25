@@ -86,24 +86,27 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto p-6">
-        {/* Mobile section grid — replaces the sidebar nav below lg, shown on every admin page */}
-        <div className="grid grid-cols-4 gap-3 lg:hidden mb-6">
+      <main className="flex-1 overflow-auto p-4 sm:p-6">
+        {/* Mobile section grid — replaces the sidebar nav below lg, shown on every admin page.
+            Админка вложена в <main> Layout'а, так что на 320px тут остаётся ~240px:
+            4 колонки давали 51px на ячейку при иконке 48px + p-3 — плитки лезли
+            друг на друга. 3 колонки + уменьшенные отступы/иконки влезают. */}
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 lg:hidden mb-6">
           {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              className="flex flex-col items-center gap-1 p-3 bg-surface border border-line rounded-xl hover:bg-accent-subtle transition-colors text-center"
+              className="flex flex-col items-center gap-1 p-2 sm:p-3 bg-surface border border-line rounded-xl hover:bg-accent-subtle transition-colors text-center"
             >
               {({ isActive }) => (
                 <>
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${
                     isActive ? 'bg-accent' : 'bg-accent-subtle'
                   }`}>
-                    <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-accent'}`} />
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${isActive ? 'text-white' : 'text-accent'}`} />
                   </div>
-                  <span className={`text-xs leading-tight ${isActive ? 'text-ink font-medium' : 'text-subtle'}`}>{label}</span>
+                  <span className={`text-[11px] sm:text-xs leading-tight break-words w-full ${isActive ? 'text-ink font-medium' : 'text-subtle'}`}>{label}</span>
                 </>
               )}
             </NavLink>

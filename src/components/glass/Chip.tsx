@@ -13,7 +13,7 @@ export default function Chip({ children, active = false, onClick, className = ''
     <button
       type="button"
       onClick={onClick}
-      className={`text-sm font-medium px-3.5 py-2 rounded-[11px] whitespace-nowrap transition-colors duration-150 ${
+      className={`inline-flex items-center justify-center min-h-[40px] text-sm font-medium px-3.5 py-2 rounded-[11px] whitespace-nowrap transition-colors duration-150 ${
         active
           ? 'text-[#1a1140] font-semibold bg-gradient-to-br from-lav to-[#ddd6fe]'
           : 'text-lav bg-white/[.07] border border-white/[.12] hover:bg-white/[.12] hover:text-ink'

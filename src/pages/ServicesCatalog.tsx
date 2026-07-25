@@ -51,7 +51,7 @@ export default function ServicesCatalog() {
       {loading ? <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ /> : listings.length === 0 ? (
         <EmptyState title={`Услуг пока нет${query ? ` по запросу «${query}»` : ''}`} />
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))] gap-4">
           {listings.map((l: any) => (
             <Link key={l.id} to={`/market/services/${l.id}`} className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-5 no-underline flex flex-col gap-2.5">
               <div className="text-slate-200 font-bold text-base leading-[1.3]">{l.title}</div>

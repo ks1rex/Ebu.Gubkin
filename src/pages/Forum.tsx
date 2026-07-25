@@ -124,10 +124,10 @@ export default function Forum() {
   return (
     <div>
       {/* Hero */}
-      <GlassCard className="rounded-[26px] px-8 py-7 mb-6">
+      <GlassCard className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 mb-5">
           <div>
-            <h1 className="text-[28px] font-bold tracking-[-.5px] text-ink">Общение студентов Губки</h1>
+            <h1 className="text-[24px] sm:text-[28px] font-bold tracking-[-.5px] text-ink">Общение студентов Губки</h1>
             <p className="text-sm text-subtle mt-1.5 max-w-lg leading-relaxed">
               С правилами, горячий, разнообразный — это не место всех, без парадоксов.
             </p>
@@ -136,7 +136,7 @@ export default function Forum() {
             <PenLine size={15} /> Создать обсуждение
           </Button>
         </div>
-        <div className="flex items-center gap-7 mb-5">
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-2 mb-5">
           <div><b className="text-xl font-bold text-ink">{stats?.threads_count ?? '—'}</b><span className="text-xs text-subtle ml-1.5">тем</span></div>
           <div><b className="text-xl font-bold text-ink">{stats?.posts_count ?? '—'}</b><span className="text-xs text-subtle ml-1.5">обсуждений</span></div>
         </div>

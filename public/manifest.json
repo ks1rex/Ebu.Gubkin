@@ -2,6 +2,7 @@
   "name": "Ebu.Gubkin",
   "short_name": "Ebu.Gubkin",
   "description": "Студенческая платформа Губкинского университета",
+  "id": "/Ebu.Gubkin/",
   "start_url": "/Ebu.Gubkin/schedule",
   "scope": "/Ebu.Gubkin/",
   "display": "standalone",

@@ -94,19 +94,20 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Counters */}
-      <div className="grid grid-cols-3 gap-3.5 mb-10">
-        <GlassCard className="rounded-[18px] p-5 text-center">
-          <b className="block text-2xl font-bold text-ink">{stats?.users_count ?? '—'}</b>
-          <span className="text-xs text-subtle">студентов на сайте</span>
+      {/* Counters — p-5 съедал 40 из 86px ширины ячейки на 320px-экране,
+          подписи в одно слово («студентов») вылезали за карточку */}
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-10">
+        <GlassCard className="rounded-[18px] p-3 sm:p-5 text-center">
+          <b className="block text-xl sm:text-2xl font-bold text-ink">{stats?.users_count ?? '—'}</b>
+          <span className="text-[11px] sm:text-xs text-subtle break-words">студентов на сайте</span>
         </GlassCard>
-        <GlassCard className="rounded-[18px] p-5 text-center">
-          <b className="block text-2xl font-bold text-ink">{stats?.threads_count ?? '—'}</b>
-          <span className="text-xs text-subtle">тем на форуме</span>
+        <GlassCard className="rounded-[18px] p-3 sm:p-5 text-center">
+          <b className="block text-xl sm:text-2xl font-bold text-ink">{stats?.threads_count ?? '—'}</b>
+          <span className="text-[11px] sm:text-xs text-subtle break-words">тем на форуме</span>
         </GlassCard>
-        <GlassCard className="rounded-[18px] p-5 text-center">
-          <b className="block text-2xl font-bold text-mint">{stats?.orders_count ?? '—'}</b>
-          <span className="text-xs text-subtle">заказов на бирже</span>
+        <GlassCard className="rounded-[18px] p-3 sm:p-5 text-center">
+          <b className="block text-xl sm:text-2xl font-bold text-mint">{stats?.orders_count ?? '—'}</b>
+          <span className="text-[11px] sm:text-xs text-subtle break-words">заказов на бирже</span>
         </GlassCard>
       </div>
 

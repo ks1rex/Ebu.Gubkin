@@ -295,15 +295,16 @@ export default function Schedule() {
       {hasGroup && (
         <>
           {/* Week nav */}
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <button onClick={() => goWeek(-1)} className="w-9 h-9 rounded-full flex items-center justify-center text-subtle hover:text-ink hover:bg-white/[.08] transition-colors">
+          {/* flex-wrap: стрелки + диапазон дат + «Сегодня» (~313px) не влезали в 288px */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 mb-4">
+            <button onClick={() => goWeek(-1)} aria-label="Предыдущая неделя" className="w-10 h-10 rounded-full flex items-center justify-center text-subtle hover:text-ink hover:bg-white/[.08] transition-colors">
               <ChevronLeft size={18} />
             </button>
             <div className="text-center">
               <div className="text-sm font-semibold text-ink">{toShort(weekDates[0])} — {toShort(weekDates[5])}</div>
               {weekTypeLabel && <div className="text-xs text-lav">{weekTypeLabel}</div>}
             </div>
-            <button onClick={() => goWeek(1)} className="w-9 h-9 rounded-full flex items-center justify-center text-subtle hover:text-ink hover:bg-white/[.08] transition-colors">
+            <button onClick={() => goWeek(1)} aria-label="Следующая неделя" className="w-10 h-10 rounded-full flex items-center justify-center text-subtle hover:text-ink hover:bg-white/[.08] transition-colors">
               <ChevronRight size={18} />
             </button>
             <Chip onClick={goToday}>Сегодня</Chip>
