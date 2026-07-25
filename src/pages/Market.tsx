@@ -46,20 +46,22 @@ export default function Market() {
   const [pendingReviews, setPendingReviews] = useState<any[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [category, setCategory] = useState<string>('all')
+  const [sort, setSort] = useState<'rating' | 'new'>('rating')
+  const [counts, setCounts] = useState<{ orders_count: number; listings_count: number } | null>(null)
 
-  const loadOrders = useCallback(async (q: string) => {
+  const loadOrders = useCallback(async (q: string, s: string) => {
     setLoading(true)
     try {
-      const params = q ? `?search=${encodeURIComponent(q)}` : ''
+      const params = `?sort=${s}${q ? `&search=${encodeURIComponent(q)}` : ''}`
       const data = await apiCall('GET', `/orders${params}`)
       setOrders(Array.isArray(data) ? data : [])
     } catch { setOrders([]) } finally { setLoading(false) }
   }, [])
 
-  const loadListings = useCallback(async (q: string) => {
+  const loadListings = useCallback(async (q: string, s: string) => {
     setLoading(true)
     try {
-      const params = q ? `?search=${encodeURIComponent(q)}` : ''
+      const params = `?sort=${s}${q ? `&search=${encodeURIComponent(q)}` : ''}`
       const data = await apiCall('GET', `/listings${params}`)
       setListings(Array.isArray(data) ? data : [])
     } catch { setListings([]) } finally { setLoading(false) }
@@ -67,11 +69,18 @@ export default function Market() {
 
   useEffect(() => {
     const t = setTimeout(() => {
-      if (mode === 'orders') loadOrders(search)
-      else loadListings(search)
+      if (mode === 'orders') loadOrders(search, sort)
+      else loadListings(search, sort)
     }, 350)
     return () => clearTimeout(t)
-  }, [search, mode, loadOrders, loadListings])
+  }, [search, mode, sort, loadOrders, loadListings])
+
+  // both tab counters, independent of which tab is loaded
+  useEffect(() => {
+    apiCall('GET', '/stats/marketplace')
+      .then(data => setCounts({ orders_count: data?.orders_count ?? 0, listings_count: data?.listings_count ?? 0 }))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (!user) return
@@ -102,8 +111,8 @@ export default function Market() {
             Заказы и услуги от студентов Губки — дизайн, код, курсовые, чертежи. Оплата рублями, безопасная сделка.
           </p>
           <div className="flex gap-6 mt-5">
-            <div><b className="block text-2xl font-bold text-ink">{orders.length || (mode === 'orders' ? 0 : '—')}</b><span className="text-xs text-subtle">{mode === 'orders' ? 'заказов в выдаче' : ''}</span></div>
-            <div><b className="block text-2xl font-bold text-mint">{listings.length || (mode === 'services' ? 0 : '—')}</b><span className="text-xs text-subtle">{mode === 'services' ? 'услуг в выдаче' : ''}</span></div>
+            <div><b className="block text-2xl font-bold text-ink">{counts?.orders_count ?? 0}</b><span className="text-xs text-subtle">заказов</span></div>
+            <div><b className="block text-2xl font-bold text-mint">{counts?.listings_count ?? 0}</b><span className="text-xs text-subtle">услуг</span></div>
           </div>
         </div>
         <Button to="/market/orders/new" variant="pri">＋ Разместить заказ</Button>
@@ -147,6 +156,10 @@ export default function Market() {
             placeholder={mode === 'orders' ? 'Поиск заказов…' : 'Поиск услуг…'}
             className="bg-transparent outline-none text-ink placeholder:text-subtle w-full"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <Chip active={sort === 'rating'} onClick={() => setSort('rating')}>По рейтингу</Chip>
+          <Chip active={sort === 'new'} onClick={() => setSort('new')}>По новизне</Chip>
         </div>
         {user && (
           <div className="flex gap-4 text-[13px] text-subtle ml-auto">

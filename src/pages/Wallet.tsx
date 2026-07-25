@@ -14,12 +14,29 @@ import { GlassCard, Button, Chip } from '../components/glass'
 // ─── VIP purchase confirm (one-off modal, pattern follows useGostFrozenModal) ─
 
 type VipPlan = 'month' | 'year'
-const VIP_PLAN_META: Record<VipPlan, { label: string; price: number }> = {
-  month: { label: 'Месяц', price: 300 },
-  year:  { label: 'Год',   price: 1500 },
+const VIP_PLAN_LABEL: Record<VipPlan, string> = { month: 'Месяц', year: 'Год' }
+
+interface VipPricing {
+  monthPrice: number
+  yearPrice: number
+  monthBasePrice: number
+  yearBasePrice: number
+  discountPercent: number
 }
 
-function useVipPurchaseModal(onPurchased: () => void) {
+const rub = (n: number) => `${n.toLocaleString('ru-RU')} ₽`
+
+// Prices come from the backend (admin_settings + the user's level discount) —
+// never hardcoded here, so a level-10 user sees the free-activation flow.
+function useVipPricing(): VipPricing | null {
+  const [pricing, setPricing] = useState<VipPricing | null>(null)
+  useEffect(() => {
+    apiCall('GET', '/wallet/vip/price').then(setPricing).catch(() => {})
+  }, [])
+  return pricing
+}
+
+function useVipPurchaseModal(onPurchased: () => void, pricing: VipPricing | null) {
   const toast = useToast()
   const [plan, setPlan] = useState<VipPlan | null>(null)
   const [buying, setBuying] = useState(false)
@@ -40,14 +57,18 @@ function useVipPurchaseModal(onPurchased: () => void) {
     }
   }
 
+  const price = plan && pricing ? (plan === 'month' ? pricing.monthPrice : pricing.yearPrice) : null
+  const free = price === 0
+
   const modal = plan && (
     <Modal open={!!plan} onClose={() => !buying && setPlan(null)} title="Оформление VIP">
       <p className="text-sm text-subtle leading-relaxed mb-4">
-        Оформить VIP «{VIP_PLAN_META[plan].label}» за {VIP_PLAN_META[plan].price.toLocaleString('ru-RU')} ₽?
-        Сумма спишется с баланса кошелька.
+        {free
+          ? `Активировать VIP «${VIP_PLAN_LABEL[plan]}» бесплатно? Скидка ${pricing?.discountPercent}% за ваш уровень.`
+          : `Оформить VIP «${VIP_PLAN_LABEL[plan]}»${price !== null ? ` за ${rub(price)}` : ''}? Сумма спишется с баланса кошелька.`}
       </p>
       <Button variant="mint" disabled={buying} onClick={confirm} className="w-full justify-center">
-        {buying ? 'Оформляем...' : 'Подтвердить'}
+        {buying ? 'Оформляем...' : free ? 'Активировать' : 'Подтвердить'}
       </Button>
     </Modal>
   )
@@ -364,7 +385,8 @@ type TxFilter = 'all' | 'in' | 'out'
 export default function Wallet() {
   const { user, session, profile, isVip, refreshProfile } = useAuth()
   const toast = useToast()
-  const { openVipPurchase, vipPurchaseModal } = useVipPurchaseModal(refreshProfile)
+  const vipPricing = useVipPricing()
+  const { openVipPurchase, vipPurchaseModal } = useVipPurchaseModal(refreshProfile, vipPricing)
 
   const [balance, setBalance]           = useState<number | null>(null)
   const [balanceLoading, setBalanceLoading] = useState(true)
@@ -621,12 +643,34 @@ export default function Wallet() {
               </p>
             ) : (
               <div className="flex flex-col gap-2">
-                <Button variant="mint" onClick={() => openVipPurchase('month')} className="w-full justify-center">
-                  Месяц — 300 ₽
-                </Button>
-                <Button variant="ghost" onClick={() => openVipPurchase('year')} className="w-full justify-center">
-                  Год — 1500 ₽
-                </Button>
+                {vipPricing && vipPricing.discountPercent > 0 && (
+                  <p className="text-xs text-gold mb-1">Скидка {vipPricing.discountPercent}% за ваш уровень</p>
+                )}
+                {(['month', 'year'] as const).map((plan, i) => {
+                  const price = plan === 'month' ? vipPricing?.monthPrice : vipPricing?.yearPrice
+                  const base  = plan === 'month' ? vipPricing?.monthBasePrice : vipPricing?.yearBasePrice
+                  return (
+                    <Button
+                      key={plan}
+                      variant={i === 0 ? 'mint' : 'ghost'}
+                      disabled={!vipPricing}
+                      onClick={() => openVipPurchase(plan)}
+                      className="w-full justify-center"
+                    >
+                      {VIP_PLAN_LABEL[plan]}
+                      {vipPricing && price !== undefined && base !== undefined && (
+                        <>
+                          {' — '}
+                          {price < base && <s className="opacity-60 mr-1.5">{rub(base)}</s>}
+                          {price === 0 ? 'активировать бесплатно' : rub(price)}
+                        </>
+                      )}
+                    </Button>
+                  )
+                })}
+                {vipPricing?.monthPrice === 0 && (
+                  <p className="text-xs text-subtle">Ваш уровень даёт VIP без списания с баланса.</p>
+                )}
               </div>
             )}
           </GlassCard>
