@@ -274,7 +274,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 <GlassCard key={i} className="rounded-2xl px-5 py-4">
                   <div className="flex items-center gap-2.5 mb-2">
                     <Stars rating={r.rating} />
-                    <Link to={`/market/users/${r.author_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
+                    <Link to={`/users/${r.author_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
                       {r.author_username}
                     </Link>
                     <span className="text-subtle text-xs ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>

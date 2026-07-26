@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Construction } from 'lucide-react'
 import { AuthProvider } from './contexts/AuthContext'
 import { ToastProvider } from './contexts/ToastContext'
@@ -66,6 +66,12 @@ function NotFound() {
   )
 }
 
+// Старый адрес профиля: сохраняем работающими закладки и внешние ссылки.
+function LegacyProfileRedirect() {
+  const { id } = useParams()
+  return <Navigate to={`/users/${id}`} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
@@ -91,8 +97,12 @@ export default function App() {
               <Route path="services/mine"            element={<ProtectedRoute><ServicesMine /></ProtectedRoute>} />
               <Route path="services/:id"             element={<ServiceDetail />} />
               <Route path="services/:id/edit"        element={<ProtectedRoute><ServiceEdit /></ProtectedRoute>} />
-              <Route path="users/:id"                element={<UserProfile />} />
             </Route>
+            {/* Профиль — не раздел Биржи: внутри market он тянул за собой таб-бар
+                MarketLayout и подсвечивал «Биржу» в навбаре, хотя ссылки на профиль
+                ведут и с форума, и с главной, и из админки. */}
+            <Route path="users/:id" element={<UserProfile />} />
+            <Route path="market/users/:id" element={<LegacyProfileRedirect />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="gost" element={<GostLayout />}>
               <Route index element={<Gost />} />

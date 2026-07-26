@@ -302,7 +302,7 @@ export default function OrderDetail() {
               <div key={r.id} className="bg-[#070d14] border border-[#1e3a4a] rounded-lg p-4 mb-2">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <StarRating value={r.rating} size={14} gap={1} />
-                  <Link to={`/market/users/${r.reviewer_id}`} className="text-teal-legacy text-[0.82rem] font-semibold no-underline">{r.reviewer?.nickname}</Link>
+                  <Link to={`/users/${r.reviewer_id}`} className="text-teal-legacy text-[0.82rem] font-semibold no-underline">{r.reviewer?.nickname}</Link>
                   <span className="text-slate-500 text-[0.74rem]">{r.context === 'as_executor' ? '· о исполнителе' : '· о заказчике'}</span>
                   <span className="text-slate-500 text-[0.72rem] ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                 </div>
@@ -361,8 +361,8 @@ export default function OrderDetail() {
             <div className={CLS.metaItem}>Залог<div className="flex items-center gap-[5px] mt-0.5"><Shield size={13} className="text-amber-500" /><span className="text-amber-500 font-medium">{order.deposit_amount} ₽</span></div></div>
           )}
           <div className={CLS.metaItem}>Зарезервировано<div className={CLS.amount}>{order.reserved_amount} ₽</div></div>
-          {order.customer && <div className={CLS.metaItem}>Заказчик<div className={CLS.metaValue}><Link to={`/market/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
-          {order.executor && <div className={CLS.metaItem}>Исполнитель<div className={CLS.metaValue}><Link to={`/market/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
+          {order.customer && <div className={CLS.metaItem}>Заказчик<div className={CLS.metaValue}><Link to={`/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
+          {order.executor && <div className={CLS.metaItem}>Исполнитель<div className={CLS.metaValue}><Link to={`/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
         </div>
         <div className={CLS.sectionTitle}>Описание</div>
         <div className={CLS.desc}>{order.description}</div>

@@ -301,7 +301,7 @@ export default function AdminUsers() {
 
               <div className="flex gap-2">
                 <Link
-                  to={`/market/users/${user.id}`}
+                  to={`/users/${user.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg bg-panel text-subtle hover:text-accent transition-colors shrink-0"
@@ -410,7 +410,7 @@ export default function AdminUsers() {
                       {/* Публичный профиль пользователя — в новой вкладке, чтобы
                           не терять страницу списка с фильтрами. */}
                       <Link
-                        to={`/market/users/${user.id}`}
+                        to={`/users/${user.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         title="Открыть профиль"

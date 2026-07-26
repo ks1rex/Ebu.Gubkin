@@ -75,7 +75,7 @@ export default function Applications() {
         <div key={app.id} className={`bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-5 mb-2.5 ${app.status !== 'pending' ? 'opacity-50' : 'opacity-100'}`}>
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <Link to={`/market/users/${app.executor?.id}`} className="text-teal-legacy font-bold text-base mb-1 no-underline block"><VipName name={app.executor?.nickname} isVip={app.executor?.is_vip} /></Link>
+              <Link to={`/users/${app.executor?.id}`} className="text-teal-legacy font-bold text-base mb-1 no-underline block"><VipName name={app.executor?.nickname} isVip={app.executor?.is_vip} /></Link>
               <StarsRow rating={app.executor?.rating_as_executor} count={app.executor?.reviews_count_executor} />
               {app.proposed_amount && <div className="text-teal-legacy text-[1.1rem] font-bold mb-2.5">{app.proposed_amount} ₽ — предложенная цена</div>}
               <div className="text-slate-300 text-[0.88rem] leading-[1.6] mb-2.5">{app.message}</div>
