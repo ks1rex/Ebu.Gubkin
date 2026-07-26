@@ -39,6 +39,9 @@ export default function AdminDeposits() {
   const [confirmedAmounts, setConfirmedAmounts] = useState<Record<string, string>>({})
   const [acting, setActing] = useState<Record<string, boolean>>({})
   const [rejectingId, setRejectingId] = useState<string | null>(null)
+  // Предел реф. бонусов задаётся в admin_settings.referral_max_count и реально
+  // применяется в claim_referral_bonus_slot; 3 — тот же дефолт, что в RPC.
+  const [refMaxCount, setRefMaxCount] = useState(3)
 
   async function fetchDeposits() {
     setLoading(true)
@@ -61,6 +64,15 @@ export default function AdminDeposits() {
   }
 
   useEffect(() => { fetchDeposits() }, [showAll])
+
+  useEffect(() => {
+    apiCall('GET', '/admin/settings')
+      .then((d: { admin?: Record<string, string> }) => {
+        const n = parseInt(d.admin?.referral_max_count ?? '', 10)
+        if (Number.isFinite(n) && n > 0) setRefMaxCount(n)
+      })
+      .catch(() => { /* оставляем дефолт 3 */ })
+  }, [])
 
   async function confirm(id: string) {
     const confirmed_amount = parseFloat(confirmedAmounts[id] ?? '0')
@@ -116,7 +128,7 @@ export default function AdminDeposits() {
         <div className="md:hidden space-y-3">
           {deposits.map(dep => {
             const isPending = dep.status === 'pending'
-            const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < 3
+            const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < refMaxCount
             const s = STATUS_LABELS[dep.status] ?? { label: dep.status, cls: 'bg-panel text-ink' }
 
             return (
@@ -207,7 +219,7 @@ export default function AdminDeposits() {
             <tbody>
               {deposits.map(dep => {
                 const isPending = dep.status === 'pending'
-                const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < 3
+                const isRef = dep.has_referrer && (dep.referral_qualifying_deposits_count ?? 0) < refMaxCount
                 const s = STATUS_LABELS[dep.status] ?? { label: dep.status, cls: 'bg-panel text-ink' }
 
                 return (

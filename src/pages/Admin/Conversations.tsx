@@ -6,21 +6,19 @@ import { timeAgo } from '../../lib/timeAgo'
 import ChatWindow from '../../components/ChatWindow'
 import { apiCall } from '../../lib/api'
 
-interface Participant {
-  user_id: string
-  profiles: { id: string; nickname: string | null } | null
-}
-
+// Форма ответа GET /admin/conversations — бэкенд отдаёт уже плоские поля
+// (order_title / ticket_subject / participants), а не PostgREST-embed.
 interface Conversation {
   id: string
   type: 'order_chat' | 'support_ticket'
   created_at: string
   order_id: string | null
   support_ticket_id: string | null
-  orders: { id: string; title: string } | null
-  support_tickets: { id: string; subject: string } | null
-  conversation_participants: Participant[]
-  last_message?: { content: string; created_at: string; sender: { nickname: string | null } | null } | null
+  order_title: string | null
+  ticket_subject: string | null
+  status: string | null
+  participants: { id: string; nickname: string | null }[]
+  last_message?: { content: string; created_at: string; sender_nickname: string | null } | null
   message_count?: number
 }
 
@@ -63,9 +61,9 @@ export default function AdminConversations() {
 
   if (selected) {
     const isOrder = selected.type === 'order_chat'
-    const title = isOrder ? selected.orders?.title : selected.support_tickets?.subject
-    const nicks = (selected.conversation_participants ?? [])
-      .map(p => p.profiles?.nickname)
+    const title = isOrder ? selected.order_title : selected.ticket_subject
+    const nicks = (selected.participants ?? [])
+      .map(p => p.nickname)
       .filter(Boolean)
       .join(', ')
 
@@ -132,9 +130,9 @@ export default function AdminConversations() {
           <div className="bg-surface rounded-xl border border-line divide-y divide-line overflow-hidden">
             {convs.map(c => {
               const isOrder   = c.type === 'order_chat'
-              const title     = isOrder ? c.orders?.title : c.support_tickets?.subject
-              const nicks     = (c.conversation_participants ?? [])
-                .map(p => p.profiles?.nickname)
+              const title     = isOrder ? c.order_title : c.ticket_subject
+              const nicks     = (c.participants ?? [])
+                .map(p => p.nickname)
                 .filter(Boolean)
                 .join(', ')
 
@@ -155,7 +153,7 @@ export default function AdminConversations() {
                     <p className="text-xs text-subtle truncate">{nicks || 'Участники не найдены'}</p>
                     {c.last_message && (
                       <p className="text-xs text-subtle mt-0.5 truncate">
-                        <span className="text-ink/70">{c.last_message.sender?.nickname ?? 'Система'}:</span>{' '}
+                        <span className="text-ink/70">{c.last_message.sender_nickname ?? 'Система'}:</span>{' '}
                         {c.last_message.content}
                       </p>
                     )}

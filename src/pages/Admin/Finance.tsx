@@ -30,6 +30,8 @@ export default function AdminFinance() {
   const [showExpenseModal, setShowExpenseModal] = useState(false)
   const [expenseInput, setExpenseInput] = useState('')
   const [saving, setSaving] = useState(false)
+  // Ставка реф. бонуса из admin_settings — раньше в вёрстке стояло «5%» текстом.
+  const [refPct, setRefPct] = useState<string | null>(null)
 
   async function fetchData() {
     setLoading(true)
@@ -42,7 +44,12 @@ export default function AdminFinance() {
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    fetchData()
+    apiCall('GET', '/admin/settings')
+      .then((d: { admin?: Record<string, string> }) => setRefPct(d.admin?.referral_bonus_pct ?? null))
+      .catch(() => setRefPct(null))
+  }, [])
 
   async function saveExpenses() {
     const amount = parseFloat(expenseInput)
@@ -123,7 +130,9 @@ export default function AdminFinance() {
               <tr>
                 <td className="py-2 text-subtle">
                   Комиссия реферальных пополнений
-                  <span className="ml-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full">5%</span>
+                  {refPct !== null && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full">{refPct}%</span>
+                  )}
                 </td>
                 <td className="py-2 text-right text-ink font-medium">{fmt(data.commission_referral)} ₽</td>
               </tr>

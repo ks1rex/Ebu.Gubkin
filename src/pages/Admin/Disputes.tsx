@@ -6,13 +6,12 @@ import { apiCall } from '../../lib/api'
 
 interface Dispute {
   id: string
-  order_id: string
-  opened_by: string
   reason: string
   status: string
-  admin_comment: string | null
   created_at: string
-  order?: {
+  // Ключ именно `orders` — так его отдаёт PostgREST-embed в GET /admin/disputes.
+  orders?: {
+    id: string
     title: string
     customer?: { nickname: string | null; id: string }
     executor?: { nickname: string | null; id: string }
@@ -92,15 +91,15 @@ export default function AdminDisputes() {
         <div className="space-y-4">
           {disputes.map(d => {
             const st = states[d.id] ?? { comment: '', banCustomer: false, banExecutor: false, acting: false }
-            const customerNick = d.order?.customer?.nickname ?? 'Заказчик'
-            const executorNick = d.order?.executor?.nickname ?? 'Исполнитель'
+            const customerNick = d.orders?.customer?.nickname ?? 'Заказчик'
+            const executorNick = d.orders?.executor?.nickname ?? 'Исполнитель'
 
             return (
               <div key={d.id} className="bg-surface rounded-xl border border-line p-5 space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-semibold text-ink">
-                      {d.order?.title ?? `Заказ #${d.order_id.slice(0, 8)}`}
+                      {d.orders?.title ?? `Заказ #${d.orders?.id?.slice(0, 8) ?? d.id.slice(0, 8)}`}
                     </h3>
                     <div className="flex items-center gap-3 mt-1 text-xs text-subtle">
                       <span>Заказчик: <strong className="text-ink">{customerNick}</strong></span>

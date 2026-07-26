@@ -130,6 +130,7 @@ export default function AdminDashboard() {
           icon={<HeadphonesIcon size={16} />}
           label="Тикетов поддержки"
           value={stats.open_support_tickets_count}
+          linkTo="/admin/support"
         />
         <StatCard
           icon={<ArrowDownCircle size={16} />}
