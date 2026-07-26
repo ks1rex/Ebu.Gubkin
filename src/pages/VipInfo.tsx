@@ -25,14 +25,16 @@ const LEVEL_DISCOUNTS = Array.from({ length: 10 }, (_, i) => ({
 
 // Reputation grants, mirrored from the backend calls to addReputation()
 // (reshbirga: routes/forum.js, routes/orders.js). Keep in sync.
+// Репутация только за биржу: форум её больше не даёт (иначе уровень и скидка
+// VIP набивались бы постами). Отзывы двигают репутацию исполнителя в обе
+// стороны — плохая оценка списывает.
 const REP_SOURCES = [
-  { amount: '+50', what: 'Завершённый заказ на бирже — исполнителю' },
-  { amount: '+30', what: 'Полученный отзыв с оценкой 5★' },
-  { amount: '+15', what: 'Полученный отзыв с оценкой 4★' },
-  { amount: '+25', what: 'Ваша тема на форуме набрала 200 просмотров (один раз)' },
-  { amount: '+10', what: 'Ваша тема на форуме набрала 50 просмотров (один раз)' },
-  { amount: '+5',  what: 'Создание темы на форуме' },
-  { amount: '+2',  what: 'Ответ в теме на форуме' },
+  { amount: '+50', what: 'Завершённый заказ на бирже — исполнителю', negative: false },
+  { amount: '+30', what: 'Отзыв с оценкой 5★ — исполнителю', negative: false },
+  { amount: '+15', what: 'Отзыв с оценкой 4★ — исполнителю', negative: false },
+  { amount: '0',   what: 'Отзыв с оценкой 3★ — ничего не меняет', negative: false },
+  { amount: '−15', what: 'Отзыв с оценкой 2★ — списывается', negative: true },
+  { amount: '−30', what: 'Отзыв с оценкой 1★ — списывается', negative: true },
 ]
 
 // nbsp перед ₽: с обычным пробелом «1 500 ₽» рвётся на две строки в узких ячейках/кнопках.
@@ -193,17 +195,26 @@ export default function VipInfo() {
         )}
 
         <p className="text-[13px] text-subtle mb-3 leading-relaxed">
-          Уровень поднимается за репутацию. Репутация начисляется автоматически:
+          Уровень поднимается за репутацию. Репутация начисляется автоматически
+          и только за работу на бирже:
         </p>
         <ul className="flex flex-col gap-1.5">
           {REP_SOURCES.map(s => (
             <li key={s.what} className="flex gap-3 text-[13px] text-ink/90">
-              <b className="text-mint font-semibold w-9 shrink-0 text-right">{s.amount}</b>
+              <b className={`font-semibold w-9 shrink-0 text-right ${s.negative ? 'text-error' : 'text-mint'}`}>
+                {s.amount}
+              </b>
               <span className="leading-relaxed">{s.what}</span>
             </li>
           ))}
         </ul>
         <p className="text-xs text-subtle mt-3 leading-relaxed">
+          Плохой отзыв списывает репутацию, но ниже нуля она не опускается — уровень
+          может понизиться, «долга» не бывает. Репутацию двигают только отзывы о вас
+          как об исполнителе: заказчику отзывы исполнителей репутацию не меняют.
+          Форум на репутацию не влияет.
+        </p>
+        <p className="text-xs text-subtle mt-2 leading-relaxed">
           Всего 10 уровней. Порог 10-го — 18 000 репутации.
         </p>
       </GlassCard>
