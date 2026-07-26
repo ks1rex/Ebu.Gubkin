@@ -34,6 +34,7 @@ import AdminConversations from './pages/Admin/Conversations'
 import AdminChatMod       from './pages/Admin/ChatMod'
 import AdminSupport       from './pages/Admin/Support'
 import AdminGostTemplates from './pages/Admin/GostTemplates'
+import AdminHelp          from './pages/Admin/Help'
 import ForgotPassword  from './pages/ForgotPassword'
 import ResetPassword   from './pages/ResetPassword'
 import Support         from './pages/Support'
@@ -121,6 +122,7 @@ export default function App() {
               <Route path="ledger"           element={<AdminLedger />} />
               <Route path="users"            element={<AdminUsers />} />
               <Route path="settings"         element={<AdminSettings />} />
+              <Route path="help"             element={<AdminHelp />} />
             </Route>
             <Route path="*"        element={<NotFound />} />
           </Route>

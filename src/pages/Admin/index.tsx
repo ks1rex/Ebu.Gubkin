@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   FileText,
   CalendarClock,
+  HelpCircle,
 } from 'lucide-react'
 
 export const NAV_ITEMS = [
@@ -36,6 +37,7 @@ export const NAV_ITEMS = [
   { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал' },
   { to: '/admin/users',          icon: Users,           label: 'Пользователи' },
   { to: '/admin/settings',       icon: Settings,        label: 'Настройки' },
+  { to: '/admin/help',           icon: HelpCircle,      label: 'Справка' },
 ]
 
 export default function AdminLayout() {
