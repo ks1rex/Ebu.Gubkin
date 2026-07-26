@@ -20,7 +20,12 @@ export function toCsv(headers: string[], rows: CsvRow[]): string {
 }
 
 export function downloadCsv(filename: string, headers: string[], rows: CsvRow[]) {
-  const blob = new Blob(['﻿' + toCsv(headers, rows)], { type: 'text/csv;charset=utf-8;' })
+  // `sep=;` в первой строке — единственный надёжный способ заставить Excel
+  // разбить файл по столбцам: разделитель он берёт из региональных настроек
+  // Windows, а не из файла, поэтому при системной запятой `;`-файл открывался
+  // одной ячейкой на строку. Excel эту строку съедает как директиву; Google
+  // Sheets показывает её первой строкой и дальше определяет разделитель сам.
+  const blob = new Blob(['﻿sep=;\r\n' + toCsv(headers, rows)], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url

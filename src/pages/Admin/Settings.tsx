@@ -30,7 +30,10 @@ const EMPTY_FORM: CategoryForm = { name: '', description: '', icon_name: '', sor
 interface AdminSettingKey {
   key: string
   label: string
-  type: 'number'
+  // 'text' — для настроек, которые не одно число (список процентов по уровням)
+  type: 'number' | 'text'
+  placeholder?: string
+  hint?: string
 }
 
 const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
@@ -57,6 +60,13 @@ const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
       { key: 'vip_duration_month_days', label: 'Длительность месячного VIP (дней)', type: 'number' },
       { key: 'vip_duration_year_days',  label: 'Длительность годового VIP (дней)', type: 'number' },
       { key: 'vip_token_discount_pct',  label: 'Скидка VIP на ГОСТ-токены (%)', type: 'number' },
+      {
+        key: 'vip_level_discounts',
+        label: 'Скидка на подписку по уровню (%)',
+        type: 'text',
+        placeholder: '0,10,20,30,40,50,60,70,80,100',
+        hint: 'Десять процентов через запятую — по одному на уровень 1…10. Пусто = правило по умолчанию (+10% за уровень, на 10-м бесплатно).',
+      },
     ],
   },
   {
@@ -247,23 +257,27 @@ export default function AdminSettings() {
         {ADMIN_SETTING_GROUPS.map(group => (
           <div key={group.title} className="space-y-3">
             <h3 className="text-sm font-medium text-subtle">{group.title}</h3>
-            {group.keys.map(({ key, label }) => (
-              <div key={key} className="flex items-center gap-3">
-                <label className="text-sm text-subtle w-56 shrink-0">{label}</label>
-                <input
-                  type="number"
-                  value={adminValues[key] ?? ''}
-                  onChange={e => setAdminValues(v => ({ ...v, [key]: e.target.value }))}
-                  className="w-32 border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
-                />
-                <button
-                  onClick={() => saveAdminSetting(key)}
-                  disabled={savingKey === key}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
-                >
-                  {savingKey === key ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                  Сохранить
-                </button>
+            {group.keys.map(({ key, label, type, placeholder, hint }) => (
+              <div key={key} className="space-y-1">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-subtle w-56 shrink-0">{label}</label>
+                  <input
+                    type={type}
+                    value={adminValues[key] ?? ''}
+                    placeholder={placeholder}
+                    onChange={e => setAdminValues(v => ({ ...v, [key]: e.target.value }))}
+                    className={`${type === 'text' ? 'w-72 font-mono' : 'w-32'} border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent`}
+                  />
+                  <button
+                    onClick={() => saveAdminSetting(key)}
+                    disabled={savingKey === key}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                  >
+                    {savingKey === key ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    Сохранить
+                  </button>
+                </div>
+                {hint && <p className="text-xs text-subtle pl-[15rem]">{hint}</p>}
               </div>
             ))}
           </div>
