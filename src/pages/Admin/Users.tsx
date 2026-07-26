@@ -4,6 +4,7 @@ import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search, ChevronLeft,
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
+import { formatRating } from '../../lib/format'
 import { stampedName, fetchAllPages } from '../../lib/reportData'
 import { downloadXlsx } from '../../lib/exportXlsx'
 import { printReport } from '../../lib/printReport'
@@ -40,9 +41,8 @@ const FILTERS: { id: Filter; label: string }[] = [
 ]
 
 function fmtRating(v: number | null, count: number | null) {
-  const n = Number(v)
-  if (!count || !Number.isFinite(n) || n <= 0) return null
-  return { value: n.toFixed(2), count }
+  const value = formatRating(v, count)
+  return value ? { value, count: count as number } : null
 }
 
 // Рейтинг заказчика / исполнителя — данные всегда приходили с бэкенда,
@@ -124,8 +124,12 @@ export default function AdminUsers() {
   function exportRow(u: AdminUser) {
     return [
       u.nickname ?? '', u.email ?? '', u.balance ?? 0, u.level ?? '', u.reputation ?? '',
-      u.rating_as_customer ?? '', u.reviews_count_customer ?? 0,
-      u.rating_as_executor ?? '', u.reviews_count_executor ?? 0,
+      // Тот же формат, что в таблице: рейтинг без отзывов не выгружается,
+      // иначе в файле стоит «5», а в админке прочерк по тем же данным.
+      formatRating(u.rating_as_customer, u.reviews_count_customer) ?? '',
+      u.reviews_count_customer ?? 0,
+      formatRating(u.rating_as_executor, u.reviews_count_executor) ?? '',
+      u.reviews_count_executor ?? 0,
       u.vip_expires_at ? new Date(u.vip_expires_at).toLocaleString('ru-RU') : '',
       u.is_admin ? 'админ' : u.is_banned ? 'бан' : 'пользователь',
       new Date(u.created_at).toLocaleString('ru-RU'),

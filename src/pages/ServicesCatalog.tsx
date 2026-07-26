@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Star, Shield, Search } from 'lucide-react'
 import { apiCall } from '../lib/api'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatRating } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 import VipName from '../components/VipBadge'
@@ -57,9 +57,10 @@ export default function ServicesCatalog() {
               <div className="text-slate-200 font-bold text-base leading-[1.3]">{l.title}</div>
               <div className="flex items-center gap-2">
                 <div className="text-teal-legacy text-[0.82rem] font-medium"><VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} /></div>
-                {parseFloat(l.owner?.rating_as_executor ?? 0) > 0 && (
+                {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1) && (
                   <div className="flex items-center gap-1 text-amber-500 text-[0.8rem]">
-                    <Star size={11} fill="#f59e0b" />{parseFloat(l.owner.rating_as_executor).toFixed(1)}
+                    <Star size={11} fill="#f59e0b" />
+                    {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1)}
                   </div>
                 )}
               </div>

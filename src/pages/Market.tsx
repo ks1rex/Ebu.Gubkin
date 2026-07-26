@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, Star, Shield } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
-import { formatCurrency, formatDate } from '../lib/format'
+import { formatCurrency, formatDate, formatRating } from '../lib/format'
 import { GlassCard, Button, Chip, Avatar, Stars, gradientFor } from '../components/glass'
 import VipName from '../components/VipBadge'
 
@@ -31,7 +31,7 @@ interface Listing {
   title: string
   price: number
   deposit_amount: number | null
-  owner: { nickname: string | null; rating_as_executor?: number | string | null; is_vip?: boolean } | null
+  owner: { nickname: string | null; rating_as_executor?: number | string | null; reviews_count_executor?: number | null; is_vip?: boolean } | null
   category?: string | null
 }
 
@@ -229,7 +229,8 @@ export default function Market() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {visibleListings.map(l => {
-                const rating = parseFloat(String(l.owner?.rating_as_executor ?? 0))
+                // Рейтинг без отзывов не показываем — см. formatRating в lib/format.ts
+                const rating = formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor)
                 return (
                   <Link key={l.id} to={`/market/services/${l.id}`}>
                     <GlassCard hover className="rounded-[20px] p-5 flex flex-col h-full">
@@ -242,7 +243,7 @@ export default function Market() {
                       <div className="flex items-center gap-2 mb-2.5">
                         <Avatar name={l.owner?.nickname} size={26} radius={8} className="text-[10px]" isVip={l.owner?.is_vip} />
                         <VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} className="text-[12.5px] font-medium text-ink" badgeSize="sm" />
-                        {rating > 0 && <Stars rating={rating} className="ml-auto" />}
+                        {rating && <Stars rating={parseFloat(rating)} className="ml-auto" />}
                       </div>
                       <h4 className="text-base font-semibold leading-snug mb-2 text-ink">{l.title}</h4>
                       {(l.deposit_amount ?? 0) > 0 && (

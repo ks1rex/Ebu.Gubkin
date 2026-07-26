@@ -18,3 +18,25 @@ export function formatDate(date: string | null | undefined): string {
   if (diff < 604_800_000) return `${Math.floor(diff / 86_400_000)} дн назад`
   return d.toLocaleDateString('ru-RU')
 }
+
+/**
+ * Рейтинг показывается только при наличии отзывов.
+ *
+ * Рейтинг и число отзывов — две независимые колонки профиля, и они расходятся:
+ * в базе встречается `rating_as_executor = 5.00` при `reviews_count_executor = 0`
+ * (значение выставлено руками или осталось с прежней логики, а в таблице reviews
+ * нет ни строки). Пока это правило было написано в каждом месте по-своему,
+ * админка рисовала прочерк, а выгрузка в Excel — «5» по тем же данным.
+ *
+ * null означает «рейтинга нет» — вызывающий сам решает, что показать: прочерк,
+ * пустую ячейку или ничего.
+ */
+export function formatRating(
+  value: number | string | null | undefined,
+  count: number | null | undefined,
+  digits = 2,
+): string | null {
+  const n = parseFloat(String(value ?? ''))
+  if (!count || !Number.isFinite(n) || n <= 0) return null
+  return n.toFixed(digits)
+}

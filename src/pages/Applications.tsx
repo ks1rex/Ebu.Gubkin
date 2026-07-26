@@ -3,16 +3,21 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
+import { formatRating } from '../lib/format'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
 
 function StarsRow({ rating, count }: { rating?: number; count?: number }) {
-  const filled = Math.round(rating || 0)
+  const value = formatRating(rating, count, 1)
+  // Без отзывов рейтинга нет: раньше здесь выводилось «☆☆☆☆☆ 0.0 (0 отзывов)»
+  // у каждого нового исполнителя.
+  if (!value) return <div className="text-slate-500 text-[0.78rem] mb-2">Пока без отзывов</div>
+  const filled = Math.round(parseFloat(value))
   return (
     <div className="flex items-center gap-[6px] mb-2">
       <span className="text-amber-500 text-[0.9rem]">{'★'.repeat(filled)}{'☆'.repeat(5 - filled)}</span>
-      <span className="text-amber-500 text-[0.82rem] font-semibold">{(rating || 0).toFixed(1)}</span>
-      <span className="text-slate-500 text-[0.78rem]">({count || 0} отзывов)</span>
+      <span className="text-amber-500 text-[0.82rem] font-semibold">{value}</span>
+      <span className="text-slate-500 text-[0.78rem]">({count} отзывов)</span>
     </div>
   )
 }

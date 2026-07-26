@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Star, Shield } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatRating } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
@@ -63,9 +63,10 @@ export default function ServiceDetail() {
         <div className="text-slate-200 text-[1.3rem] font-bold mb-3">{listing.title}</div>
         <div className="flex items-center gap-2 mb-4">
           <Link to={`/users/${listing.owner_id}`} className="text-teal-legacy font-semibold no-underline text-[0.9rem]"><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
-          {parseFloat(listing.owner?.rating_as_executor ?? 0) > 0 && (
+          {formatRating(listing.owner?.rating_as_executor, listing.owner?.reviews_count_executor, 1) && (
             <div className="flex items-center gap-1 text-amber-500 text-[0.82rem]">
-              <Star size={12} fill="#f59e0b" />{parseFloat(listing.owner.rating_as_executor).toFixed(1)}
+              <Star size={12} fill="#f59e0b" />
+              {formatRating(listing.owner?.rating_as_executor, listing.owner?.reviews_count_executor, 1)}
               <span className="text-slate-500">({listing.owner.reviews_count_executor})</span>
             </div>
           )}
