@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Loader2, X, Download, Printer, Crown } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
-import { downloadCsv, stampedName } from '../../lib/exportCsv'
+import { stampedName } from '../../lib/reportData'
+import { downloadXlsx } from '../../lib/exportXlsx'
 import { printReport } from '../../lib/printReport'
 
 interface FinanceSummary {
@@ -95,7 +96,7 @@ export default function AdminFinance() {
   }
 
   function exportSummary(d: FinanceSummary) {
-    downloadCsv(
+    downloadXlsx(
       stampedName('финансы'),
       ['Показатель', 'Сумма, ₽'],
       [
@@ -134,7 +135,7 @@ export default function AdminFinance() {
           <button onClick={() => exportSummary(data)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors">
             <Download size={14} />
-            CSV
+            Excel
           </button>
           <button onClick={() => printSummary(data)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors">

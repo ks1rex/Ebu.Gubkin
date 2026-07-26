@@ -4,7 +4,8 @@ import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search, ChevronLeft,
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
-import { downloadCsv, stampedName, fetchAllPages } from '../../lib/exportCsv'
+import { stampedName, fetchAllPages } from '../../lib/reportData'
+import { downloadXlsx } from '../../lib/exportXlsx'
 import { printReport } from '../../lib/printReport'
 import { VipBadge } from '../../components/VipBadge'
 
@@ -152,7 +153,7 @@ export default function AdminUsers() {
     setExporting(true)
     try {
       const { rows, total: found, truncated } = await fetchExportRows()
-      downloadCsv(stampedName('пользователи'), EXPORT_HEADERS, rows.map(exportRow))
+      downloadXlsx(stampedName('пользователи'), EXPORT_HEADERS, rows.map(exportRow))
       if (truncated) toast(`Выгружено ${rows.length} из ${found} — сузьте фильтр`, 'error')
     } catch {
       toast('Не удалось выгрузить отчёт', 'error')
@@ -199,7 +200,7 @@ export default function AdminUsers() {
           <button onClick={exportAll} disabled={exporting}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors disabled:opacity-50">
             {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-            CSV
+            Excel
           </button>
           <button onClick={printAll} disabled={exporting}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors disabled:opacity-50">

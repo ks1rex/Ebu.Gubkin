@@ -12,7 +12,7 @@
 // библиотеку стоит, только если понадобится PDF без участия человека
 // (например, отчёт по расписанию на сервере).
 
-import type { CsvRow } from './exportCsv'
+import type { ReportRow } from './reportData'
 
 export interface ReportSpec {
   /** Заголовок отчёта: «Журнал транзакций» */
@@ -20,7 +20,7 @@ export interface ReportSpec {
   /** Параметры выборки: [['Период', '01.01 — 31.01'], ['Тип', 'Пополнение']] */
   meta?: [string, string][]
   headers: string[]
-  rows: CsvRow[]
+  rows: ReportRow[]
   /** Строки итогов под таблицей */
   totals?: [string, string][]
   /** Колонки, которые печатаются по правому краю (индексы) */

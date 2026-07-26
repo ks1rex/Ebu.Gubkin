@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Loader2, Crown, Download, Printer, Clock, Plus, X, Search } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
-import { downloadCsv, stampedName } from '../../lib/exportCsv'
+import { stampedName } from '../../lib/reportData'
+import { downloadXlsx } from '../../lib/exportXlsx'
 import { printReport } from '../../lib/printReport'
 
 /**
@@ -157,7 +158,7 @@ export default function AdminVip() {
   ])
 
   function exportSubscribers() {
-    downloadCsv(stampedName('vip-подписки'), SUB_HEADERS, subRows)
+    downloadXlsx(stampedName('vip-подписки'), SUB_HEADERS, subRows)
   }
 
   function printSubscribers() {
@@ -186,7 +187,7 @@ export default function AdminVip() {
         <div className="flex gap-2 no-print">
           <button onClick={exportSubscribers} className={BTN}>
             <Download size={14} />
-            CSV
+            Excel
           </button>
           <button onClick={printSubscribers} className={BTN}>
             <Printer size={14} />

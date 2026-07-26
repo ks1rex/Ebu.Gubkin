@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "check-xlsx": "node scripts/check-xlsx.mjs",
     "sync-guide": "node scripts/sync-admin-guide.mjs"
   },
   "dependencies": {
