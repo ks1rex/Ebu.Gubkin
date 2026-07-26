@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { Loader2, X, Download, Printer, Crown } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
+import { downloadCsv, stampedName } from '../../lib/exportCsv'
 
 interface FinanceSummary {
   commission_regular: number
   commission_referral: number
   referral_bonuses_paid: number
   gost_tokens_revenue: number
+  vip_revenue: number
+  vip_purchases_count: number
+  vip_active_count: number
   total_platform_profit: number
   total_user_balances: number
   platform_expenses: number
@@ -69,9 +73,42 @@ export default function AdminFinance() {
     )
   }
 
+  function exportSummary(d: FinanceSummary) {
+    downloadCsv(
+      stampedName('финансы'),
+      ['Показатель', 'Сумма, ₽'],
+      [
+        ['Комиссия с вывода средств', d.commission_regular],
+        ['Комиссия реферальных пополнений', d.commission_referral],
+        ['Выплачено рефереру', -d.referral_bonuses_paid],
+        ['Выручка ГОСТ-токенов', d.gost_tokens_revenue],
+        [`Выручка VIP (покупок: ${d.vip_purchases_count ?? 0})`, d.vip_revenue ?? 0],
+        ['ИТОГО прибыль платформы', d.total_platform_profit],
+        ['Баланс кошельков пользователей', d.total_user_balances],
+        ['Расходы платформы', d.platform_expenses],
+        ['Доступно к выводу', d.available_to_withdraw],
+        ['Активных VIP-подписок', d.vip_active_count ?? 0],
+      ],
+    )
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-ink">Финансы</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-xl font-semibold text-ink">Финансы</h1>
+        <div className="flex gap-2 no-print">
+          <button onClick={() => exportSummary(data)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors">
+            <Download size={14} />
+            CSV
+          </button>
+          <button onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors">
+            <Printer size={14} />
+            PDF / печать
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Card 1: Profit */}
@@ -98,6 +135,18 @@ export default function AdminFinance() {
                 <td className="py-2 text-subtle">Выручка ГОСТ-токенов</td>
                 <td className="py-2 text-right text-ink font-medium">{fmt(data.gost_tokens_revenue)} ₽</td>
               </tr>
+              {/* VIP-покупки списываются с баланса безвозвратно, то есть это
+                  прибыль платформы — раньше в этой сводке их не было вовсе. */}
+              <tr>
+                <td className="py-2 text-subtle">
+                  <span className="inline-flex items-center gap-1">
+                    <Crown size={12} className="text-accent" />
+                    Выручка VIP
+                  </span>
+                  <span className="ml-1 text-xs text-subtle">({data.vip_purchases_count ?? 0} покупок)</span>
+                </td>
+                <td className="py-2 text-right text-ink font-medium">{fmt(data.vip_revenue ?? 0)} ₽</td>
+              </tr>
             </tbody>
           </table>
           <div className="pt-2 border-t border-line flex items-center justify-between">
@@ -115,6 +164,13 @@ export default function AdminFinance() {
           </div>
           <div className="bg-panel rounded-lg p-3 text-xs text-subtle">
             Эти деньги не ваши — держите их в наличии
+          </div>
+          <div className="pt-3 border-t border-line">
+            <p className="text-xs text-subtle mb-1">Активных VIP-подписок</p>
+            <span className="inline-flex items-center gap-1.5 text-2xl font-bold text-ink">
+              <Crown size={18} className="text-accent" />
+              {data.vip_active_count ?? 0}
+            </span>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Check, X } from 'lucide-react'
+import { Loader2, Check, X, MessageSquareWarning } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
+import RejectReasonModal from '../../components/RejectReasonModal'
 
 interface DepositRequest {
   id: string
@@ -37,6 +38,7 @@ export default function AdminDeposits() {
   const [showAll, setShowAll] = useState(false)
   const [confirmedAmounts, setConfirmedAmounts] = useState<Record<string, string>>({})
   const [acting, setActing] = useState<Record<string, boolean>>({})
+  const [rejectingId, setRejectingId] = useState<string | null>(null)
 
   async function fetchDeposits() {
     setLoading(true)
@@ -78,11 +80,12 @@ export default function AdminDeposits() {
     }
   }
 
-  async function reject(id: string) {
+  async function reject(id: string, admin_comment: string) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      await apiCall('POST', `/admin/deposits/${id}/reject`)
+      await apiCall('POST', `/admin/deposits/${id}/reject`, { admin_comment: admin_comment || null })
       toast('Заявка отклонена', 'success')
+      setRejectingId(null)
       fetchDeposits()
     } catch {
       toast('Ошибка при отклонении', 'error')
@@ -156,6 +159,13 @@ export default function AdminDeposits() {
                   </div>
                 )}
 
+                {dep.admin_comment && (
+                  <div className="mb-3 flex items-start gap-1.5 text-xs text-subtle bg-panel rounded-lg p-2">
+                    <MessageSquareWarning size={13} className="shrink-0 mt-px" />
+                    <span className="text-ink">{dep.admin_comment}</span>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => confirm(dep.id)}
@@ -166,7 +176,7 @@ export default function AdminDeposits() {
                     Подтвердить
                   </button>
                   <button
-                    onClick={() => reject(dep.id)}
+                    onClick={() => setRejectingId(dep.id)}
                     disabled={!isPending || acting[dep.id]}
                     className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                   >
@@ -190,6 +200,7 @@ export default function AdminDeposits() {
                 <th className="py-2 px-3 text-center text-subtle font-medium">Реф.</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Дата</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Статус</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Комментарий</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Действия</th>
               </tr>
             </thead>
@@ -229,6 +240,11 @@ export default function AdminDeposits() {
                         {s.label}
                       </span>
                     </td>
+                    <td className="py-2 px-3 text-subtle text-xs max-w-[200px]">
+                      {dep.admin_comment
+                        ? <span className="text-ink" title={dep.admin_comment}>{dep.admin_comment}</span>
+                        : '—'}
+                    </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -240,7 +256,7 @@ export default function AdminDeposits() {
                           Подтвердить
                         </button>
                         <button
-                          onClick={() => reject(dep.id)}
+                          onClick={() => setRejectingId(dep.id)}
                           disabled={!isPending || acting[dep.id]}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                         >
@@ -257,6 +273,14 @@ export default function AdminDeposits() {
         </div>
         </>
       )}
+
+      <RejectReasonModal
+        open={rejectingId != null}
+        busy={rejectingId ? !!acting[rejectingId] : false}
+        onClose={() => setRejectingId(null)}
+        onConfirm={comment => reject(rejectingId!, comment)}
+        title="Отклонить пополнение"
+      />
     </div>
   )
 }

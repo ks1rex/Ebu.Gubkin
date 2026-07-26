@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Plus, Pencil, Trash2, Check } from 'lucide-react'
+import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
+import TwoFactor from './TwoFactor'
 
 interface SiteSettings {
   site: Record<string, string>
@@ -14,6 +15,7 @@ interface ForumCategory {
   description: string | null
   icon_name: string | null
   sort_order: number
+  is_active: boolean
 }
 
 interface CategoryForm {
@@ -181,8 +183,23 @@ export default function AdminSettings() {
     }
   }
 
+  // Скрытие вместо удаления: категория и её темы остаются в базе, но исчезают
+  // из форума и из «горячих тем» на главной (фильтр is_active на бэкенде).
+  async function toggleCategory(id: string, is_active: boolean) {
+    setCatActing(a => ({ ...a, [id]: true }))
+    try {
+      await apiCall('PATCH', `/admin/forum/categories/${id}`, { is_active })
+      toast(is_active ? 'Категория показана' : 'Категория скрыта', 'success')
+      setCategories(c => c.map(x => x.id === id ? { ...x, is_active } : x))
+    } catch {
+      toast('Ошибка при обновлении', 'error')
+    } finally {
+      setCatActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
   async function deleteCategory(id: string) {
-    if (!confirm('Удалить категорию?')) return
+    if (!confirm('Удалить категорию безвозвратно? Чтобы просто убрать её с форума, используйте «Скрыть».')) return
     setCatActing(a => ({ ...a, [id]: true }))
     try {
       await apiCall('DELETE', `/admin/forum/categories/${id}`)
@@ -294,7 +311,7 @@ export default function AdminSettings() {
         ) : (
           <div className="space-y-2">
             {categories.map(cat => (
-              <div key={cat.id} className="bg-surface rounded-xl border border-line p-4">
+              <div key={cat.id} className={`bg-surface rounded-xl border border-line p-4 ${cat.is_active === false ? 'opacity-60' : ''}`}>
                 {editingCat === cat.id ? (
                   <div className="space-y-3">
                     <CategoryFormFields form={editForm} onChange={setEditForm} />
@@ -318,16 +335,31 @@ export default function AdminSettings() {
                 ) : (
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <div className="font-medium text-ink text-sm flex items-center gap-2">
+                      <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
                         {cat.icon_name && <span className="text-subtle">[{cat.icon_name}]</span>}
                         {cat.name}
                         <span className="text-xs text-subtle">#{cat.sort_order}</span>
+                        {cat.is_active === false && (
+                          <span className="px-1.5 py-0.5 bg-panel text-subtle text-xs rounded-full font-medium border border-line">
+                            Скрыта
+                          </span>
+                        )}
                       </div>
                       {cat.description && (
                         <p className="text-xs text-subtle mt-0.5">{cat.description}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => toggleCategory(cat.id, cat.is_active === false)}
+                        disabled={catActing[cat.id]}
+                        title={cat.is_active === false ? 'Показать на форуме' : 'Скрыть с форума (без удаления)'}
+                        className="p-1.5 rounded-lg hover:bg-panel text-subtle hover:text-ink transition-colors disabled:opacity-50"
+                      >
+                        {catActing[cat.id]
+                          ? <Loader2 size={14} className="animate-spin" />
+                          : cat.is_active === false ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
                       <button
                         onClick={() => {
                           setEditingCat(cat.id)
@@ -359,6 +391,13 @@ export default function AdminSettings() {
             )}
           </div>
         )}
+      </section>
+
+      {/* Section 4: Security / 2FA */}
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-ink border-b border-line pb-2">Безопасность</h2>
+        <p className="text-sm text-subtle">Двухфакторная аутентификация для вашего аккаунта администратора</p>
+        <TwoFactor />
       </section>
     </div>
   )

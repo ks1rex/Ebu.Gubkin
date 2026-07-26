@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Check, X } from 'lucide-react'
+import { Loader2, Check, X, MessageSquareWarning } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
+import RejectReasonModal from '../../components/RejectReasonModal'
 
 interface WithdrawalRequest {
   id: string
@@ -31,6 +32,7 @@ export default function AdminWithdrawals() {
   const [loading, setLoading] = useState(true)
   const [showAll, setShowAll] = useState(false)
   const [acting, setActing] = useState<Record<string, boolean>>({})
+  const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [commissionPct, setCommissionPct] = useState<number | null>(null)
 
   useEffect(() => {
@@ -60,11 +62,13 @@ export default function AdminWithdrawals() {
 
   useEffect(() => { fetchWithdrawals() }, [showAll])
 
-  async function act(id: string, action: 'confirm' | 'reject') {
+  async function act(id: string, action: 'confirm' | 'reject', admin_comment?: string) {
     setActing(a => ({ ...a, [id]: true }))
     try {
-      await apiCall('POST', `/admin/withdrawals/${id}/${action}`)
+      await apiCall('POST', `/admin/withdrawals/${id}/${action}`,
+        action === 'reject' ? { admin_comment: admin_comment || null } : undefined)
       toast(action === 'confirm' ? 'Выплата подтверждена' : 'Заявка отклонена', 'success')
+      setRejectingId(null)
       fetchWithdrawals()
     } catch {
       toast('Ошибка при обработке заявки', 'error')
@@ -132,6 +136,13 @@ export default function AdminWithdrawals() {
                   </div>
                 </div>
 
+                {w.admin_comment && (
+                  <div className="mb-3 flex items-start gap-1.5 text-xs text-subtle bg-panel rounded-lg p-2">
+                    <MessageSquareWarning size={13} className="shrink-0 mt-px" />
+                    <span className="text-ink">{w.admin_comment}</span>
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => act(w.id, 'confirm')}
@@ -142,7 +153,7 @@ export default function AdminWithdrawals() {
                     Выплачено
                   </button>
                   <button
-                    onClick={() => act(w.id, 'reject')}
+                    onClick={() => setRejectingId(w.id)}
                     disabled={!isPending || acting[w.id]}
                     className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-2 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                   >
@@ -166,6 +177,7 @@ export default function AdminWithdrawals() {
                 <th className="py-2 px-3 text-left text-subtle font-medium">Карта</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Дата</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Статус</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Комментарий</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Действия</th>
               </tr>
             </thead>
@@ -194,6 +206,11 @@ export default function AdminWithdrawals() {
                         {s.label}
                       </span>
                     </td>
+                    <td className="py-2 px-3 text-subtle text-xs max-w-[200px]">
+                      {w.admin_comment
+                        ? <span className="text-ink" title={w.admin_comment}>{w.admin_comment}</span>
+                        : '—'}
+                    </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
@@ -205,7 +222,7 @@ export default function AdminWithdrawals() {
                           Выплачено
                         </button>
                         <button
-                          onClick={() => act(w.id, 'reject')}
+                          onClick={() => setRejectingId(w.id)}
                           disabled={!isPending || acting[w.id]}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-xs bg-error text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                         >
@@ -222,6 +239,15 @@ export default function AdminWithdrawals() {
         </div>
         </>
       )}
+
+      <RejectReasonModal
+        open={rejectingId != null}
+        busy={rejectingId ? !!acting[rejectingId] : false}
+        onClose={() => setRejectingId(null)}
+        onConfirm={comment => act(rejectingId!, 'reject', comment)}
+        title="Отклонить вывод"
+        hint="Комментарий увидит пользователь; сумма вернётся на его баланс."
+      />
     </div>
   )
 }

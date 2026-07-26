@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Users, ShoppingBag, Scale, ArrowDownCircle, ArrowUpCircle, HeadphonesIcon, TrendingUp } from 'lucide-react'
+import { Loader2, Users, ShoppingBag, Scale, ArrowDownCircle, ArrowUpCircle, HeadphonesIcon, TrendingUp, Crown } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
 
 interface AdminStats {
   total_users: number
   banned_users: number
+  vip_users: number
+  orders_total: number
   orders_by_status: Record<string, number>
   open_disputes_count: number
   open_support_tickets_count: number
   total_commission_earned: number
+  total_volume: number
 }
 
 interface StatCardProps {
@@ -115,7 +118,7 @@ export default function AdminDashboard() {
           label="Активных заказов"
           value={activeOrders}
           sub="open + in_progress + споры"
-          linkTo="/admin/users"
+          linkTo="/admin/orders"
         />
         <StatCard
           icon={<Scale size={16} />}
@@ -146,13 +149,24 @@ export default function AdminDashboard() {
           icon={<TrendingUp size={16} />}
           label="Комиссия собрана"
           value={`${(stats.total_commission_earned ?? 0).toLocaleString('ru-RU')} ₽`}
+          sub={`Оборот: ${(stats.total_volume ?? 0).toLocaleString('ru-RU')} ₽`}
           linkTo="/admin/finance"
+        />
+        <StatCard
+          icon={<Crown size={16} />}
+          label="Активных VIP"
+          value={stats.vip_users ?? 0}
+          sub="подписка не истекла"
+          linkTo="/admin/users"
         />
       </div>
 
       {/* Orders by status */}
       <div className="bg-surface rounded-xl border border-line p-4">
-        <h2 className="text-sm font-semibold text-ink mb-3">Заказы по статусам</h2>
+        <h2 className="text-sm font-semibold text-ink mb-3">
+          Заказы по статусам
+          <span className="ml-2 text-xs font-normal text-subtle">всего {stats.orders_total ?? 0}</span>
+        </h2>
         <div className="flex flex-wrap gap-2">
           {Object.entries(stats.orders_by_status).map(([status, count]) => (
             <span

@@ -48,3 +48,26 @@
     font-size: 16px !important;
   }
 }
+
+/* Печать / «Сохранить как PDF» для отчётов админки. Убираем навигацию, фон и
+   кнопки, разворачиваем стеклянные карточки в обычные — иначе на бумаге
+   получается тёмный градиент и половина страницы уходит на сайдбар.
+   ponytail: печать браузера вместо jspdf/html2canvas — PDF получается
+   векторный и бесплатный; заводить библиотеку стоит только под свою вёрстку. */
+@media print {
+  nav, aside, header, footer, .no-print { display: none !important; }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+  }
+  .bg-surface, .bg-panel, .bg-canvas {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border-color: #ccc !important;
+  }
+  .text-ink, .text-subtle, .text-accent { color: #000 !important; }
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; }
+}
