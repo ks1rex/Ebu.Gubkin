@@ -3,6 +3,7 @@ import { Loader2, X, Download, Printer, Crown } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
 import { downloadCsv, stampedName } from '../../lib/exportCsv'
+import { printReport } from '../../lib/printReport'
 
 interface FinanceSummary {
   commission_regular: number
@@ -80,23 +81,49 @@ export default function AdminFinance() {
     )
   }
 
+  // Один набор строк на CSV и на печатный отчёт — расходиться им незачем.
+  function summaryRows(d: FinanceSummary): [string, number][] {
+    return [
+      ['Комиссия с вывода средств', d.commission_regular],
+      ['Комиссия реферальных пополнений', d.commission_referral],
+      ['Выплачено рефереру', -d.referral_bonuses_paid],
+      ['Выручка ГОСТ-токенов', d.gost_tokens_revenue],
+      ['Выручка VIP', d.vip_revenue ?? 0],
+      ['Баланс кошельков пользователей', d.total_user_balances],
+      ['Расходы платформы', d.platform_expenses],
+    ]
+  }
+
   function exportSummary(d: FinanceSummary) {
     downloadCsv(
       stampedName('финансы'),
       ['Показатель', 'Сумма, ₽'],
       [
-        ['Комиссия с вывода средств', d.commission_regular],
-        ['Комиссия реферальных пополнений', d.commission_referral],
-        ['Выплачено рефереру', -d.referral_bonuses_paid],
-        ['Выручка ГОСТ-токенов', d.gost_tokens_revenue],
-        [`Выручка VIP (покупок: ${d.vip_purchases_count ?? 0})`, d.vip_revenue ?? 0],
+        ...summaryRows(d),
         ['ИТОГО прибыль платформы', d.total_platform_profit],
-        ['Баланс кошельков пользователей', d.total_user_balances],
-        ['Расходы платформы', d.platform_expenses],
         ['Доступно к выводу', d.available_to_withdraw],
+        ['Покупок VIP', d.vip_purchases_count ?? 0],
         ['Активных VIP-подписок', d.vip_active_count ?? 0],
       ],
     )
+  }
+
+  function printSummary(d: FinanceSummary) {
+    printReport({
+      title: 'Финансовая сводка',
+      meta: [
+        ['Покупок VIP', String(d.vip_purchases_count ?? 0)],
+        ['Активных VIP-подписок', String(d.vip_active_count ?? 0)],
+        ['Ставка реферального бонуса', refPct !== null ? `${refPct}%` : 'не задана'],
+      ],
+      headers: ['Показатель', 'Сумма, ₽'],
+      rows: summaryRows(d).map(([label, value]) => [label, fmt(value)]),
+      numeric: [1],
+      totals: [
+        ['ИТОГО прибыль платформы, ₽', fmt(d.total_platform_profit)],
+        ['Доступно к выводу, ₽', fmt(d.available_to_withdraw)],
+      ],
+    })
   }
 
   return (
@@ -109,7 +136,7 @@ export default function AdminFinance() {
             <Download size={14} />
             CSV
           </button>
-          <button onClick={() => window.print()}
+          <button onClick={() => printSummary(data)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors">
             <Printer size={14} />
             PDF / печать

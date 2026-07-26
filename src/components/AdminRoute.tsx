@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import MfaRecovery from './MfaRecovery'
 
 /**
  * Одна точка проверки второго фактора на всю админку. Бэкенд отдаёт 403
@@ -11,10 +12,14 @@ import { supabase } from '../lib/supabase'
  * отдельно смысла нет — гейт стоит здесь, до рендера любого раздела.
  * Актуально для уже сохранённой сессии: после логина шаг кода проходит Login.
  */
+const GATE_FIELD  = 'w-full px-3 py-2 rounded-lg border border-line bg-panel text-ink text-lg text-center focus:outline-none focus:border-accent'
+const GATE_SUBMIT = 'w-full py-2 px-4 bg-accent text-white font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors text-sm'
+
 function MfaGate({ factorId, onDone }: { factorId: string; onDone: () => void }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [recovery, setRecovery] = useState(false)
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -33,27 +38,43 @@ function MfaGate({ factorId, onDone }: { factorId: string; onDone: () => void })
           <ShieldCheck size={18} className="text-accent" />
           Подтвердите вход в админку
         </div>
-        <p className="text-sm text-subtle">Введите код из приложения-аутентификатора</p>
-        <form onSubmit={submit} className="space-y-3">
-          <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            autoFocus
-            value={code}
-            onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            placeholder="000000"
-            className="w-full px-3 py-2 rounded-lg border border-line bg-panel text-ink text-lg text-center tracking-[0.4em] focus:outline-none focus:border-accent"
+
+        {recovery ? (
+          <MfaRecovery
+            fieldClass={GATE_FIELD}
+            submitClass={GATE_SUBMIT}
+            onCancel={() => setRecovery(false)}
+            // Фактор снят: listFactors теперь пуст, и бэкенд перестаёт требовать
+            // aal2 — этой же сессии достаточно.
+            onRecovered={onDone}
           />
-          {error && <p className="text-sm text-error">{error}</p>}
-          <button
-            type="submit"
-            disabled={busy || code.length < 6}
-            className="w-full py-2 px-4 bg-accent text-white font-medium rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors text-sm"
-          >
-            {busy ? 'Проверяем...' : 'Подтвердить'}
-          </button>
-        </form>
+        ) : (
+          <>
+            <p className="text-sm text-subtle">Введите код из приложения-аутентификатора</p>
+            <form onSubmit={submit} className="space-y-3">
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                className={`${GATE_FIELD} tracking-[0.4em]`}
+              />
+              {error && <p className="text-sm text-error">{error}</p>}
+              <button type="submit" disabled={busy || code.length < 6} className={GATE_SUBMIT}>
+                {busy ? 'Проверяем...' : 'Подтвердить'}
+              </button>
+            </form>
+            <button
+              onClick={() => { setRecovery(true); setError('') }}
+              className="w-full text-center text-sm text-subtle hover:text-ink transition-colors"
+            >
+              Потерян аутентификатор? Ввести резервный код
+            </button>
+          </>
+        )}
       </div>
     </div>
   )

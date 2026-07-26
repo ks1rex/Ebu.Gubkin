@@ -27,6 +27,7 @@ import AdminWithdrawals   from './pages/Admin/Withdrawals'
 import AdminDisputes      from './pages/Admin/Disputes'
 import AdminForumMod      from './pages/Admin/ForumMod'
 import AdminUsers         from './pages/Admin/Users'
+import AdminVip           from './pages/Admin/Vip'
 import AdminSettings      from './pages/Admin/Settings'
 import AdminLedger        from './pages/Admin/Ledger'
 import AdminOrders        from './pages/Admin/Orders'
@@ -121,6 +122,7 @@ export default function App() {
               <Route path="schedule-warmup"  element={<AdminScheduleWarmup />} />
               <Route path="ledger"           element={<AdminLedger />} />
               <Route path="users"            element={<AdminUsers />} />
+              <Route path="vip"              element={<AdminVip />} />
               <Route path="settings"         element={<AdminSettings />} />
               <Route path="help"             element={<AdminHelp />} />
             </Route>

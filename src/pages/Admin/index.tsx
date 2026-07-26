@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   FileText,
   CalendarClock,
+  Crown,
   HelpCircle,
 } from 'lucide-react'
 
@@ -36,6 +37,7 @@ export const NAV_ITEMS = [
   { to: '/admin/support',        icon: LifeBuoy,        label: 'Поддержка' },
   { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал' },
   { to: '/admin/users',          icon: Users,           label: 'Пользователи' },
+  { to: '/admin/vip',            icon: Crown,           label: 'VIP / подписки' },
   { to: '/admin/settings',       icon: Settings,        label: 'Настройки' },
   { to: '/admin/help',           icon: HelpCircle,      label: 'Справка' },
 ]

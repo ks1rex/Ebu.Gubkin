@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Loader2, ShieldCheck, ShieldOff, Check, Copy } from 'lucide-react'
+import { Loader2, ShieldCheck, ShieldOff, Check, Copy, KeyRound, Download } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { supabase } from '../../lib/supabase'
+import { apiCall } from '../../lib/api'
 
 /**
  * Двухфакторная аутентификация (TOTP) для админов.
@@ -29,6 +30,10 @@ export default function TwoFactor() {
   const [enrolling, setEnrolling] = useState<{ id: string; qr: string; secret: string } | null>(null)
   const [code, setCode] = useState('')
 
+  // Резервные коды: счётчики с сервера + разовый показ свежесгенерированных.
+  const [codesLeft, setCodesLeft] = useState<{ total: number; unused: number } | null>(null)
+  const [freshCodes, setFreshCodes] = useState<string[] | null>(null)
+
   async function load() {
     setLoading(true)
     try {
@@ -43,6 +48,43 @@ export default function TwoFactor() {
     } finally {
       setLoading(false)
     }
+    // Счётчик кодов доступен только aal2-сессии (эндпоинт за adminMiddleware),
+    // поэтому его отсутствие — не ошибка, а «сессия ещё не подтверждена».
+    apiCall('GET', '/mfa/backup-codes')
+      .then((d: { total: number; unused: number }) => setCodesLeft({ total: d.total, unused: d.unused }))
+      .catch(() => setCodesLeft(null))
+  }
+
+  async function generateCodes() {
+    if (!confirm('Сгенерировать новые резервные коды? Прежние перестанут работать.')) return
+    setBusy(true)
+    try {
+      const d = await apiCall('POST', '/mfa/backup-codes')
+      setFreshCodes(d.codes ?? [])
+      setCodesLeft({ total: d.codes?.length ?? 0, unused: d.codes?.length ?? 0 })
+      toast('Коды сгенерированы — сохраните их сейчас', 'success')
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось сгенерировать коды', 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function downloadCodes(codes: string[]) {
+    const text = [
+      'Резервные коды для входа в админку СтудБиржи.',
+      'Каждый код действует один раз и снимает двухфакторную аутентификацию,',
+      'после чего её нужно подключить заново.',
+      `Сгенерированы: ${new Date().toLocaleString('ru-RU')}`,
+      '',
+      ...codes,
+    ].join('\r\n')
+    const url = URL.createObjectURL(new Blob(['﻿' + text], { type: 'text/plain;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `резервные-коды-2fa-${new Date().toISOString().slice(0, 10)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   useEffect(() => { load() }, [])
@@ -152,6 +194,66 @@ export default function TwoFactor() {
             Пока 2FA включена, разделы админки требуют подтверждённый второй фактор —
             одного пароля недостаточно.
           </p>
+
+          <div className="border-t border-line pt-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm text-ink font-medium">
+              <KeyRound size={14} className="text-subtle" />
+              Резервные коды
+              {codesLeft && (
+                <span className="text-xs font-normal text-subtle">
+                  осталось {codesLeft.unused} из {codesLeft.total}
+                </span>
+              )}
+            </div>
+
+            {freshCodes ? (
+              <div className="space-y-2">
+                <p className="text-xs text-warning">
+                  Сохраните коды сейчас — второй раз они не показываются, в базе
+                  остаются только их хеши.
+                </p>
+                <ul className="grid grid-cols-2 gap-1 font-mono text-xs text-ink">
+                  {freshCodes.map(c => <li key={c} className="bg-panel rounded px-2 py-1">{c}</li>)}
+                </ul>
+                <div className="flex gap-2">
+                  <button onClick={() => downloadCodes(freshCodes)}
+                    className={`${BTN} border border-line text-ink hover:bg-panel`}>
+                    <Download size={12} />
+                    Скачать .txt
+                  </button>
+                  <button
+                    onClick={() => { navigator.clipboard?.writeText(freshCodes.join('\n')); toast('Коды скопированы', 'success') }}
+                    className={`${BTN} border border-line text-ink hover:bg-panel`}>
+                    <Copy size={12} />
+                    Скопировать
+                  </button>
+                  <button onClick={() => setFreshCodes(null)}
+                    className={`${BTN} border border-line text-ink hover:bg-panel`}>
+                    Я сохранил
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-subtle">
+                  Одноразовый код снимает 2FA, если приложение-аутентификатор потеряно.
+                  Вход по коду не даёт доступ к админке сам по себе — после снятия
+                  нужно подключить 2FA заново.
+                </p>
+                <button onClick={generateCodes} disabled={busy}
+                  className={`${BTN} bg-accent text-white hover:bg-accent-hover`}>
+                  {busy ? <Loader2 size={12} className="animate-spin" /> : <KeyRound size={12} />}
+                  {codesLeft?.total ? 'Сгенерировать заново' : 'Сгенерировать коды'}
+                </button>
+                {codesLeft?.total === 0 && (
+                  <p className="text-xs text-warning">
+                    Кодов нет: при потере аутентификатора фактор придётся снимать
+                    разработчику через панель Supabase.
+                  </p>
+                )}
+              </>
+            )}
+          </div>
         </div>
       ) : enrolling ? (
         <div className="bg-surface rounded-xl border border-line p-4 space-y-3">

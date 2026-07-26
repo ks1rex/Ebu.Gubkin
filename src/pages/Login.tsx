@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
+import MfaRecovery from '../components/MfaRecovery'
 
 const logoV = `${import.meta.env.BASE_URL}logo-horizontal-trimmed.png`
 
@@ -24,6 +25,8 @@ export default function Login() {
   // aal1), но до aal2 админка недоступна — см. Admin/TwoFactor.tsx.
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
   const [code, setCode] = useState('')
+  // Резервный код вместо TOTP — когда аутентификатор потерян.
+  const [recovery, setRecovery] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -71,32 +74,50 @@ export default function Login() {
           </div>
           <div className="bg-surface border border-line rounded-xl p-8">
             <h1 className="text-xl font-semibold text-ink mb-2">Подтверждение входа</h1>
-            <p className="text-sm text-subtle mb-6">
-              Введите код из приложения-аутентификатора
-            </p>
-            <form onSubmit={handleMfa} className="space-y-4">
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                autoFocus
-                required
-                value={code}
-                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-                className={`${FIELD} text-center tracking-[0.4em] text-lg`}
+            {recovery ? (
+              <MfaRecovery
+                fieldClass={`${FIELD} text-lg`}
+                submitClass={SUBMIT}
+                onCancel={() => setRecovery(false)}
+                // 2FA снята — сессия по паролю уже действует, идём дальше.
+                onRecovered={() => navigate(from, { replace: true })}
               />
-              {error && <p className="text-sm text-error">{error}</p>}
-              <button type="submit" disabled={loading || code.length < 6} className={SUBMIT}>
-                {loading ? 'Проверяем...' : 'Подтвердить'}
-              </button>
-            </form>
-            <button
-              onClick={async () => { await supabase.auth.signOut(); setMfaFactorId(null); setError('') }}
-              className="mt-4 w-full text-center text-sm text-subtle hover:text-ink transition-colors"
-            >
-              Войти другим аккаунтом
-            </button>
+            ) : (
+              <>
+                <p className="text-sm text-subtle mb-6">
+                  Введите код из приложения-аутентификатора
+                </p>
+                <form onSubmit={handleMfa} className="space-y-4">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    required
+                    value={code}
+                    onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    className={`${FIELD} text-center tracking-[0.4em] text-lg`}
+                  />
+                  {error && <p className="text-sm text-error">{error}</p>}
+                  <button type="submit" disabled={loading || code.length < 6} className={SUBMIT}>
+                    {loading ? 'Проверяем...' : 'Подтвердить'}
+                  </button>
+                </form>
+                <button
+                  onClick={() => { setRecovery(true); setError('') }}
+                  className="mt-4 w-full text-center text-sm text-subtle hover:text-ink transition-colors"
+                >
+                  Потерян аутентификатор? Ввести резервный код
+                </button>
+                <button
+                  onClick={async () => { await supabase.auth.signOut(); setMfaFactorId(null); setError('') }}
+                  className="mt-2 w-full text-center text-sm text-subtle hover:text-ink transition-colors"
+                >
+                  Войти другим аккаунтом
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search, ChevronLeft, ChevronRight, Star, Download } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search, ChevronLeft, ChevronRight, Star, Download, Printer, ExternalLink } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
-import { downloadCsv, stampedName } from '../../lib/exportCsv'
+import { downloadCsv, stampedName, fetchAllPages } from '../../lib/exportCsv'
+import { printReport } from '../../lib/printReport'
 import { VipBadge } from '../../components/VipBadge'
 
 interface AdminUser {
@@ -116,26 +118,71 @@ export default function AdminUsers() {
     }
   }
 
+  const EXPORT_HEADERS = ['Никнейм', 'Email', 'Баланс', 'Уровень', 'Репутация', 'Рейтинг заказчика', 'Отзывов', 'Рейтинг исполнителя', 'Отзывов', 'VIP до', 'Роль', 'Регистрация']
+
+  function exportRow(u: AdminUser) {
+    return [
+      u.nickname ?? '', u.email ?? '', u.balance ?? 0, u.level ?? '', u.reputation ?? '',
+      u.rating_as_customer ?? '', u.reviews_count_customer ?? 0,
+      u.rating_as_executor ?? '', u.reviews_count_executor ?? 0,
+      u.vip_expires_at ? new Date(u.vip_expires_at).toLocaleString('ru-RU') : '',
+      u.is_admin ? 'админ' : u.is_banned ? 'бан' : 'пользователь',
+      new Date(u.created_at).toLocaleString('ru-RU'),
+    ]
+  }
+
+  // Выгружаем весь отфильтрованный список постранично: и серверный предел
+  // (500 на страницу), и молчаливая обрезка PostgREST на 1000 строк обходятся
+  // только циклом по страницам.
+  async function fetchExportRows() {
+    return fetchAllPages<AdminUser>(async (p, limit) => {
+      const data = await apiCall('GET', `/admin/users?${params(p, limit)}`)
+      return { rows: data.users ?? [], total: data.total ?? 0 }
+    })
+  }
+
+  function reportMeta(): [string, string][] {
+    return [
+      ['Фильтр', FILTERS.find(f => f.id === filter)?.label ?? 'Все'],
+      ['Поиск', search.trim() || 'без поиска'],
+    ]
+  }
+
   async function exportAll() {
     setExporting(true)
     try {
-      const data = await apiCall('GET', `/admin/users?${params(1, 500)}`)
-      const rows: AdminUser[] = data.users ?? []
-      downloadCsv(
-        stampedName('пользователи'),
-        ['Никнейм', 'Email', 'Баланс', 'Уровень', 'Репутация', 'Рейтинг заказчика', 'Отзывов', 'Рейтинг исполнителя', 'Отзывов', 'VIP до', 'Роль', 'Регистрация'],
-        rows.map(u => [
-          u.nickname ?? '', u.email ?? '', u.balance ?? 0, u.level ?? '', u.reputation ?? '',
-          u.rating_as_customer ?? '', u.reviews_count_customer ?? 0,
-          u.rating_as_executor ?? '', u.reviews_count_executor ?? 0,
-          u.vip_expires_at ? new Date(u.vip_expires_at).toLocaleString('ru-RU') : '',
-          u.is_admin ? 'админ' : u.is_banned ? 'бан' : 'пользователь',
-          new Date(u.created_at).toLocaleString('ru-RU'),
-        ]),
-      )
-      if (rows.length < total) toast(`Выгружено ${rows.length} из ${total} — сузьте фильтр`, 'error')
+      const { rows, total: found, truncated } = await fetchExportRows()
+      downloadCsv(stampedName('пользователи'), EXPORT_HEADERS, rows.map(exportRow))
+      if (truncated) toast(`Выгружено ${rows.length} из ${found} — сузьте фильтр`, 'error')
     } catch {
       toast('Не удалось выгрузить отчёт', 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function printAll() {
+    setExporting(true)
+    try {
+      const { rows, total: found, truncated } = await fetchExportRows()
+      const sumBalance = rows.reduce((s, u) => s + (Number(u.balance) || 0), 0)
+      printReport({
+        title: 'Пользователи платформы',
+        meta: reportMeta(),
+        headers: EXPORT_HEADERS,
+        rows: rows.map(exportRow),
+        numeric: [2, 3, 4, 5, 6, 7, 8],
+        landscape: true,
+        totals: [
+          ['Всего пользователей', String(rows.length)],
+          ['Суммарный баланс, ₽', sumBalance.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+          ['С активным VIP', String(rows.filter(u => u.is_vip).length)],
+          ['Заблокированных', String(rows.filter(u => u.is_banned).length)],
+        ],
+      })
+      if (truncated) toast(`В отчёт попало ${rows.length} из ${found} — сузьте фильтр`, 'error')
+    } catch {
+      toast('Не удалось сформировать отчёт', 'error')
     } finally {
       setExporting(false)
     }
@@ -147,12 +194,17 @@ export default function AdminUsers() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-semibold text-ink">Пользователи</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 no-print">
           <span className="text-sm text-subtle">{total} всего</span>
           <button onClick={exportAll} disabled={exporting}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors disabled:opacity-50">
             {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             CSV
+          </button>
+          <button onClick={printAll} disabled={exporting}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-line rounded-lg hover:bg-panel text-ink transition-colors disabled:opacity-50">
+            {exporting ? <Loader2 size={14} className="animate-spin" /> : <Printer size={14} />}
+            PDF / печать
           </button>
         </div>
       </div>
@@ -248,6 +300,15 @@ export default function AdminUsers() {
               </div>
 
               <div className="flex gap-2">
+                <Link
+                  to={`/market/users/${user.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg bg-panel text-subtle hover:text-accent transition-colors shrink-0"
+                >
+                  <ExternalLink size={12} />
+                  Профиль
+                </Link>
                 <button
                   onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
                   disabled={acting[user.id]}
@@ -346,6 +407,17 @@ export default function AdminUsers() {
                   </td>
                   <td className="py-2 px-3 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {/* Публичный профиль пользователя — в новой вкладке, чтобы
+                          не терять страницу списка с фильтрами. */}
+                      <Link
+                        to={`/market/users/${user.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Открыть профиль"
+                        className="p-1.5 rounded-lg text-subtle hover:text-accent hover:bg-panel transition-colors"
+                      >
+                        <ExternalLink size={14} />
+                      </Link>
                       <button
                         onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
                         disabled={acting[user.id]}

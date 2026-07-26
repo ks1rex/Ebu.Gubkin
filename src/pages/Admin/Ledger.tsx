@@ -3,7 +3,8 @@ import { Loader2, Plus, Minus, Search, ChevronLeft, ChevronRight, Download, Prin
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
-import { downloadCsv, stampedName } from '../../lib/exportCsv'
+import { downloadCsv, stampedName, fetchAllPages } from '../../lib/exportCsv'
+import { printReport } from '../../lib/printReport'
 import { VipBadge } from '../../components/VipBadge'
 
 // Полный список типов из transaction_type. Раньше здесь не было vip_purchase,
@@ -97,29 +98,76 @@ export default function AdminLedger() {
 
   useEffect(() => { fetchLedger(1) }, [])
 
-  // Выгружаем весь отфильтрованный набор, а не текущую страницу.
+  // Весь отфильтрованный набор постранично: одним запросом с большим limit его
+  // не забрать — PostgREST молча отдаёт максимум 1000 строк.
+  async function fetchExportRows() {
+    return fetchAllPages<TxEntry>(async (p, limit) => {
+      const data = await apiCall('GET', `/admin/ledger?${params(p, limit)}`)
+      return { rows: data.entries ?? [], total: data.total ?? 0 }
+    })
+  }
+
+  const EXPORT_HEADERS = ['Дата', 'Пользователь', 'Тип', 'Направление', 'Сумма', 'Прибыль платформы', 'Статус', 'Заказ']
+
+  function exportRow(tx: TxEntry) {
+    return [
+      new Date(tx.created_at).toLocaleString('ru-RU'),
+      tx.user?.nickname ?? '',
+      TX_LABELS[tx.type] ?? tx.type,
+      INCOME_TYPES.has(tx.type) ? 'приход' : 'расход',
+      tx.amount,
+      tx.platform_profit ?? '',
+      STATUS_LABELS[tx.status] ?? tx.status,
+      tx.order_id ?? '',
+    ]
+  }
+
+  // Параметры выборки в шапке отчёта — иначе по файлу не понять, что в нём.
+  function reportMeta(): [string, string][] {
+    return [
+      ['Период', dateFrom || dateTo
+        ? `${dateFrom ? new Date(dateFrom).toLocaleDateString('ru-RU') : '…'} — ${dateTo ? new Date(dateTo).toLocaleDateString('ru-RU') : '…'}`
+        : 'вся история'],
+      ['Тип операции', filterType ? (TX_LABELS[filterType] ?? filterType) : 'все'],
+      ['Пользователь', filterNick || 'все'],
+    ]
+  }
+
   async function exportAll() {
     setExporting(true)
     try {
-      const data = await apiCall('GET', `/admin/ledger?${params(1, 5000)}`)
-      const rows: TxEntry[] = data.entries ?? []
-      downloadCsv(
-        stampedName('журнал-транзакций'),
-        ['Дата', 'Пользователь', 'Тип', 'Направление', 'Сумма', 'Прибыль платформы', 'Статус', 'Заказ'],
-        rows.map(tx => [
-          new Date(tx.created_at).toLocaleString('ru-RU'),
-          tx.user?.nickname ?? '',
-          TX_LABELS[tx.type] ?? tx.type,
-          INCOME_TYPES.has(tx.type) ? 'приход' : 'расход',
-          tx.amount,
-          tx.platform_profit ?? '',
-          STATUS_LABELS[tx.status] ?? tx.status,
-          tx.order_id ?? '',
-        ]),
-      )
-      if (rows.length >= 5000) toast('Выгружены первые 5000 записей — сузьте фильтр по дате', 'error')
+      const { rows, total: found, truncated } = await fetchExportRows()
+      downloadCsv(stampedName('журнал-транзакций'), EXPORT_HEADERS, rows.map(exportRow))
+      if (truncated) toast(`Выгружено ${rows.length} из ${found} — сузьте фильтр`, 'error')
     } catch {
       toast('Не удалось выгрузить отчёт', 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function printAll() {
+    setExporting(true)
+    try {
+      const { rows, total: found, truncated } = await fetchExportRows()
+      const sum = (pick: (tx: TxEntry) => number) =>
+        rows.reduce((s, tx) => s + pick(tx), 0).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      printReport({
+        title: 'Журнал транзакций',
+        meta: reportMeta(),
+        headers: EXPORT_HEADERS,
+        rows: rows.map(exportRow),
+        numeric: [4, 5],
+        landscape: true,
+        totals: [
+          ['Приход, ₽', sum(tx => INCOME_TYPES.has(tx.type) ? Number(tx.amount) || 0 : 0)],
+          ['Расход, ₽', sum(tx => INCOME_TYPES.has(tx.type) ? 0 : Number(tx.amount) || 0)],
+          ['Прибыль платформы, ₽', sum(tx => Number(tx.platform_profit) || 0)],
+        ],
+      })
+      if (truncated) toast(`В отчёт попало ${rows.length} из ${found} — сузьте фильтр`, 'error')
+    } catch {
+      toast('Не удалось сформировать отчёт', 'error')
     } finally {
       setExporting(false)
     }
@@ -136,8 +184,8 @@ export default function AdminLedger() {
             {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             CSV
           </button>
-          <button onClick={() => window.print()} className={BTN}>
-            <Printer size={14} />
+          <button onClick={printAll} disabled={exporting} className={BTN + ' disabled:opacity-50'}>
+            {exporting ? <Loader2 size={14} className="animate-spin" /> : <Printer size={14} />}
             PDF / печать
           </button>
         </div>
