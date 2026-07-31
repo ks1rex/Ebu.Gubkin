@@ -18,6 +18,12 @@ export default function Register() {
   const [loading,  setLoading]  = useState(false)
   const [done,     setDone]     = useState(false)
 
+  // Две отметки, а не одна: согласие на обработку персональных данных должно
+  // даваться отдельным действием и не может быть объединено с принятием
+  // соглашения и оферты. Обе обязательны для отправки формы.
+  const [acceptTerms,   setAcceptTerms]   = useState(false)
+  const [acceptPdn,     setAcceptPdn]     = useState(false)
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
@@ -27,6 +33,10 @@ export default function Register() {
     }
     if (password.length < 6) {
       setError('Пароль должен содержать минимум 6 символов')
+      return
+    }
+    if (!acceptTerms || !acceptPdn) {
+      setError('Отметьте оба согласия — без них регистрация невозможна')
       return
     }
     setLoading(true)
@@ -130,11 +140,51 @@ export default function Register() {
               />
             </div>
 
+            <div className="space-y-2.5 pt-1">
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={e => setAcceptTerms(e.target.checked)}
+                  className="w-[18px] h-[18px] mt-px shrink-0 accent-accent cursor-pointer"
+                />
+                <span className="text-[13px] text-subtle leading-snug">
+                  Я согласен с{' '}
+                  <Link to="/terms" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                    Пользовательским соглашением
+                  </Link>{' '}
+                  и{' '}
+                  <Link to="/offer" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                    Публичной офертой
+                  </Link>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptPdn}
+                  onChange={e => setAcceptPdn(e.target.checked)}
+                  className="w-[18px] h-[18px] mt-px shrink-0 accent-accent cursor-pointer"
+                />
+                <span className="text-[13px] text-subtle leading-snug">
+                  Я даю{' '}
+                  <Link to="/pdn-consent" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                    согласие на обработку персональных данных
+                  </Link>{' '}
+                  на условиях{' '}
+                  <Link to="/privacy" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                    Политики конфиденциальности
+                  </Link>
+                </span>
+              </label>
+            </div>
+
             {error && <p className="text-sm text-error">{error}</p>}
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !acceptTerms || !acceptPdn}
               className="w-full py-2 px-4 bg-accent text-white font-medium rounded-lg
                          hover:bg-accent-hover disabled:opacity-50 transition-colors text-sm"
             >

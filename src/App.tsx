@@ -55,6 +55,7 @@ import ServicesMine     from './pages/ServicesMine'
 import UserProfile      from './pages/UserProfile'
 import GostChat         from './pages/GostChat'
 import Schedule         from './pages/Schedule'
+import Legal, { LEGAL_DOCS } from './pages/Legal'
 
 function NotFound() {
   return (
@@ -111,6 +112,11 @@ export default function App() {
             <Route path="wallet"  element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
             <Route path="vip-info" element={<ProtectedRoute><VipInfo /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            {/* Юридические документы — открыты всем, без регистрации:
+                на них ссылается футер и форма регистрации. */}
+            {LEGAL_DOCS.map(d => (
+              <Route key={d.slug} path={d.slug} element={<Legal doc={d.slug} />} />
+            ))}
             <Route path="login"           element={<Login />} />
             <Route path="register"        element={<Register />} />
             <Route path="forgot-password" element={<ForgotPassword />} />

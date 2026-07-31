@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
+import Footer from './Footer'
 
 export default function Layout() {
   return (
@@ -12,12 +13,12 @@ export default function Layout() {
       <div className="relative z-10 flex flex-col flex-1">
         <Navbar />
         {/* pb: safe-area под home indicator iOS (viewport-fit=cover в index.html) */}
-        <main
-          className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-8"
-          style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom))' }}
-        >
+        {/* pb убран в футер: он теперь последний блок страницы и сам держит
+            safe-area-отступ снизу. */}
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-8 pb-8">
           <Outlet />
         </main>
+        <Footer />
       </div>
     </div>
   )
