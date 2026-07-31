@@ -277,6 +277,15 @@ export default function Market() {
               Деньги резервируются при заказе и переходят исполнителю только после приёмки работы. Споры решает администрация.
             </p>
           </GlassCard>
+          <GlassCard className="rounded-[20px] p-5">
+            <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink">⚖️ Правила биржи</h3>
+            <ul className="text-[13px] text-subtle leading-relaxed space-y-1.5 mb-3.5 list-disc pl-4">
+              <li>Не пытайтесь обмануть заказчика или исполнителя — бан необратим</li>
+              <li>Сделки — только через сайт: в обход платформы вы теряете защиту</li>
+              <li>🛡️ Деньги в безопасности — резервируются при заказе, переходят исполнителю только после приёмки работы</li>
+            </ul>
+            <Link to="/market-rules" className="text-[13px] font-semibold text-accent hover:underline">Все правила →</Link>
+          </GlassCard>
         </div>
       </div>
     </div>
