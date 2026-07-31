@@ -10,6 +10,11 @@ interface WithdrawalRequest {
   user_id: string
   amount: number
   card_number: string | null
+  withdrawal_method: 'sbp' | 'card'
+  source_balance: 'deposited' | 'earned'
+  // считает бэкенд: занесённый баланс — ставка из admin_settings, заработанный — 0%
+  commission_pct: number
+  payout_amount: number
   status: 'pending' | 'confirmed' | 'rejected'
   admin_comment: string | null
   processed_at: string | null
@@ -18,6 +23,9 @@ interface WithdrawalRequest {
     nickname: string | null
   }
 }
+
+const METHOD_LABEL: Record<string, string> = { sbp: 'СБП', card: 'Карта' }
+const SOURCE_LABEL: Record<string, string> = { deposited: 'занесённый', earned: 'заработанный' }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   pending:   { label: 'Ожидает', cls: 'bg-warning/10 text-warning' },
@@ -33,17 +41,6 @@ export default function AdminWithdrawals() {
   const [showAll, setShowAll] = useState(false)
   const [acting, setActing] = useState<Record<string, boolean>>({})
   const [rejectingId, setRejectingId] = useState<string | null>(null)
-  const [commissionPct, setCommissionPct] = useState<number | null>(null)
-
-  useEffect(() => {
-    apiCall('GET', '/settings/public/withdrawal-commission-pct')
-      .then((r: { withdrawal_commission_pct: number }) => setCommissionPct(r.withdrawal_commission_pct))
-      .catch(() => setCommissionPct(null))
-  }, [])
-
-  function payout(amount: number) {
-    return commissionPct != null ? Math.round(amount * (1 - commissionPct / 100) * 100) / 100 : null
-  }
 
   async function fetchWithdrawals() {
     setLoading(true)
@@ -100,7 +97,7 @@ export default function AdminWithdrawals() {
           {withdrawals.map(w => {
             const isPending = w.status === 'pending'
             const s = STATUS_LABELS[w.status] ?? { label: w.status, cls: 'bg-panel text-ink' }
-            const p = payout(w.amount)
+            const p = w.payout_amount
             return (
               <div key={w.id} className="bg-surface border border-line rounded-xl p-4">
                 <div className="flex items-center gap-3 mb-3">
@@ -120,7 +117,9 @@ export default function AdminWithdrawals() {
 
                 {p != null && (
                   <div className="mb-3 p-2.5 bg-success/10 border border-success/30 rounded-lg">
-                    <p className="text-xs text-subtle mb-0.5">К выплате (за вычетом {commissionPct}%)</p>
+                    <p className="text-xs text-subtle mb-0.5">
+                      К выплате {w.commission_pct ? `(за вычетом ${w.commission_pct}%)` : '(без комиссии)'}
+                    </p>
                     <p className="text-base font-bold text-success">{p.toLocaleString('ru-RU')} ₽</p>
                   </div>
                 )}
@@ -131,8 +130,16 @@ export default function AdminWithdrawals() {
                     <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.cls}`}>{s.label}</span>
                   </div>
                   <div>
-                    <p className="text-subtle text-xs">Карта</p>
+                    <p className="text-subtle text-xs">Реквизиты</p>
                     <p className="text-ink font-mono text-xs">{w.card_number ?? '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-subtle text-xs">Способ</p>
+                    <p className="text-ink text-xs">{METHOD_LABEL[w.withdrawal_method] ?? w.withdrawal_method}</p>
+                  </div>
+                  <div>
+                    <p className="text-subtle text-xs">Баланс</p>
+                    <p className="text-ink text-xs">{SOURCE_LABEL[w.source_balance] ?? w.source_balance}</p>
                   </div>
                 </div>
 
@@ -174,7 +181,8 @@ export default function AdminWithdrawals() {
                 <th className="py-2 px-3 text-left text-subtle font-medium">Пользователь</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Сумма</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">К выплате</th>
-                <th className="py-2 px-3 text-left text-subtle font-medium">Карта</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Способ / баланс</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Реквизиты</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Дата</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Статус</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Комментарий</th>
@@ -185,7 +193,7 @@ export default function AdminWithdrawals() {
               {withdrawals.map(w => {
                 const isPending = w.status === 'pending'
                 const s = STATUS_LABELS[w.status] ?? { label: w.status, cls: 'bg-panel text-ink' }
-                const p = payout(w.amount)
+                const p = w.payout_amount
                 return (
                   <tr key={w.id} className="border-b border-line last:border-0 hover:bg-panel/50">
                     <td className="py-2 px-3 text-ink">
@@ -196,6 +204,11 @@ export default function AdminWithdrawals() {
                     </td>
                     <td className="py-2 px-3 text-right font-semibold text-success">
                       {p != null ? `${p.toLocaleString('ru-RU')} ₽` : '—'}
+                      {w.commission_pct === 0 && <span className="block text-[11px] font-normal text-subtle">без комиссии</span>}
+                    </td>
+                    <td className="py-2 px-3 text-ink text-xs">
+                      {METHOD_LABEL[w.withdrawal_method] ?? w.withdrawal_method}
+                      <span className="block text-subtle">{SOURCE_LABEL[w.source_balance] ?? w.source_balance}</span>
                     </td>
                     <td className="py-2 px-3 text-ink font-mono text-xs">
                       {w.card_number ?? '—'}

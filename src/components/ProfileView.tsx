@@ -48,7 +48,7 @@ interface Review {
   created_at: string
 }
 
-interface Service { id: string; title: string; price: number }
+interface Service { id: string; title: string; price: number; price_with_commission?: number }
 
 type Tab = 'activity' | 'threads' | 'services' | 'reviews'
 const TABS: { key: Tab; label: string }[] = [
@@ -259,7 +259,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 <Link key={s.id} to={`/market/services/${s.id}`}>
                   <GlassCard hover className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
                     <span className="text-sm text-ink flex-1">{s.title}</span>
-                    <span className="text-sm font-semibold text-mint shrink-0">{formatCurrency(s.price)}</span>
+                    <span className="text-sm font-semibold text-mint shrink-0">{formatCurrency(s.price_with_commission ?? s.price)}</span>
                   </GlassCard>
                 </Link>
               ))}

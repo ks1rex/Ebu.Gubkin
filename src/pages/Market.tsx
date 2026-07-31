@@ -30,6 +30,8 @@ interface Listing {
   id: string
   title: string
   price: number
+  // цена для покупателя = price + комиссия биржи (считает бэкенд)
+  price_with_commission?: number
   deposit_amount: number | null
   owner: { nickname: string | null; rating_as_executor?: number | string | null; reviews_count_executor?: number | null; is_vip?: boolean } | null
   category?: string | null
@@ -252,7 +254,7 @@ export default function Market() {
                         </span>
                       )}
                       <div className="mt-auto pt-2 text-right">
-                        <b className="text-lg font-bold text-mint">от {formatCurrency(l.price)}</b>
+                        <b className="text-lg font-bold text-mint">от {formatCurrency(l.price_with_commission ?? l.price)}</b>
                       </div>
                     </GlassCard>
                   </Link>

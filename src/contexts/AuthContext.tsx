@@ -12,6 +12,11 @@ export interface Profile {
   telegram_username: string | null
   university_group: string | null
   balance: number
+  // balance = deposited_balance + earned_balance (инвариант держит CHECK в БД).
+  // Занесённый — из пополнений, комиссия 10% при выводе; заработанный — с биржи
+  // и рефералки, вывод без комиссии.
+  deposited_balance: number
+  earned_balance: number
   token_balance: number
   is_admin: boolean
   referral_code: string | null
@@ -43,7 +48,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     .select(`
       id, email, nickname, full_name, avatar_url,
       phone, telegram_username, university_group,
-      balance, token_balance, is_admin,
+      balance, deposited_balance, earned_balance, token_balance, is_admin,
       referral_code, referral_earnings,
       referral_registered_count, referral_qualifying_deposits_count,
       bio, skills, vip_expires_at

@@ -34,7 +34,9 @@ export default function ServiceDetail() {
   if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
   if (!listing) return <div className="text-red-400 p-8">Услуга не найдена</div>
 
-  const price = parseFloat(listing.price)
+  // Покупателю везде показываем цену с комиссией биржи — ровно то, что спишется.
+  // listing.price (доля исполнителя) на этой странице не показывается вовсе.
+  const price = parseFloat(listing.price_with_commission ?? listing.price)
   const deposit = parseFloat(listing.deposit_amount ?? 0)
   const total = Math.round((price + deposit) * 100) / 100
   const balance = parseFloat(String(profile?.balance ?? 0))

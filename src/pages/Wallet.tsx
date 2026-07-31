@@ -286,35 +286,49 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
 interface WithdrawModalProps {
   open: boolean
   onClose: () => void
-  maxAmount: number
+  depositedBalance: number
+  earnedBalance: number
 }
 
-function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
+// Минимумы дублируют бэкенд (routes/wallet.js WITHDRAWAL_MIN) — здесь только
+// ради мгновенной подсказки; отказ всё равно за сервером.
+type WithdrawMethod = 'sbp' | 'card'
+type BalanceSource  = 'deposited' | 'earned'
+const WITHDRAWAL_MIN: Record<WithdrawMethod, number> = { sbp: 500, card: 4000 }
+const METHOD_LABEL:   Record<WithdrawMethod, string> = { sbp: 'СБП', card: 'Карта' }
+
+function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: WithdrawModalProps) {
   const { session } = useAuth()
   const toast = useToast()
   const [amount, setAmount]         = useState('')
   const [cardNumber, setCardNumber] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [method, setMethod]         = useState<WithdrawMethod>('sbp')
+  const [source, setSource]         = useState<BalanceSource>('deposited')
   const [commissionPct, setCommissionPct] = useState<number | null>(null)
 
   useEffect(() => {
     if (!open) return
-    apiCall('GET', '/settings/public/withdrawal-commission-pct')
+    apiCall('GET', '/settings/public/commissions')
       .then((r: { withdrawal_commission_pct: number }) => setCommissionPct(r.withdrawal_commission_pct))
       .catch(() => setCommissionPct(null))
   }, [open])
 
+  // Заработанное выводится без комиссии, занесённое — по ставке платформы.
+  const pct = source === 'earned' ? 0 : commissionPct
+  const maxAmount  = source === 'earned' ? earnedBalance : depositedBalance
+  const minAmount  = WITHDRAWAL_MIN[method]
   const parsedAmount = parseFloat(amount)
-  const willReceive = commissionPct != null && parsedAmount > 0
-    ? Math.round(parsedAmount * (1 - commissionPct / 100) * 100) / 100
+  const willReceive = pct != null && parsedAmount > 0
+    ? Math.round(parsedAmount * (1 - pct / 100) * 100) / 100
     : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const num = parseFloat(amount)
-    if (!num || num < 1)       { toast('Минимальная сумма — 1 ₽', 'error'); return }
-    if (num > maxAmount)        { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
-    if (!cardNumber.trim())     { toast('Введите реквизиты для вывода', 'error'); return }
+    if (!num || num < minAmount) { toast(`Минимальная сумма для «${METHOD_LABEL[method]}» — ${minAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
+    if (num > maxAmount)         { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
+    if (!cardNumber.trim())      { toast('Введите реквизиты для вывода', 'error'); return }
 
     const backendUrl = import.meta.env.VITE_BACKEND_URL
     if (!backendUrl) { toast('VITE_BACKEND_URL не задан в .env.local', 'error'); return }
@@ -327,7 +341,12 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ amount: num, card_number: cardNumber.trim() }),
+        body: JSON.stringify({
+          amount: num,
+          card_number: cardNumber.trim(),
+          withdrawal_method: method,
+          source_balance: source,
+        }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({})) as { error?: string }
@@ -344,24 +363,59 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
     }
   }
 
+  const tab = (active: boolean) =>
+    `flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+      active ? 'border-accent bg-accent/15 text-ink' : 'border-line text-subtle hover:text-ink'
+    }`
+
   return (
     <Modal open={open} onClose={onClose} title="Вывод средств">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
+          <label className="block text-sm font-medium text-ink mb-1">Откуда выводим</label>
+          <div className="flex gap-2">
+            <button type="button" className={tab(source === 'deposited')} onClick={() => setSource('deposited')}>
+              Занесённый · {depositedBalance.toLocaleString('ru-RU')} ₽
+            </button>
+            <button type="button" className={tab(source === 'earned')} onClick={() => setSource('earned')}>
+              Заработанный · {earnedBalance.toLocaleString('ru-RU')} ₽
+            </button>
+          </div>
+          <p className="text-xs text-subtle mt-1">
+            Одна заявка — один баланс. Комиссия: занесённый {commissionPct ?? 10}%, заработанный 0%.
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-ink mb-1">Способ вывода</label>
+          <div className="flex gap-2">
+            {(['sbp', 'card'] as WithdrawMethod[]).map(m => (
+              <button key={m} type="button" className={tab(method === m)} onClick={() => setMethod(m)}>
+                {METHOD_LABEL[m]} · от {WITHDRAWAL_MIN[m].toLocaleString('ru-RU')} ₽
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-ink mb-1">Сумма вывода (₽)</label>
           <input
             type="number"
-            min="1"
+            min={minAmount}
             max={maxAmount}
             value={amount}
             onChange={e => setAmount(e.target.value)}
-            placeholder="500"
+            placeholder={String(minAmount)}
             className={INPUT}
           />
-          <p className="text-xs text-subtle mt-1">Доступно: {maxAmount.toLocaleString('ru-RU')} ₽</p>
+          <p className="text-xs text-subtle mt-1">
+            Доступно: {maxAmount.toLocaleString('ru-RU')} ₽ · минимум {minAmount.toLocaleString('ru-RU')} ₽
+          </p>
           {willReceive != null && (
             <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
-              <div className="text-xs text-subtle mb-0.5">К получению (комиссия за вывод {commissionPct}%)</div>
+              <div className="text-xs text-subtle mb-0.5">
+                {pct ? `К получению (комиссия за вывод ${pct}%)` : 'К получению (без комиссии)'}
+              </div>
               <div className="text-lg font-bold text-success">{willReceive.toLocaleString('ru-RU')} ₽</div>
             </div>
           )}
@@ -372,7 +426,7 @@ function WithdrawModal({ open, onClose, maxAmount }: WithdrawModalProps) {
             type="text"
             value={cardNumber}
             onChange={e => setCardNumber(e.target.value)}
-            placeholder="2200 1234 5678 9012"
+            placeholder={method === 'sbp' ? '+7 900 123-45-67' : '2200 1234 5678 9012'}
             className={INPUT}
           />
         </div>
@@ -395,6 +449,8 @@ export default function Wallet() {
   const { openVipPurchase, vipPurchaseModal } = useVipPurchaseModal(refreshProfile, vipPricing)
 
   const [balance, setBalance]           = useState<number | null>(null)
+  const [deposited, setDeposited]       = useState<number | null>(null)
+  const [earned, setEarned]             = useState<number | null>(null)
   const [balanceLoading, setBalanceLoading] = useState(true)
 
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -440,12 +496,16 @@ export default function Wallet() {
 
   async function fetchBalance() {
     setBalanceLoading(true)
+    // Баланс живёт на profiles (таблицы wallets в схеме нет — прежний запрос
+    // сюда всегда падал в фолбэк на profile).
     const { data } = await supabase
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', user!.id)
+      .from('profiles')
+      .select('balance, deposited_balance, earned_balance')
+      .eq('id', user!.id)
       .maybeSingle()
     setBalance(data?.balance ?? profile?.balance ?? 0)
+    setDeposited(data?.deposited_balance ?? profile?.deposited_balance ?? 0)
+    setEarned(data?.earned_balance ?? profile?.earned_balance ?? 0)
     setBalanceLoading(false)
   }
 
@@ -495,7 +555,9 @@ export default function Wallet() {
     }
   }
 
-  const currentBalance = balance ?? profile?.balance ?? 0
+  const currentBalance   = balance ?? profile?.balance ?? 0
+  const depositedBalance = deposited ?? profile?.deposited_balance ?? 0
+  const earnedBalance    = earned ?? profile?.earned_balance ?? 0
 
   const filteredTx = transactions.filter(tx => {
     if (txFilter === 'all') return true
@@ -537,6 +599,42 @@ export default function Wallet() {
               </Button>
             </div>
           </GlassCard>
+
+          {/* Два баланса: они складываются в общий выше, но живут по разным правилам */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 mb-4">
+            <GlassCard className="rounded-[18px] p-4 sm:p-5 min-w-0">
+              <div className="flex items-center gap-2">
+                <ArrowDownCircle size={15} className="text-lav shrink-0" />
+                <span className="text-[12.5px] text-subtle">Занесённый</span>
+              </div>
+              {balanceLoading ? (
+                <Skeleton className="h-7 w-28 my-2" />
+              ) : (
+                <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-ink">
+                  {depositedBalance.toLocaleString('ru-RU')} ₽
+                </b>
+              )}
+              <p className="text-[11.5px] text-subtle mt-1.5 leading-snug">
+                Деньги из пополнений. При выводе удерживается комиссия 10%.
+              </p>
+            </GlassCard>
+            <GlassCard className="rounded-[18px] p-4 sm:p-5 min-w-0">
+              <div className="flex items-center gap-2">
+                <ArrowUpCircle size={15} className="text-mint shrink-0" />
+                <span className="text-[12.5px] text-subtle">Заработанный</span>
+              </div>
+              {balanceLoading ? (
+                <Skeleton className="h-7 w-28 my-2" />
+              ) : (
+                <b className="block text-xl sm:text-2xl font-bold mt-2 tracking-[-.5px] text-mint">
+                  {earnedBalance.toLocaleString('ru-RU')} ₽
+                </b>
+              )}
+              <p className="text-[11.5px] text-subtle mt-1.5 leading-snug">
+                Доход с биржи и реферальной программы. Вывод без комиссии.
+              </p>
+            </GlassCard>
+          </div>
 
           {/* Мини-статы */}
           <div className="grid grid-cols-2 gap-3 sm:gap-3.5 mb-4">
@@ -736,7 +834,12 @@ export default function Wallet() {
 
       {vipPurchaseModal}
       <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)}  instructions={instructions} />
-      <WithdrawModal open={withdrawOpen} onClose={() => setWithdrawOpen(false)} maxAmount={currentBalance}  />
+      <WithdrawModal
+        open={withdrawOpen}
+        onClose={() => { setWithdrawOpen(false); fetchBalance() }}
+        depositedBalance={depositedBalance}
+        earnedBalance={earnedBalance}
+      />
       {buyTokensOpen && token && (
         <BuyTokensModal
           walletBalance={currentBalance}

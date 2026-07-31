@@ -8,6 +8,8 @@ import { printReport } from '../../lib/printReport'
 
 interface FinanceSummary {
   commission_regular: number
+  // наценка +10% к цене на бирже, признаётся при завершении сделки
+  commission_marketplace: number
   commission_referral: number
   referral_bonuses_paid: number
   gost_tokens_revenue: number
@@ -86,6 +88,7 @@ export default function AdminFinance() {
   function summaryRows(d: FinanceSummary): [string, number][] {
     return [
       ['Комиссия с вывода средств', d.commission_regular],
+      ['Комиссия биржи (заказы и услуги)', d.commission_marketplace ?? 0],
       ['Комиссия реферальных пополнений', d.commission_referral],
       ['Выплачено рефереру', -d.referral_bonuses_paid],
       ['Выручка ГОСТ-токенов', d.gost_tokens_revenue],
@@ -154,6 +157,10 @@ export default function AdminFinance() {
               <tr>
                 <td className="py-2 text-subtle">Комиссия с вывода средств</td>
                 <td className="py-2 text-right text-ink font-medium">{fmt(data.commission_regular)} ₽</td>
+              </tr>
+              <tr>
+                <td className="py-2 text-subtle">Комиссия биржи (заказы и услуги)</td>
+                <td className="py-2 text-right text-ink font-medium">{fmt(data.commission_marketplace ?? 0)} ₽</td>
               </tr>
               <tr>
                 <td className="py-2 text-subtle">

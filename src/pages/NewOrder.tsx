@@ -31,9 +31,14 @@ export default function NewOrder() {
   const [category, setCategory] = useState('')
   const [categories, setCategories] = useState<string[]>([])
 
+  const [commissionPct, setCommissionPct] = useState(10)
+
   useEffect(() => {
     apiCall('GET', '/listings/categories')
       .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .catch(() => {})
+    apiCall('GET', '/settings/public/commissions')
+      .then((r: { marketplace_commission_pct: number }) => setCommissionPct(r.marketplace_commission_pct))
       .catch(() => {})
   }, [])
   const [baseAmount, setBaseAmount] = useState('')
@@ -44,8 +49,10 @@ export default function NewOrder() {
   const [loading, setLoading]   = useState(false)
 
   const amount = parseFloat(baseAmount) || 0
+  // Бюджет — то, что получит исполнитель; списывается бюджет + комиссия сервиса.
+  const charge = Math.round(amount * (1 + commissionPct / 100) * 100) / 100
   const balance = parseFloat(String(profile?.balance ?? 0))
-  const insufficient = amount > 0 && balance < amount
+  const insufficient = amount > 0 && balance < charge
 
   function addFiles(fileList: FileList | null) {
     if (!fileList) return
@@ -146,8 +153,9 @@ export default function NewOrder() {
 
         {amount > 0 && (
           <div className={`rounded-lg py-[14px] px-4 mb-6 border ${insufficient ? 'bg-[#1f0808] border-[#ef4444]' : 'bg-[#0d2620] border-teal-legacy-hover'}`}>
-            <div className="text-slate-500 text-[0.78rem] mb-1.5">Сумма заказа — списывается с вашего баланса</div>
-            <div className={`text-[1.3rem] font-bold ${insufficient ? 'text-red-400' : 'text-teal-legacy'}`}>{formatCurrency(amount)}</div>
+            <div className="text-slate-500 text-[0.78rem] mb-1.5">К списанию с баланса — бюджет + {commissionPct}% комиссии сервиса</div>
+            <div className={`text-[1.3rem] font-bold ${insufficient ? 'text-red-400' : 'text-teal-legacy'}`}>{formatCurrency(charge)}</div>
+            <div className="text-slate-500 text-[0.78rem] mt-1">Исполнитель получит {formatCurrency(amount)}</div>
             <div className={`mt-2 text-[0.82rem] ${insufficient ? 'text-red-400' : 'text-slate-500'}`}>
               Ваш баланс: {formatCurrency(balance)}
               {insufficient && <> — недостаточно средств. <Link to="/wallet" className="text-teal-legacy">Пополнить кошелёк</Link></>}

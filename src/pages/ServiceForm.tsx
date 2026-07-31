@@ -27,10 +27,14 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
   const [depositAmt, setDepositAmt] = useState(initial.deposit_amount ?? '')
   const [category, setCategory] = useState(initial.category ?? '')
   const [categories, setCategories] = useState<string[]>([])
+  const [commissionPct, setCommissionPct] = useState(10)
 
   useEffect(() => {
     apiCall('GET', '/listings/categories')
       .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
+      .catch(() => {})
+    apiCall('GET', '/settings/public/commissions')
+      .then((r: { marketplace_commission_pct: number }) => setCommissionPct(r.marketplace_commission_pct))
       .catch(() => {})
   }, [])
 
@@ -46,6 +50,8 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
 
   const amt = parseFloat(String(price)) || 0
   const dep = hasDeposit ? (parseFloat(String(depositAmt)) || 0) : 0
+  // Залог наценкой не облагается — он возвращается заказчику целиком.
+  const buyerTotal = Math.round((amt * (1 + commissionPct / 100) + dep) * 100) / 100
 
   return (
     <div className="max-w-[680px] mx-auto">
@@ -73,12 +79,15 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
 
         <div className="grid grid-cols-2 gap-4 mb-5">
           <div>
-            <label className={CLS.label}>Цена, ₽</label>
+            <label className={CLS.label}>Цена, ₽ — столько получите вы</label>
             <input className={CLS.input} type="number" min="1" step="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="1500" required />
           </div>
           <div>
-            <label className={CLS.label}>Стоимость{dep > 0 ? ` + залог = ${formatCurrency(amt + dep)}` : ''}</label>
-            <div className="text-slate-500 text-[0.82rem] pt-2.5">{amt > 0 ? formatCurrency(amt) : '—'}</div>
+            <label className={CLS.label}>Заказчик заплатит{dep > 0 ? ' (с залогом)' : ''}</label>
+            <div className="text-slate-500 text-[0.82rem] pt-2.5">
+              {amt > 0 ? formatCurrency(buyerTotal) : '—'}
+              {amt > 0 && <span className="block text-[0.74rem]">включая {commissionPct}% комиссии сервиса</span>}
+            </div>
           </div>
         </div>
 

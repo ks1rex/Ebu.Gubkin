@@ -34,6 +34,8 @@ interface ListingPreview {
   id: string
   title: string
   price: number
+  // цена для покупателя = price + комиссия биржи (считает бэкенд)
+  price_with_commission?: number
   created_at: string
   owner: { nickname: string | null; avatar_url: string | null } | null
 }
@@ -239,7 +241,7 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="text-sm font-semibold text-mint">{formatCurrency(item.kind === 'order' ? item.base_amount : item.price)}</div>
+                          <div className="text-sm font-semibold text-mint">{formatCurrency(item.kind === 'order' ? item.base_amount : (item.price_with_commission ?? item.price))}</div>
                           <div className="text-[11px] text-subtle/70">{timeAgo(item.created_at)}</div>
                         </div>
                       </GlassCard>

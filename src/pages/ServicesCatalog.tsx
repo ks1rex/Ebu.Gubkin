@@ -67,7 +67,7 @@ export default function ServicesCatalog() {
               <div className="flex gap-[6px] flex-wrap">
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span className={CLS.badge}><Shield size={11} />Залог {formatCurrency(l.deposit_amount)}</span>}
               </div>
-              <div className="text-teal-legacy text-[1.3rem] font-bold mt-auto">{formatCurrency(l.price)}</div>
+              <div className="text-teal-legacy text-[1.3rem] font-bold mt-auto">{formatCurrency(l.price_with_commission ?? l.price)}</div>
             </Link>
           ))}
         </div>
