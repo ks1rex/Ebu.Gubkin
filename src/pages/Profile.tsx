@@ -37,11 +37,15 @@ async function uploadAvatar(original: File, userId: string): Promise<string | nu
   // Аватарка показывается кружком в 42–96 px, а с телефона прилетает снимок на
   // несколько мегабайт — ужимаем до загрузки (см. lib/compressImage.ts).
   const file = await compressImage(original, { ...SHOWCASE, maxSide: 512 })
-  const ext = file.name.split('.').pop() ?? 'jpg'
-  const path = `${userId}/avatar.${ext}`
-  const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+  // Имя без расширения и всегда одно и то же: файл перезаписывается на месте,
+  // и старая аватарка не остаётся в хранилище мёртвым грузом. Формат браузер
+  // берёт из типа содержимого, а не из имени, — картинка открывается как надо.
+  const path = `${userId}/avatar`
+  const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
   if (error) return null
-  return supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
+  // ?v= — метка времени: путь теперь постоянный, и без неё браузер продолжал бы
+  // показывать прежнюю картинку из своего кэша после смены аватарки.
+  return `${supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl}?v=${Date.now()}`
 }
 
 // ─── Avatar display ───────────────────────────────────────────────────────────

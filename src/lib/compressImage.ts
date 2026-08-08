@@ -24,6 +24,9 @@ function fitSize(w: number, h: number, max: number): { w: number; h: number } {
 export const SHOWCASE = { maxSide: 1600, quality: 0.82 }
 export const WORK_FILE = { maxSide: 2200, quality: 0.88 }
 
+const encode = (canvas: HTMLCanvasElement, type: string, quality: number) =>
+  new Promise<Blob | null>(res => canvas.toBlob(res, type, quality))
+
 export interface CompressOptions {
   /** Максимальная сторона результата, px. */
   maxSide: number
@@ -49,14 +52,23 @@ export async function compressImage(file: File, { maxSide, quality = 0.82 }: Com
     canvas.height = h
     const ctx = canvas.getContext('2d')
     if (!ctx) return file
+    // Белая подложка: JPEG прозрачность не умеет, и без заливки прозрачные
+    // места стали бы чёрными.
+    ctx.fillStyle = '#fff'
+    ctx.fillRect(0, 0, w, h)
     ctx.drawImage(bitmap, 0, 0, w, h)
     bitmap.close()
 
-    const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, 'image/webp', quality))
+    // Проверяем, что получилось на самом деле: браузер, который не умеет
+    // кодировать webp, по стандарту молча отдаёт PNG — а PNG для фотографии
+    // тяжелее оригинала в разы. Тип берём из самого результата, а не из запроса.
+    let blob = await encode(canvas, 'image/webp', quality)
+    if (blob?.type !== 'image/webp') blob = await encode(canvas, 'image/jpeg', quality)
     if (!blob || blob.size >= file.size) return file   // уже лёгкое — не трогаем
 
-    const name = file.name.replace(/\.[^.]+$/, '') + '.webp'
-    return new File([blob], name, { type: 'image/webp', lastModified: Date.now() })
+    const ext = blob.type === 'image/webp' ? 'webp' : 'jpg'
+    const name = file.name.replace(/\.[^.]+$/, '') + '.' + ext
+    return new File([blob], name, { type: blob.type, lastModified: Date.now() })
   } catch {
     return file
   }
