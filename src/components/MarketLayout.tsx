@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { ArrowLeft, Search, BookOpen, PlusCircle, Briefcase, ClipboardList, Inbox } from 'lucide-react'
+import { ArrowLeft, Search, BookOpen, PlusCircle, Briefcase, ClipboardList, Inbox, FolderOpen } from 'lucide-react'
 
 const TABS = [
   { to: '/market/orders',   label: 'Заказы',    icon: Search },
@@ -7,6 +7,7 @@ const TABS = [
   { to: '/market/orders/new',    label: 'Новый заказ',  icon: PlusCircle },
   { to: '/market/services/new',  label: 'Новая услуга', icon: Briefcase },
   { to: '/market/orders/mine',   label: 'Мои заказы',   icon: ClipboardList },
+  { to: '/market/services/mine', label: 'Мои услуги',   icon: FolderOpen },
   { to: '/market/orders/applied',label: 'Мои отклики',  icon: Inbox },
 ]
 

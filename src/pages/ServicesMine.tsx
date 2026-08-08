@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, Eye, EyeOff, Edit } from 'lucide-react'
+import { Shield, Eye, EyeOff, Edit, Trash2 } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
@@ -21,6 +21,7 @@ export default function ServicesMine() {
   const [usage, setUsage] = useState<{ used: number; limit: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState<Record<string, boolean>>({})
+  const [deleting, setDeleting] = useState<Record<string, boolean>>({})
 
   async function load() {
     setLoading(true)
@@ -44,6 +45,18 @@ export default function ServicesMine() {
       toast(!current ? 'Услуга активирована' : 'Услуга скрыта', 'success')
     } catch (e: any) { toast(e.message, 'error') }
     finally { setToggling(t => ({ ...t, [id]: false })) }
+  }
+
+  async function handleDelete(id: string, title: string, wasActive: boolean) {
+    if (!confirm(`Удалить услугу «${title}» безвозвратно? Уже начатые по ней заказы это не отменит. Чтобы просто убрать её из каталога, используйте «Скрыть».`)) return
+    setDeleting(d => ({ ...d, [id]: true }))
+    try {
+      await apiCall('DELETE', `/listings/${id}`)
+      setListings(ls => ls.filter(l => l.id !== id))
+      if (wasActive) setUsage(u => u ? { ...u, used: Math.max(0, u.used - 1) } : u)
+      toast('Услуга удалена', 'success')
+    } catch (e: any) { toast(e.message, 'error') }
+    finally { setDeleting(d => ({ ...d, [id]: false })) }
   }
 
   return (
@@ -78,6 +91,14 @@ export default function ServicesMine() {
                 {l.is_active ? 'Активна' : 'Скрыта'}
               </button>
               <Link to={`/market/services/${l.id}/edit`} className="flex items-center gap-[5px] text-slate-500 no-underline text-[0.8rem] border border-slate-700 rounded-[7px] py-[6px] px-3"><Edit size={13} />Изменить</Link>
+              <button
+                className="flex items-center gap-[5px] bg-transparent border border-slate-700 rounded-[7px] py-[6px] px-3 text-[0.8rem] text-slate-500 cursor-pointer font-medium hover:text-error hover:border-error disabled:opacity-50"
+                onClick={() => handleDelete(l.id, l.title, l.is_active)}
+                disabled={deleting[l.id]}
+                title="Удалить безвозвратно"
+              >
+                <Trash2 size={13} />Удалить
+              </button>
             </div>
           </div>
         ))
