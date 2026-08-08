@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, ImagePlus, FileText, X } from 'lucide-react'
 import { formatCurrency } from '../lib/format'
 import { apiCall } from '../lib/api'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
+import { Attachment, MAX_ATTACHMENTS, MAX_FILE_BYTES, isImage } from '../lib/attachments'
 
 const CLS = {
   input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.93rem] box-border',
@@ -19,7 +22,22 @@ interface Props {
   cancelTo?: string
 }
 
+// Файлы кладутся в свою папку `<uid>/...` публичного бакета — те же правила,
+// что у аватарок (см. миграцию 20260809000000_listing_media.sql).
+async function uploadListingFile(file: File, userId: string): Promise<Attachment | null> {
+  const ext = file.name.split('.').pop() ?? 'bin'
+  const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const { error } = await supabase.storage.from('listing-media').upload(path, file)
+  if (error) return null
+  const url = supabase.storage.from('listing-media').getPublicUrl(path).data.publicUrl
+  return { url, name: file.name, type: file.type }
+}
+
 export default function ServiceForm({ initial = {}, onSubmit, loading, error, errorCode, title, cancelTo = '/services/mine' }: Props) {
+  const { user } = useAuth()
+  const [attachments, setAttachments] = useState<Attachment[]>(initial.attachments ?? [])
+  const [uploading, setUploading] = useState(false)
+  const [fileError, setFileError] = useState('')
   const [formTitle, setFormTitle] = useState(initial.title ?? '')
   const [description, setDescription] = useState(initial.description ?? '')
   const [price, setPrice] = useState(initial.price ?? '')
@@ -38,6 +56,34 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
       .catch(() => {})
   }, [])
 
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = Array.from(e.target.files ?? [])
+    e.target.value = ''                       // чтобы тот же файл можно было выбрать снова
+    if (!picked.length || !user) return
+    setFileError('')
+
+    const free = MAX_ATTACHMENTS - attachments.length
+    if (picked.length > free) {
+      setFileError(`Можно прикрепить не больше ${MAX_ATTACHMENTS} файлов`)
+      if (free <= 0) return
+    }
+
+    setUploading(true)
+    const added: Attachment[] = []
+    for (const file of picked.slice(0, Math.max(0, free))) {
+      if (file.size > MAX_FILE_BYTES) { setFileError(`«${file.name}» больше 10 МБ`); continue }
+      const uploaded = await uploadListingFile(file, user.id)
+      if (uploaded) added.push(uploaded)
+      else setFileError(`Не удалось загрузить «${file.name}» — проверьте формат (фото, PDF или Word)`)
+    }
+    setAttachments(a => [...a, ...added])
+    setUploading(false)
+  }
+
+  function removeAttachment(url: string) {
+    setAttachments(a => a.filter(x => x.url !== url))
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     onSubmit({
@@ -45,6 +91,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
       price: parseFloat(String(price)),
       deposit_amount: hasDeposit ? parseFloat(String(depositAmt) || '0') : 0,
       category: category || undefined,
+      attachments,
     })
   }
 
@@ -75,6 +122,59 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
         <div className="mb-5">
           <label className={CLS.label}>Описание</label>
           <textarea className={`${CLS.input} min-h-[120px] resize-y font-[inherit]`} value={description} onChange={e => setDescription(e.target.value)} placeholder="Опишите услугу, условия работы, что включено..." required />
+        </div>
+
+        <div className="mb-5">
+          <label className={CLS.label}>Фото и файлы</label>
+          <div className="text-slate-500 text-[0.76rem] mb-2">
+            Первое фото станет обложкой услуги в каталоге. Можно приложить примеры работ,
+            прайс или портфолио — до {MAX_ATTACHMENTS} файлов, каждый до 10 МБ.
+            Фото, PDF или Word. Всё это видят все посетители.
+          </div>
+
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2.5 mb-2.5">
+              {attachments.map((a, i) => (
+                <div key={a.url} className="relative">
+                  {isImage(a) ? (
+                    <img src={a.url} alt={a.name} className="w-[92px] h-[92px] object-cover rounded-[10px] border border-[#1e3a4a]" />
+                  ) : (
+                    <div className="w-[92px] h-[92px] rounded-[10px] border border-[#1e3a4a] bg-[#0f1923] flex flex-col items-center justify-center gap-1 p-1.5">
+                      <FileText size={20} className="text-slate-500" />
+                      <span className="text-slate-500 text-[0.62rem] text-center leading-tight break-all line-clamp-2">{a.name}</span>
+                    </div>
+                  )}
+                  {i === 0 && isImage(a) && (
+                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[0.6rem] px-1.5 py-0.5 rounded">обложка</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(a.url)}
+                    title="Убрать"
+                    className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] rounded-full bg-[#2d1515] border border-red-900 text-red-400 flex items-center justify-center cursor-pointer"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {attachments.length < MAX_ATTACHMENTS && (
+            <label className="inline-flex items-center gap-2 border border-[#1e3a4a] rounded-lg py-2 px-3.5 text-slate-400 text-[0.85rem] cursor-pointer">
+              <ImagePlus size={15} />
+              {uploading ? 'Загрузка...' : 'Добавить фото или файл'}
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx"
+                className="hidden"
+                onChange={handleFiles}
+                disabled={uploading}
+              />
+            </label>
+          )}
+          {fileError && <div className="text-red-400 text-[0.8rem] mt-1.5">{fileError}</div>}
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-5">

@@ -6,6 +6,7 @@ import { apiCall } from '../lib/api'
 import { formatCurrency, formatDate, formatRating } from '../lib/format'
 import { GlassCard, Button, Chip, Avatar, Stars, gradientFor } from '../components/glass'
 import VipName from '../components/VipBadge'
+import { coverOf, Attachment } from '../lib/attachments'
 
 const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7dd3fc', '#fbbf24']
 function catColor(seed: string) {
@@ -35,6 +36,7 @@ interface Listing {
   deposit_amount: number | null
   owner: { nickname: string | null; rating_as_executor?: number | string | null; reviews_count_executor?: number | null; is_vip?: boolean } | null
   category?: string | null
+  attachments?: Attachment[] | null
 }
 
 export default function Market() {
@@ -236,9 +238,12 @@ export default function Market() {
                 return (
                   <Link key={l.id} to={`/market/services/${l.id}`}>
                     <GlassCard hover className="rounded-[20px] p-5 flex flex-col h-full">
+                      {/* Обложка — первое фото услуги; без фото остаётся градиент по названию. */}
                       <div
-                        className="h-24 rounded-[14px] mb-3.5 flex items-end p-3"
-                        style={{ background: gradientFor(l.title) }}
+                        className="h-24 rounded-[14px] mb-3.5 flex items-end p-3 bg-cover bg-center"
+                        style={coverOf(l.attachments)
+                          ? { backgroundImage: `url(${coverOf(l.attachments)!.url})` }
+                          : { background: gradientFor(l.title) }}
                       >
                         <span className="text-[11px] font-semibold text-white bg-black/35 backdrop-blur px-2.5 py-1 rounded-lg">услуга</span>
                       </div>

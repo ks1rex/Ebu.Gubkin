@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Star, Shield } from 'lucide-react'
+import { Star, Shield, FileText } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency, formatRating } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
+import { Attachment, isImage } from '../lib/attachments'
 
 const CLS = {
   badge: 'inline-flex items-center gap-[5px] bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-xl py-1 px-2.5 text-[0.78rem] font-semibold mr-2 mb-1.5',
@@ -77,6 +78,23 @@ export default function ServiceDetail() {
           {deposit > 0 && <span className={CLS.badge}><Shield size={12} />Залог {formatCurrency(deposit)}</span>}
         </div>
         <div className="text-slate-400 text-[0.92rem] leading-[1.6] whitespace-pre-wrap mb-4">{listing.description}</div>
+
+        {Array.isArray(listing.attachments) && listing.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-2.5 mb-4">
+            {(listing.attachments as Attachment[]).map(a => (
+              <a key={a.url} href={a.url} target="_blank" rel="noopener noreferrer" title={a.name}>
+                {isImage(a) ? (
+                  <img src={a.url} alt={a.name} className="w-[120px] h-[120px] object-cover rounded-[10px] border border-[#1e3a4a]" />
+                ) : (
+                  <div className="w-[120px] h-[120px] rounded-[10px] border border-[#1e3a4a] bg-[#0a1420] flex flex-col items-center justify-center gap-1.5 p-2">
+                    <FileText size={22} className="text-teal-legacy" />
+                    <span className="text-slate-400 text-[0.68rem] text-center leading-tight break-all line-clamp-3">{a.name}</span>
+                  </div>
+                )}
+              </a>
+            ))}
+          </div>
+        )}
         <div className="flex items-baseline gap-2.5 flex-wrap mt-1.5">
           <div className="text-teal-legacy text-[1.6rem] font-bold">{formatCurrency(price)}</div>
           {deposit > 0 && <div className="text-amber-500 text-[0.83rem]">+ залог {formatCurrency(deposit)} (вернётся после завершения)</div>}
