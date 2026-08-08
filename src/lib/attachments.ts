@@ -4,8 +4,3 @@ export const MAX_ATTACHMENTS = 6          // столько же проверя�
 export const MAX_FILE_BYTES = 10 * 1024 * 1024
 
 export const isImage = (a: Attachment) => a.type.startsWith('image/')
-
-/** Обложка карточки — первое изображение среди вложений (файлы обложкой не бывают). */
-export function coverOf(attachments?: Attachment[] | null): Attachment | null {
-  return attachments?.find(isImage) ?? null
-}

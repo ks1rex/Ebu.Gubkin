@@ -63,6 +63,9 @@ export default function ServiceDetail() {
   return (
     <div className="max-w-[720px] mx-auto">
       <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4">
+        {listing.cover_url && (
+          <img src={listing.cover_url} alt="" className="w-full h-[180px] object-cover rounded-[10px] border border-[#1e3a4a] mb-4" />
+        )}
         <div className="text-slate-200 text-[1.3rem] font-bold mb-3">{listing.title}</div>
         <div className="flex items-center gap-2 mb-4">
           <Link to={`/users/${listing.owner_id}`} className="text-teal-legacy font-semibold no-underline text-[0.9rem]"><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>

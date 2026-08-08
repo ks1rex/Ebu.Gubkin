@@ -37,6 +37,7 @@ async function uploadListingFile(file: File, userId: string): Promise<Attachment
 export default function ServiceForm({ initial = {}, onSubmit, loading, error, errorCode, title, cancelTo = '/services/mine' }: Props) {
   const { user } = useAuth()
   const [attachments, setAttachments] = useState<Attachment[]>(initial.attachments ?? [])
+  const [coverUrl, setCoverUrl] = useState<string>(initial.cover_url ?? '')
   const [uploading, setUploading] = useState(false)
   const [fileError, setFileError] = useState('')
   const [formTitle, setFormTitle] = useState(initial.title ?? '')
@@ -57,6 +58,27 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
       .catch(() => {})
   }, [])
 
+  // Фото ужимается до загрузки: снимок с телефона на 8 МБ превращается в
+  // пару сотен килобайт, лимит остаётся страховкой для остальных файлов.
+  async function upload(picked: File): Promise<Attachment | null> {
+    const file = await compressImage(picked, SHOWCASE)
+    if (file.size > MAX_FILE_BYTES) { setFileError(`«${file.name}» больше 10 МБ`); return null }
+    const uploaded = await uploadListingFile(file, user!.id)
+    if (!uploaded) setFileError(`Не удалось загрузить «${file.name}» — проверьте формат (фото, PDF или Word)`)
+    return uploaded
+  }
+
+  async function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0]
+    e.target.value = ''
+    if (!picked || !user) return
+    setFileError('')
+    setUploading(true)
+    const uploaded = await upload(picked)
+    if (uploaded) setCoverUrl(uploaded.url)
+    setUploading(false)
+  }
+
   async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = Array.from(e.target.files ?? [])
     e.target.value = ''                       // чтобы тот же файл можно было выбрать снова
@@ -72,13 +94,8 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
     setUploading(true)
     const added: Attachment[] = []
     for (const picked_file of picked.slice(0, Math.max(0, free))) {
-      // Фото ужимается до загрузки: снимок с телефона на 8 МБ превращается в
-      // пару сотен килобайт, лимит остаётся страховкой для остальных файлов.
-      const file = await compressImage(picked_file, SHOWCASE)
-      if (file.size > MAX_FILE_BYTES) { setFileError(`«${file.name}» больше 10 МБ`); continue }
-      const uploaded = await uploadListingFile(file, user.id)
+      const uploaded = await upload(picked_file)
       if (uploaded) added.push(uploaded)
-      else setFileError(`Не удалось загрузить «${file.name}» — проверьте формат (фото, PDF или Word)`)
     }
     setAttachments(a => [...a, ...added])
     setUploading(false)
@@ -95,6 +112,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
       price: parseFloat(String(price)),
       deposit_amount: hasDeposit ? parseFloat(String(depositAmt) || '0') : 0,
       category: category || undefined,
+      cover_url: coverUrl || null,
       attachments,
     })
   }
@@ -129,17 +147,47 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
         </div>
 
         <div className="mb-5">
+          <label className={CLS.label}>Обложка услуги</label>
+          <div className="text-slate-500 text-[0.76rem] mb-2">
+            Одна картинка — её видно на карточке услуги в каталоге. Без неё карточка
+            получит цветной фон.
+          </div>
+          {coverUrl ? (
+            <div className="relative w-fit">
+              <label title="Заменить обложку" className="block cursor-pointer">
+                <img src={coverUrl} alt="Обложка услуги" className="w-[220px] h-[110px] object-cover rounded-[10px] border border-[#1e3a4a]" />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCover} disabled={uploading} />
+              </label>
+              <button
+                type="button"
+                onClick={() => setCoverUrl('')}
+                title="Убрать обложку"
+                className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] rounded-full bg-[#2d1515] border border-red-900 text-red-400 flex items-center justify-center cursor-pointer"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ) : (
+            <label className="inline-flex items-center gap-2 border border-[#1e3a4a] rounded-lg py-2 px-3.5 text-slate-400 text-[0.85rem] cursor-pointer">
+              <ImagePlus size={15} />
+              {uploading ? 'Загрузка...' : 'Загрузить обложку'}
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCover} disabled={uploading} />
+            </label>
+          )}
+        </div>
+
+        <div className="mb-5">
           <label className={CLS.label}>Фото и файлы</label>
           <div className="text-slate-500 text-[0.76rem] mb-2">
-            Первое фото станет обложкой услуги в каталоге. Можно приложить примеры работ,
-            прайс или портфолио — до {MAX_ATTACHMENTS} файлов, каждый до 10 МБ.
+            Можно приложить примеры работ, прайс или портфолио — до {MAX_ATTACHMENTS} файлов,
+            каждый до 10 МБ.
             Фото, PDF или Word. Фото сжимаются автоматически, снимок с телефона грузить
             можно как есть. Всё это видят все посетители.
           </div>
 
           {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2.5 mb-2.5">
-              {attachments.map((a, i) => (
+              {attachments.map(a => (
                 <div key={a.url} className="relative">
                   {isImage(a) ? (
                     <img src={a.url} alt={a.name} className="w-[92px] h-[92px] object-cover rounded-[10px] border border-[#1e3a4a]" />
@@ -148,9 +196,6 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
                       <FileText size={20} className="text-slate-500" />
                       <span className="text-slate-500 text-[0.62rem] text-center leading-tight break-all line-clamp-2">{a.name}</span>
                     </div>
-                  )}
-                  {i === 0 && isImage(a) && (
-                    <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[0.6rem] px-1.5 py-0.5 rounded">обложка</span>
                   )}
                   <button
                     type="button"
