@@ -546,7 +546,7 @@ export default function Wallet() {
 
   async function copyReferralLink() {
     if (!profile?.referral_code) return
-    const link = `${window.location.origin}/register?ref=${profile.referral_code}`
+    const link = `${window.location.origin}${import.meta.env.BASE_URL}register?ref=${profile.referral_code}`
     try {
       await navigator.clipboard.writeText(link)
       toast('Реферальная ссылка скопирована', 'success')
