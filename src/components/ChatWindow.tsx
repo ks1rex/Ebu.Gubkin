@@ -7,6 +7,7 @@ import { autoGrowTextarea, CHAT_TEXTAREA_MAX_H } from '../lib/autoGrowTextarea'
 import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
 import VipName from './VipBadge'
+import { compressImage, WORK_FILE } from '../lib/compressImage'
 
 const S: Record<string, any> = {
   wrap: { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 },
@@ -113,7 +114,8 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
       } else {
         const form = new FormData()
         form.append('content', text || ' ')
-        for (const f of files) form.append('files', f)
+        // Фото ужимаются перед отправкой; документы проходят как есть.
+        for (const f of files) form.append('files', await compressImage(f, WORK_FILE))
         await apiCall('POST', basePath, form)
       }
       setText('')

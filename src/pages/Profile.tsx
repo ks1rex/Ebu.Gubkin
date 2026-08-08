@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
 import { apiCall } from '../lib/api'
+import { compressImage, SHOWCASE } from '../lib/compressImage'
 import type { Profile as ProfileType } from '../contexts/AuthContext'
 import ProfileView, { PublicProfile } from '../components/ProfileView'
 import Spinner from '../components/Spinner'
@@ -32,7 +33,10 @@ function isValidPhone(phone: string): boolean {
 
 // ─── Avatar upload ────────────────────────────────────────────────────────────
 
-async function uploadAvatar(file: File, userId: string): Promise<string | null> {
+async function uploadAvatar(original: File, userId: string): Promise<string | null> {
+  // Аватарка показывается кружком в 42–96 px, а с телефона прилетает снимок на
+  // несколько мегабайт — ужимаем до загрузки (см. lib/compressImage.ts).
+  const file = await compressImage(original, { ...SHOWCASE, maxSide: 512 })
   const ext = file.name.split('.').pop() ?? 'jpg'
   const path = `${userId}/avatar.${ext}`
   const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })

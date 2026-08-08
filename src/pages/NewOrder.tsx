@@ -4,6 +4,7 @@ import { Upload, X, Eye, Lock, AlertCircle } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
+import { compressImage, WORK_FILE } from '../lib/compressImage'
 
 const CLS = {
   label: 'block text-slate-400 text-[0.82rem] mb-1.5',
@@ -86,7 +87,7 @@ export default function NewOrder() {
       })
       for (const { file, visibility } of files) {
         const fd = new FormData()
-        fd.append('file', file)
+        fd.append('file', await compressImage(file, WORK_FILE))
         fd.append('visibility', visibility)
         await apiCall('POST', `/orders/${order.id}/attachments`, fd)
       }

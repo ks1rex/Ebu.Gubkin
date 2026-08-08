@@ -6,6 +6,7 @@ import { apiCall } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Attachment, MAX_ATTACHMENTS, MAX_FILE_BYTES, isImage } from '../lib/attachments'
+import { compressImage, SHOWCASE } from '../lib/compressImage'
 
 const CLS = {
   input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.93rem] box-border',
@@ -70,7 +71,10 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
 
     setUploading(true)
     const added: Attachment[] = []
-    for (const file of picked.slice(0, Math.max(0, free))) {
+    for (const picked_file of picked.slice(0, Math.max(0, free))) {
+      // Фото ужимается до загрузки: снимок с телефона на 8 МБ превращается в
+      // пару сотен килобайт, лимит остаётся страховкой для остальных файлов.
+      const file = await compressImage(picked_file, SHOWCASE)
       if (file.size > MAX_FILE_BYTES) { setFileError(`«${file.name}» больше 10 МБ`); continue }
       const uploaded = await uploadListingFile(file, user.id)
       if (uploaded) added.push(uploaded)
@@ -129,7 +133,8 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
           <div className="text-slate-500 text-[0.76rem] mb-2">
             Первое фото станет обложкой услуги в каталоге. Можно приложить примеры работ,
             прайс или портфолио — до {MAX_ATTACHMENTS} файлов, каждый до 10 МБ.
-            Фото, PDF или Word. Всё это видят все посетители.
+            Фото, PDF или Word. Фото сжимаются автоматически, снимок с телефона грузить
+            можно как есть. Всё это видят все посетители.
           </div>
 
           {attachments.length > 0 && (
