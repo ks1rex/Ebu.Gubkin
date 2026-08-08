@@ -9,7 +9,7 @@ import { apiCall } from '../lib/api'
 import { formatDate } from '../lib/format'
 import Modal from '../components/Modal'
 import BuyTokensModal from '../components/Gost/BuyTokensModal'
-import { GlassCard, Button, Chip } from '../components/glass'
+import { GlassCard, Button, Chip, Avatar } from '../components/glass'
 
 // ─── VIP purchase confirm (one-off modal, pattern follows useGostFrozenModal) ─
 
@@ -129,6 +129,8 @@ const INPUT = 'w-full px-3 py-2.5 rounded-[12px] border border-line bg-canvas te
 // ─── Money chart (hand-rolled SVG — recharts isn't an installed dep) ──────────
 
 interface ChartPoint { month: string; income: number; expense: number }
+
+interface Referral { id: string; nickname: string | null; registered_at: string; earned: number }
 
 function MoneyChart({ points }: { points: ChartPoint[] }) {
   const W = 600, H = 140, pad = 8
@@ -470,6 +472,7 @@ export default function Wallet() {
   const [buyTokensOpen, setBuyTokensOpen] = useState(false)
 
   const [chart, setChart] = useState<ChartPoint[]>([])
+  const [referrals, setReferrals] = useState<Referral[]>([])
 
   const token = session?.access_token ?? null
 
@@ -479,6 +482,7 @@ export default function Wallet() {
     fetchTransactions(0, true)
     fetchInstructions()
     apiCall('GET', '/wallet/chart').then(d => setChart(Array.isArray(d) ? d : [])).catch(() => setChart([]))
+    apiCall('GET', '/wallet/referrals').then(d => setReferrals(Array.isArray(d) ? d : [])).catch(() => setReferrals([]))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
@@ -674,13 +678,38 @@ export default function Wallet() {
                 {(profile.referral_registered_count ?? 0) > 0 && (
                   <span>Приглашено: <span className="text-ink font-medium">{profile.referral_registered_count}</span></span>
                 )}
-                {(profile.referral_qualifying_deposits_count ?? 0) > 0 && (
-                  <span>Бонусных пополнений: <span className="text-ink font-medium">{profile.referral_qualifying_deposits_count} / {3}</span></span>
-                )}
                 {(profile.referral_earnings ?? 0) > 0 && (
                   <span>Заработано: <span className="text-mint font-medium">{(profile.referral_earnings ?? 0).toLocaleString('ru-RU')} ₽</span></span>
                 )}
               </div>
+
+              {referrals.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-line">
+                  <div className="text-[11px] tracking-wide uppercase text-subtle font-semibold mb-2.5">
+                    Ваши приглашённые
+                  </div>
+                  <div className="divide-y divide-white/[.08]">
+                    {referrals.map(r => (
+                      <div key={r.id} className="flex items-center gap-3 py-2.5">
+                        <Avatar name={r.nickname ?? '?'} size={32} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm text-ink truncate">{r.nickname ?? 'Без ника'}</div>
+                          <div className="text-[11px] text-subtle">
+                            с {new Date(r.registered_at).toLocaleDateString('ru-RU')}
+                          </div>
+                        </div>
+                        <div className={`text-sm font-medium shrink-0 ${r.earned > 0 ? 'text-mint' : 'text-subtle'}`}>
+                          {r.earned > 0 ? `+${r.earned.toLocaleString('ru-RU')} ₽` : '— ₽'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-2.5 text-[11px] text-subtle">
+                    Сумма — сколько вы заработали с этого человека. Прочерк значит, что он ещё
+                    не пополнял баланс.
+                  </p>
+                </div>
+              )}
             </GlassCard>
           )}
 
