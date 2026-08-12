@@ -145,7 +145,7 @@ export default function AdminGostTemplates() {
       .then(r => r.json())
       .then(data => {
         const s: TemplateSpec = data.spec ?? data
-        setHasOverride(!!data.has_override)
+        setHasOverride(data.source === 'override')   // GET /{id} отдаёт source, не has_override
         setLoadedSpec(s)
         setSpec(s)
         setTableTexts(buildTableTexts(s))
@@ -179,13 +179,14 @@ export default function AdminGostTemplates() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ display_name: spec.title, spec }),
       })
-      if (!res.ok) throw new Error()
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.detail?.error ?? data?.error ?? '')
       toast('Шаблон сохранён', 'success')
       setLoadedSpec(spec)
       setHasOverride(true)
       setList(l => l.map(t => t.id === selectedId ? { ...t, has_override: true } : t))
-    } catch {
-      toast('Не удалось сохранить шаблон', 'error')
+    } catch (e) {
+      toast((e as Error).message || 'Не удалось сохранить шаблон', 'error')
     } finally {
       setSaving(false)
     }

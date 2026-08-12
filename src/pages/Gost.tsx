@@ -24,6 +24,11 @@ type Phase =
   | 'done'
   | 'error'
 
+// ГОСТ-бэкенд — FastAPI: сообщение приходит в `detail.error`, не в `error`.
+function errMsg(data: any, fallback: string): string {
+  return data?.detail?.error ?? data?.error ?? (typeof data?.detail === 'string' ? data.detail : fallback)
+}
+
 interface ProjectResult { docxUrl: string; pdfUrl?: string }
 interface TemplateInfo  { id: string; title: string; discipline: string }
 
@@ -189,9 +194,10 @@ function FileDropZone({ label, accept, file, onChange, optional }: {
   )
 }
 
-function UploadForm({ token, onStart }: {
+function UploadForm({ token, onStart, onError }: {
   token: string
   onStart: (phase: Phase, projectId?: string, result?: ProjectResult, mode?: string) => void
+  onError: (msg: string, projectId?: string) => void
 }) {
   const showToast = useToast()
   const navigate  = useNavigate()
@@ -239,7 +245,7 @@ function UploadForm({ token, onStart }: {
     try {
       const upRes  = await fetch(`${GOST}/upload`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form })
       const upData = await upRes.json()
-      if (!upRes.ok) { showToast(upData.error ?? 'Ошибка загрузки файлов', 'error'); onStart('error'); return }
+      if (!upRes.ok) { onError(errMsg(upData, 'Ошибка загрузки файлов')); return }
       const projectId: string = upData.project_id
 
       // chat sub-mode: navigate straight to chat, no extraction
@@ -254,10 +260,8 @@ function UploadForm({ token, onStart }: {
         const exRes  = await fetch(`${GOST}/extract?project_id=${projectId}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
         const exData = await exRes.json()
         if (!exRes.ok) {
-          const msg = exData.error ?? 'Ошибка обработки'
-          if (exRes.status === 402) showToast('Недостаточно ГОСТ-токенов', 'error')
-          else showToast(msg, 'error')
-          onStart('error', projectId); return
+          onError(exRes.status === 402 ? 'Недостаточно ГОСТ-токенов' : errMsg(exData, 'Ошибка обработки'), projectId)
+          return
         }
         onStart('done', projectId, { docxUrl: exData.docx_url, pdfUrl: exData.pdf_url ?? undefined }, mode)
         return
@@ -268,29 +272,27 @@ function UploadForm({ token, onStart }: {
       const exRes  = await fetch(`${GOST}/extract?project_id=${projectId}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       const exData = await exRes.json()
       if (!exRes.ok) {
-        if (exRes.status === 402) showToast('Недостаточно ГОСТ-токенов', 'error')
-        else showToast(exData.error ?? 'Ошибка извлечения', 'error')
-        onStart('error', projectId); return
+        onError(exRes.status === 402 ? 'Недостаточно ГОСТ-токенов' : errMsg(exData, 'Ошибка извлечения'), projectId)
+        return
       }
 
       onStart('computing', projectId)
       const coRes  = await fetch(`${GOST}/compute?project_id=${projectId}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       const coData = await coRes.json()
-      if (!coRes.ok) { showToast(coData.error ?? 'Ошибка расчёта', 'error'); onStart('error', projectId); return }
+      if (!coRes.ok) { onError(errMsg(coData, 'Ошибка расчёта'), projectId); return }
 
       onStart('generating', projectId)
       const genRes  = await fetch(`${GOST}/generate?project_id=${projectId}`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body:    JSON.stringify({ meta }),
+        body:    JSON.stringify(meta),   // FastAPI ждёт поля GenerateMeta на верхнем уровне, не под ключом meta
       })
       const genData = await genRes.json()
-      if (!genRes.ok) { showToast(genData.error ?? 'Ошибка генерации', 'error'); onStart('error', projectId); return }
+      if (!genRes.ok) { onError(errMsg(genData, 'Ошибка генерации'), projectId); return }
 
       onStart('done', projectId, { docxUrl: genData.docx_url, pdfUrl: genData.pdf_url ?? undefined }, mode)
     } catch {
-      showToast('Сетевая ошибка при обработке', 'error')
-      onStart('error')
+      onError('Сетевая ошибка при обработке')
     }
   }
 
@@ -588,6 +590,7 @@ function ModeHints() {
 
 export default function Gost() {
   const { session, profile, user } = useAuth()
+  const showToast = useToast()
   const token = session?.access_token ?? null
 
   const [tokenBalance,  setTokenBalance]  = useState(0)
@@ -600,6 +603,7 @@ export default function Gost() {
   const [result,    setResult]    = useState<ProjectResult | null>(null)
   const [projectId, setProjectId] = useState<string | undefined>()
   const [genMode,   setGenMode]   = useState<string | undefined>()
+  const [errorMsg,  setErrorMsg]  = useState('')
 
   useEffect(() => {
     if (!token) { setBalLoading(false); return }
@@ -624,7 +628,14 @@ export default function Gost() {
     if (m)   setGenMode(m)
   }
 
-  function reset() { setPhase('idle'); setResult(null); setProjectId(undefined); setGenMode(undefined) }
+  function handleError(msg: string, pid?: string) {
+    showToast(msg, 'error')
+    setErrorMsg(msg)
+    setPhase('error')
+    if (pid) setProjectId(pid)
+  }
+
+  function reset() { setPhase('idle'); setResult(null); setProjectId(undefined); setGenMode(undefined); setErrorMsg('') }
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
@@ -645,7 +656,7 @@ export default function Gost() {
           {/* Левая колонка — новый проект */}
           <div>
             {phase === 'idle' && (
-              <UploadForm token={token} onStart={handleStart} />
+              <UploadForm token={token} onStart={handleStart} onError={handleError} />
             )}
             {(phase === 'uploading' || phase === 'extracting' || phase === 'computing' || phase === 'generating') && (
               <ProgressView phase={phase} />
@@ -658,7 +669,9 @@ export default function Gost() {
                 <AlertCircle size={18} className="text-error shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-ink text-sm">Произошла ошибка</p>
-                  <p className="text-xs text-subtle mt-0.5">Проверьте токены и корректность файла, затем попробуйте снова</p>
+                  <p className="text-xs text-subtle mt-0.5 break-words">
+                    {errorMsg || 'Проверьте токены и корректность файла, затем попробуйте снова'}
+                  </p>
                   <button onClick={reset}
                     className="mt-3 flex items-center gap-1.5 text-sm text-accent hover:underline">
                     <RotateCcw size={13} />
