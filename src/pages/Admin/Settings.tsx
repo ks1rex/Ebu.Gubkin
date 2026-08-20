@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
-import { useAdminView } from '../../contexts/AdminViewContext'
+import { useAuth } from '../../contexts/AuthContext'
 import TwoFactor from './TwoFactor'
 
 interface SiteSettings {
@@ -83,7 +83,8 @@ const ADMIN_SETTING_KEYS = ADMIN_SETTING_GROUPS.flatMap(g => g.keys)
 
 export default function AdminSettings() {
   const toast = useToast()
-  const { effectiveIsOwner } = useAdminView()
+  const { profile } = useAuth()
+  const effectiveIsOwner = !!profile?.is_owner
 
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [depositText, setDepositText] = useState('')

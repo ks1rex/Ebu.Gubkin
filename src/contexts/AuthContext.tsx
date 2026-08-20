@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { apiCall } from '../lib/api'
 
 export interface Profile {
   id: string
@@ -20,8 +21,15 @@ export interface Profile {
   token_balance: number
   is_admin: boolean
   // Полный админ. Не приходит в /admin/users для не-владельцев (бэкенд не
-  // отдаёт поле вовсе), но в своём же профиле видно всегда.
+  // отдаёт поле вовсе), но в своём же профиле видно всегда. Тумблер
+  // «Смотреть как админ» реально переключает это поле на бэкенде
+  // (POST /profile/view-as-admin) — не витрина, настоящее временное
+  // снятие прав, бэкенд честно вернёт 403 на owner-only маршрутах.
   is_owner: boolean
+  // Постоянный маркер «когда-то был владельцем» — снимается только явным
+  // отзывом другим владельцем, не тумблером. Пока true, тумблер можно
+  // переключать туда-обратно даже если is_owner сейчас false.
+  is_owner_was: boolean
   referral_code: string | null
   referral_earnings: number | null
   referral_registered_count: number | null
@@ -41,6 +49,9 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  // Тумблер «Смотреть как админ» — переключает is_owner на бэкенде туда-обратно
+  // (POST /profile/view-as-admin) и перечитывает профиль. Бросает при ошибке.
+  toggleViewAsAdmin: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)
@@ -51,7 +62,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     .select(`
       id, email, nickname, full_name, avatar_url,
       phone, telegram_username, university_group,
-      balance, deposited_balance, earned_balance, token_balance, is_admin, is_owner,
+      balance, deposited_balance, earned_balance, token_balance, is_admin, is_owner, is_owner_was,
       referral_code, referral_earnings,
       referral_registered_count, referral_qualifying_deposits_count,
       bio, skills, vip_expires_at
@@ -123,10 +134,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) setProfile(await loadProfile(user.id))
   }
 
+  async function toggleViewAsAdmin() {
+    await apiCall('POST', '/profile/view-as-admin')
+    await refreshProfile()
+  }
+
   const isVip = profile?.vip_expires_at != null && new Date(profile.vip_expires_at) > new Date()
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, isVip, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, isVip, signUp, signIn, signOut, refreshProfile, toggleViewAsAdmin }}>
       {children}
     </AuthContext.Provider>
   )

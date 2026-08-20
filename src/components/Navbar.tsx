@@ -61,7 +61,7 @@ export default function Navbar() {
           шапке ширины, поэтому запас должен быть с большим отрывом. */}
       <nav className="hidden xl:flex items-center gap-1 flex-1 ml-1.5">
         {items.map(({ label, to, frozen }) => (
-          frozen && !profile?.is_admin ? (
+          frozen && !profile?.is_owner ? (
             <button
               key={to}
               type="button"
@@ -158,7 +158,7 @@ export default function Navbar() {
         <div className="xl:hidden absolute top-full left-0 right-0 mt-2 p-3 rounded-[20px] bg-[#241551]/95 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.6)]">
           <nav className="flex flex-col gap-1">
             {items.map(({ label, to, frozen }) => (
-              frozen && !profile?.is_admin ? (
+              frozen && !profile?.is_owner ? (
                 <button
                   key={to}
                   type="button"

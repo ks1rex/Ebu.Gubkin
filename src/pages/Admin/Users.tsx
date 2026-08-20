@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Crown, Search, ChevronLeft, ChevronRight, Star, Download, Printer, ExternalLink } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
-import { useAdminView } from '../../contexts/AdminViewContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
 import { formatRatingValue } from '../../lib/format'
@@ -74,7 +74,8 @@ function vipTitle(u: AdminUser) {
 
 export default function AdminUsers() {
   const toast = useToast()
-  const { effectiveIsOwner } = useAdminView()
+  const { profile: viewerProfile } = useAuth()
+  const effectiveIsOwner = !!viewerProfile?.is_owner
 
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)

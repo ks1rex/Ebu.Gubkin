@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { GlassCard } from '../../components/glass'
 import { renderMarkdown } from '../../lib/markdown'
 import { ADMIN_GUIDE_MD } from './adminGuideText'
-import { useAdminView } from '../../contexts/AdminViewContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { NAV_ITEMS } from './index'
 
 // Рендерер общий с юридическими страницами — см. src/lib/markdown.tsx.
@@ -132,8 +132,8 @@ function filterForAdminTier(mdRaw: string): string {
 }
 
 export default function AdminHelp() {
-  const { effectiveIsOwner } = useAdminView()
-  const md = effectiveIsOwner ? ADMIN_GUIDE_MD : filterForAdminTier(ADMIN_GUIDE_MD)
+  const { profile } = useAuth()
+  const md = profile?.is_owner ? ADMIN_GUIDE_MD : filterForAdminTier(ADMIN_GUIDE_MD)
   const content = useMemo(() => renderMarkdown(md), [md])
   return (
     <GlassCard className="rounded-2xl p-5 sm:p-8 max-w-4xl">

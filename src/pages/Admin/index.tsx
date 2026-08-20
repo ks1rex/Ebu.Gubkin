@@ -24,7 +24,7 @@ import {
   EyeOff,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { AdminViewProvider, useAdminView } from '../../contexts/AdminViewContext'
+import { useToast } from '../../contexts/ToastContext'
 
 // ownerOnly: true — скрыт от тарифа «админ» (и на фронте, и 403 на бэкенде,
 // см. reshbirga routes/admin.js). Не указан/false — доступен обоим тарифам
@@ -54,41 +54,53 @@ export const NAV_ITEMS = [
 // прямого перехода по URL и здесь для фильтрации меню.
 export const ADMIN_TIER_PATHS = NAV_ITEMS.filter(i => !i.ownerOnly).map(i => i.to)
 
-export default function AdminLayout() {
-  return (
-    <AdminViewProvider>
-      <AdminLayoutInner />
-    </AdminViewProvider>
-  )
-}
-
-/** Тумблер «Смотреть как админ» — только для владельца, чистый UI-фильтр
- * (реальные права/запросы не меняются, см. AdminViewContext). */
+/**
+ * Тумблер «Смотреть как админ» — не витрина: реально переключает is_owner на
+ * бэкенде (POST /profile/view-as-admin, см. AuthContext.toggleViewAsAdmin),
+ * поэтому owner-only маршруты честно начинают отдавать 403, пока включено.
+ * Виден, если сейчас is_owner ИЛИ остался is_owner_was (можно вернуться
+ * обратно даже после неудачного переключения).
+ */
 function ViewAsAdminToggle() {
-  const { profile } = useAuth()
-  const { viewAsAdmin, setViewAsAdmin } = useAdminView()
-  if (!profile?.is_owner) return null
+  const { profile, toggleViewAsAdmin } = useAuth()
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+  if (!profile?.is_owner && !profile?.is_owner_was) return null
+
+  async function handleClick() {
+    setBusy(true)
+    try {
+      await toggleViewAsAdmin()
+    } catch {
+      toast('Не удалось переключить режим', 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const viewingAsAdmin = !profile.is_owner
 
   return (
     <button
-      onClick={() => setViewAsAdmin(!viewAsAdmin)}
-      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-        viewAsAdmin
+      onClick={handleClick}
+      disabled={busy}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ${
+        viewingAsAdmin
           ? 'bg-accent text-white'
           : 'bg-panel text-subtle hover:text-ink border border-line'
       }`}
-      title="Демо-режим: показывает интерфейс так, как его видит рядовой админ"
+      title={viewingAsAdmin ? 'Вернуть права владельца' : 'Демо-режим: реально снимает права владельца'}
     >
-      {viewAsAdmin ? <EyeOff size={14} /> : <Eye size={14} />}
-      {viewAsAdmin ? 'Смотрите как админ' : 'Смотреть как админ'}
+      {viewingAsAdmin ? <EyeOff size={14} /> : <Eye size={14} />}
+      {viewingAsAdmin ? 'Вернуться к владельцу' : 'Смотреть как админ'}
     </button>
   )
 }
 
-function AdminLayoutInner() {
+export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
-  const { effectiveIsOwner } = useAdminView()
-  const items = NAV_ITEMS.filter(i => !i.ownerOnly || effectiveIsOwner)
+  const { profile } = useAuth()
+  const items = NAV_ITEMS.filter(i => !i.ownerOnly || profile?.is_owner)
 
   return (
     <div className="flex min-h-[calc(100vh-56px)]">
