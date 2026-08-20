@@ -326,16 +326,18 @@ export default function AdminUsers() {
                   <ExternalLink size={12} />
                   Профиль
                 </Link>
-                <button
-                  onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
-                  disabled={acting[user.id]}
-                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
-                    user.is_banned ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
-                  }`}
-                >
-                  {acting[user.id] ? <Loader2 size={12} className="animate-spin" /> : user.is_banned ? <UserCheck size={12} /> : <UserX size={12} />}
-                  {user.is_banned ? 'Разбанить' : 'Заблокировать'}
-                </button>
+                {(effectiveIsOwner || !user.is_admin) && (
+                  <button
+                    onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
+                    disabled={acting[user.id]}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                      user.is_banned ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                    }`}
+                  >
+                    {acting[user.id] ? <Loader2 size={12} className="animate-spin" /> : user.is_banned ? <UserCheck size={12} /> : <UserX size={12} />}
+                    {user.is_banned ? 'Разбанить' : 'Заблокировать'}
+                  </button>
+                )}
                 {effectiveIsOwner && (
                   <button
                     onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
@@ -454,24 +456,26 @@ export default function AdminUsers() {
                       >
                         <ExternalLink size={14} />
                       </Link>
-                      <button
-                        onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
-                        disabled={acting[user.id]}
-                        title={user.is_banned ? 'Разбанить' : 'Заблокировать'}
-                        className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          user.is_banned
-                            ? 'text-success hover:bg-success/10'
-                            : 'text-error hover:bg-error/10'
-                        }`}
-                      >
-                        {acting[user.id] ? (
-                          <Loader2 size={14} className="animate-spin" />
-                        ) : user.is_banned ? (
-                          <UserCheck size={14} />
-                        ) : (
-                          <UserX size={14} />
-                        )}
-                      </button>
+                      {(effectiveIsOwner || !user.is_admin) && (
+                        <button
+                          onClick={() => patchUser(user.id, { is_banned: !user.is_banned })}
+                          disabled={acting[user.id]}
+                          title={user.is_banned ? 'Разбанить' : 'Заблокировать'}
+                          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                            user.is_banned
+                              ? 'text-success hover:bg-success/10'
+                              : 'text-error hover:bg-error/10'
+                          }`}
+                        >
+                          {acting[user.id] ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : user.is_banned ? (
+                            <UserCheck size={14} />
+                          ) : (
+                            <UserX size={14} />
+                          )}
+                        </button>
+                      )}
                       {effectiveIsOwner && (
                         <button
                           onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
