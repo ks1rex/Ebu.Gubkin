@@ -19,6 +19,9 @@ export interface Profile {
   earned_balance: number
   token_balance: number
   is_admin: boolean
+  // Полный админ. Не приходит в /admin/users для не-владельцев (бэкенд не
+  // отдаёт поле вовсе), но в своём же профиле видно всегда.
+  is_owner: boolean
   referral_code: string | null
   referral_earnings: number | null
   referral_registered_count: number | null
@@ -48,7 +51,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
     .select(`
       id, email, nickname, full_name, avatar_url,
       phone, telegram_username, university_group,
-      balance, deposited_balance, earned_balance, token_balance, is_admin,
+      balance, deposited_balance, earned_balance, token_balance, is_admin, is_owner,
       referral_code, referral_earnings,
       referral_registered_count, referral_qualifying_deposits_count,
       bio, skills, vip_expires_at

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Search, ChevronLeft, ChevronRight, Star, Download, Printer, ExternalLink } from 'lucide-react'
+import { Loader2, UserX, UserCheck, ShieldCheck, ShieldOff, Crown, Search, ChevronLeft, ChevronRight, Star, Download, Printer, ExternalLink } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
+import { useAdminView } from '../../contexts/AdminViewContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
 import { formatRatingValue } from '../../lib/format'
@@ -23,6 +24,9 @@ interface AdminUser {
   level: number | null
   reputation: number | null
   is_admin: boolean
+  // Отсутствует в ответе бэкенда для не-владельцев (не false — поля нет
+  // вовсе), чтобы рядовой админ не мог отличить владельца от админа.
+  is_owner?: boolean
   is_banned: boolean
   is_vip: boolean
   vip_expires_at: string | null
@@ -70,6 +74,7 @@ function vipTitle(u: AdminUser) {
 
 export default function AdminUsers() {
   const toast = useToast()
+  const { effectiveIsOwner } = useAdminView()
 
   const [users, setUsers] = useState<AdminUser[]>([])
   const [total, setTotal] = useState(0)
@@ -110,7 +115,7 @@ export default function AdminUsers() {
     fetchUsers(1, f)
   }
 
-  async function patchUser(id: string, patch: { is_banned?: boolean; is_admin?: boolean }) {
+  async function patchUser(id: string, patch: { is_banned?: boolean; is_admin?: boolean; is_owner?: boolean }) {
     setActing(a => ({ ...a, [id]: true }))
     try {
       await apiCall('PATCH', `/admin/users/${id}`, patch)
@@ -290,8 +295,11 @@ export default function AdminUsers() {
                 <div>
                   <p className="text-subtle text-xs">Роль</p>
                   <div className="flex items-center gap-1 mt-0.5">
-                    {user.is_admin && (
-                      <span className="px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full font-medium">ADMIN</span>
+                    {effectiveIsOwner && user.is_owner && (
+                      <span className="px-1.5 py-0.5 bg-warning/10 text-warning text-xs rounded-full font-medium">ВЛАДЕЛЕЦ</span>
+                    )}
+                    {user.is_admin && !(effectiveIsOwner && user.is_owner) && (
+                      <span className="px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full font-medium">АДМИН</span>
                     )}
                     {user.is_banned && (
                       <span className="px-1.5 py-0.5 bg-error/10 text-error text-xs rounded-full font-medium">БАН</span>
@@ -327,16 +335,30 @@ export default function AdminUsers() {
                   {acting[user.id] ? <Loader2 size={12} className="animate-spin" /> : user.is_banned ? <UserCheck size={12} /> : <UserX size={12} />}
                   {user.is_banned ? 'Разбанить' : 'Заблокировать'}
                 </button>
-                <button
-                  onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
-                  disabled={acting[user.id]}
-                  className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
-                    user.is_admin ? 'bg-accent-subtle text-accent' : 'bg-panel text-subtle'
-                  }`}
-                >
-                  {user.is_admin ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
-                  {user.is_admin ? 'Снять админа' : 'Сделать админом'}
-                </button>
+                {effectiveIsOwner && (
+                  <button
+                    onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
+                    disabled={acting[user.id]}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                      user.is_admin ? 'bg-accent-subtle text-accent' : 'bg-panel text-subtle'
+                    }`}
+                  >
+                    {user.is_admin ? <ShieldOff size={12} /> : <ShieldCheck size={12} />}
+                    {user.is_admin ? 'Снять админа' : 'Сделать админом'}
+                  </button>
+                )}
+                {effectiveIsOwner && user.is_admin && (
+                  <button
+                    onClick={() => patchUser(user.id, { is_owner: !user.is_owner })}
+                    disabled={acting[user.id]}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+                      user.is_owner ? 'bg-warning/10 text-warning' : 'bg-panel text-subtle'
+                    }`}
+                  >
+                    <Crown size={12} />
+                    {user.is_owner ? 'Снять владельца' : 'Сделать владельцем'}
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -398,9 +420,14 @@ export default function AdminUsers() {
                   </td>
                   <td className="py-2 px-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      {user.is_admin && (
+                      {effectiveIsOwner && user.is_owner && (
+                        <span className="px-1.5 py-0.5 bg-warning/10 text-warning text-xs rounded-full font-medium">
+                          ВЛАДЕЛЕЦ
+                        </span>
+                      )}
+                      {user.is_admin && !(effectiveIsOwner && user.is_owner) && (
                         <span className="px-1.5 py-0.5 bg-accent-subtle text-accent text-xs rounded-full font-medium">
-                          ADMIN
+                          АДМИН
                         </span>
                       )}
                       {user.is_banned && (
@@ -444,18 +471,34 @@ export default function AdminUsers() {
                           <UserX size={14} />
                         )}
                       </button>
-                      <button
-                        onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
-                        disabled={acting[user.id]}
-                        title={user.is_admin ? 'Снять права админа' : 'Сделать админом'}
-                        className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
-                          user.is_admin
-                            ? 'text-accent hover:bg-accent-subtle'
-                            : 'text-subtle hover:bg-panel'
-                        }`}
-                      >
-                        {user.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
-                      </button>
+                      {effectiveIsOwner && (
+                        <button
+                          onClick={() => patchUser(user.id, { is_admin: !user.is_admin })}
+                          disabled={acting[user.id]}
+                          title={user.is_admin ? 'Снять права админа' : 'Сделать админом'}
+                          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                            user.is_admin
+                              ? 'text-accent hover:bg-accent-subtle'
+                              : 'text-subtle hover:bg-panel'
+                          }`}
+                        >
+                          {user.is_admin ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
+                        </button>
+                      )}
+                      {effectiveIsOwner && user.is_admin && (
+                        <button
+                          onClick={() => patchUser(user.id, { is_owner: !user.is_owner })}
+                          disabled={acting[user.id]}
+                          title={user.is_owner ? 'Снять права владельца' : 'Сделать владельцем'}
+                          className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
+                            user.is_owner
+                              ? 'text-warning hover:bg-warning/10'
+                              : 'text-subtle hover:bg-panel'
+                          }`}
+                        >
+                          <Crown size={14} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

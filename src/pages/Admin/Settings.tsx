@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
+import { useAdminView } from '../../contexts/AdminViewContext'
 import TwoFactor from './TwoFactor'
 
 interface SiteSettings {
@@ -82,6 +83,7 @@ const ADMIN_SETTING_KEYS = ADMIN_SETTING_GROUPS.flatMap(g => g.keys)
 
 export default function AdminSettings() {
   const toast = useToast()
+  const { effectiveIsOwner } = useAdminView()
 
   const [loadingSettings, setLoadingSettings] = useState(true)
   const [depositText, setDepositText] = useState('')
@@ -126,9 +128,12 @@ export default function AdminSettings() {
   }
 
   useEffect(() => {
+    // Разделы 1-3 (реквизиты, платформенные параметры, категории форума)
+    // owner-only на бэкенде — рядовому админу их даже не запрашиваем.
+    if (!effectiveIsOwner) { setLoadingSettings(false); return }
     fetchSettings()
     fetchCategories()
-  }, [])
+  }, [effectiveIsOwner])
 
   async function saveDepositInstructions() {
     setSavingKey('deposit_instructions')
@@ -220,6 +225,19 @@ export default function AdminSettings() {
     } finally {
       setCatActing(a => ({ ...a, [id]: false }))
     }
+  }
+
+  if (!effectiveIsOwner) {
+    return (
+      <div className="space-y-8 max-w-7xl">
+        <h1 className="text-xl font-semibold text-ink">Настройки</h1>
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold text-ink border-b border-line pb-2">Безопасность</h2>
+          <p className="text-sm text-subtle">Двухфакторная аутентификация для вашего аккаунта администратора</p>
+          <TwoFactor />
+        </section>
+      </div>
+    )
   }
 
   if (loadingSettings) {

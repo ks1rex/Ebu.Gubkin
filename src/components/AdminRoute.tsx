@@ -1,9 +1,10 @@
 import { useEffect, useState, FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import MfaRecovery from './MfaRecovery'
+import { ADMIN_TIER_PATHS } from '../pages/Admin'
 
 /**
  * Одна точка проверки второго фактора на всю админку. Бэкенд отдаёт 403
@@ -82,6 +83,7 @@ function MfaGate({ factorId, onDone }: { factorId: string; onDone: () => void })
 
 export default function AdminRoute({ children }: { children: React.ReactNode }) {
   const { profile, loading } = useAuth()
+  const location = useLocation()
   // null = ещё проверяем, '' = второй фактор не требуется
   const [needFactorId, setNeedFactorId] = useState<string | null>(null)
   const [checked, setChecked] = useState(false)
@@ -113,5 +115,14 @@ export default function AdminRoute({ children }: { children: React.ReactNode }) 
   )
   if (!profile?.is_admin) return <Navigate to="/" replace />
   if (needFactorId) return <MfaGate factorId={needFactorId} onDone={() => setNeedFactorId(null)} />
+
+  // Реальные не-владельцы (не тумблер «смотреть как админ» — тот только для
+  // самих владельцев) не должны попасть на owner-only раздел по прямому URL,
+  // даже если пункт меню скрыт. Бэкенд отдельно отдаёт 403 на тех же путях.
+  if (!profile.is_owner) {
+    const allowed = ADMIN_TIER_PATHS.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`))
+    if (!allowed) return <Navigate to="/admin/disputes" replace />
+  }
+
   return <>{children}</>
 }

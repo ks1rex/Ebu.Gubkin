@@ -20,30 +20,75 @@ import {
   CalendarClock,
   Crown,
   HelpCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { AdminViewProvider, useAdminView } from '../../contexts/AdminViewContext'
 
+// ownerOnly: true — скрыт от тарифа «админ» (и на фронте, и 403 на бэкенде,
+// см. reshbirga routes/admin.js). Не указан/false — доступен обоим тарифам
+// (Настройки и Справка тоже доступны, но их содержимое само сужается для
+// не-владельца — см. Settings.tsx / Help.tsx).
 export const NAV_ITEMS = [
-  { to: '/admin',                icon: LayoutDashboard, label: 'Дашборд',     end: true },
-  { to: '/admin/finance',        icon: TrendingUp,      label: 'Финансы' },
-  { to: '/admin/deposits',       icon: ArrowDownCircle, label: 'Пополнения' },
-  { to: '/admin/withdrawals',    icon: ArrowUpCircle,   label: 'Выводы' },
+  { to: '/admin',                icon: LayoutDashboard, label: 'Дашборд',     end: true, ownerOnly: true },
+  { to: '/admin/finance',        icon: TrendingUp,      label: 'Финансы',                ownerOnly: true },
+  { to: '/admin/deposits',       icon: ArrowDownCircle, label: 'Пополнения',             ownerOnly: true },
+  { to: '/admin/withdrawals',    icon: ArrowUpCircle,   label: 'Выводы',                 ownerOnly: true },
   { to: '/admin/disputes',       icon: Scale,           label: 'Споры' },
   { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
-  { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны' },
-  { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания' },
+  { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны',           ownerOnly: true },
+  { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания',     ownerOnly: true },
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
   { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
   { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },
   { to: '/admin/support',        icon: LifeBuoy,        label: 'Поддержка' },
-  { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал' },
+  { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал',                 ownerOnly: true },
   { to: '/admin/users',          icon: Users,           label: 'Пользователи' },
-  { to: '/admin/vip',            icon: Crown,           label: 'VIP / подписки' },
+  { to: '/admin/vip',            icon: Crown,           label: 'VIP / подписки',         ownerOnly: true },
   { to: '/admin/settings',       icon: Settings,        label: 'Настройки' },
   { to: '/admin/help',           icon: HelpCircle,      label: 'Справка' },
 ]
 
+// Пути, доступные тарифу «админ» — используется AdminRoute для блокировки
+// прямого перехода по URL и здесь для фильтрации меню.
+export const ADMIN_TIER_PATHS = NAV_ITEMS.filter(i => !i.ownerOnly).map(i => i.to)
+
 export default function AdminLayout() {
+  return (
+    <AdminViewProvider>
+      <AdminLayoutInner />
+    </AdminViewProvider>
+  )
+}
+
+/** Тумблер «Смотреть как админ» — только для владельца, чистый UI-фильтр
+ * (реальные права/запросы не меняются, см. AdminViewContext). */
+function ViewAsAdminToggle() {
+  const { profile } = useAuth()
+  const { viewAsAdmin, setViewAsAdmin } = useAdminView()
+  if (!profile?.is_owner) return null
+
+  return (
+    <button
+      onClick={() => setViewAsAdmin(!viewAsAdmin)}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+        viewAsAdmin
+          ? 'bg-accent text-white'
+          : 'bg-panel text-subtle hover:text-ink border border-line'
+      }`}
+      title="Демо-режим: показывает интерфейс так, как его видит рядовой админ"
+    >
+      {viewAsAdmin ? <EyeOff size={14} /> : <Eye size={14} />}
+      {viewAsAdmin ? 'Смотрите как админ' : 'Смотреть как админ'}
+    </button>
+  )
+}
+
+function AdminLayoutInner() {
   const [collapsed, setCollapsed] = useState(false)
+  const { effectiveIsOwner } = useAdminView()
+  const items = NAV_ITEMS.filter(i => !i.ownerOnly || effectiveIsOwner)
 
   return (
     <div className="flex min-h-[calc(100vh-56px)]">
@@ -68,8 +113,14 @@ export default function AdminLayout() {
           </button>
         </div>
 
+        {!collapsed && (
+          <div className="px-2 mb-3">
+            <ViewAsAdminToggle />
+          </div>
+        )}
+
         <nav className="flex flex-col gap-1 px-2">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+          {items.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -91,12 +142,16 @@ export default function AdminLayout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="lg:hidden mb-4">
+          <ViewAsAdminToggle />
+        </div>
+
         {/* Mobile section grid — replaces the sidebar nav below lg, shown on every admin page.
             Админка вложена в <main> Layout'а, так что на 320px тут остаётся ~240px:
             4 колонки давали 51px на ячейку при иконке 48px + p-3 — плитки лезли
             друг на друга. 3 колонки + уменьшенные отступы/иконки влезают. */}
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3 lg:hidden mb-6">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+          {items.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
               to={to}
