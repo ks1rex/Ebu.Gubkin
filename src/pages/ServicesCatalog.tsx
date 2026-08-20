@@ -6,6 +6,7 @@ import { formatCurrency, formatRating } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 import VipName from '../components/VipBadge'
+import { Avatar } from '../components/glass'
 
 const CLS = {
   badge: 'bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-xl py-[3px] px-2 text-[0.72rem] font-semibold flex items-center gap-1',
@@ -55,14 +56,17 @@ export default function ServicesCatalog() {
           {listings.map((l: any) => (
             <Link key={l.id} to={`/market/services/${l.id}`} className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-5 no-underline flex flex-col gap-2.5">
               <div className="text-slate-200 font-bold text-base leading-[1.3]">{l.title}</div>
-              <div className="flex items-center gap-2">
-                <div className="text-teal-legacy text-[0.82rem] font-medium"><VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} /></div>
-                {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1) && (
-                  <div className="flex items-center gap-1 text-amber-500 text-[0.8rem]">
-                    <Star size={11} fill="#f59e0b" />
-                    {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1)}
-                  </div>
-                )}
+              <div className="flex items-center gap-2.5">
+                <Avatar name={l.owner?.nickname} src={l.owner?.avatar_url} size={40} radius={12} isVip={l.owner?.is_vip} />
+                <div className="min-w-0">
+                  <div className="text-teal-legacy text-[0.82rem] font-medium truncate"><VipName name={l.owner?.nickname} isVip={l.owner?.is_vip} /></div>
+                  {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1) && (
+                    <div className="flex items-center gap-1 text-amber-500 text-[0.8rem]">
+                      <Star size={11} fill="#f59e0b" />
+                      {formatRating(l.owner?.rating_as_executor, l.owner?.reviews_count_executor, 1)}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-[6px] flex-wrap">
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span className={CLS.badge}><Shield size={11} />Залог {formatCurrency(l.deposit_amount)}</span>}

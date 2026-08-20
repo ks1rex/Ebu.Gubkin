@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, DollarSign, ChevronRight } from 'lucide-react'
+import { Search, DollarSign, ChevronRight, Star } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatRating } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
 import VipName from '../components/VipBadge'
+import { Avatar } from '../components/glass'
 
 const CLS = {
   typeBadge: 'inline-flex items-center gap-[5px] bg-[#14a89a18] text-teal-legacy border border-[#14a89a33] rounded-md py-[3px] px-[9px] text-xs font-semibold',
@@ -72,19 +73,31 @@ export default function OrderFeed() {
             return (
               <div key={order.id} className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-5 flex flex-col gap-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-slate-200 font-semibold text-base leading-[1.4] line-clamp-2">{order.title}</div>
+                  <div className="text-slate-200 font-semibold text-base md:text-lg leading-[1.4] line-clamp-2">{order.title}</div>
                 </div>
                 <div className="flex gap-[6px] flex-wrap">
                   <span className={CLS.typeBadge}><DollarSign size={12} />Заказ</span>
-                  <span className="inline-block bg-[#1e3a4a] text-slate-400 rounded-md py-[3px] px-[9px] text-xs">{order.subject}</span>
+                  <span className="inline-block bg-[#1e3a4a] text-slate-400 rounded-md py-[3px] px-[9px] text-xs md:text-[0.85rem]">{order.subject}</span>
                 </div>
                 <div>
-                  <div className="text-teal-legacy font-bold text-[1.05rem]">{formatCurrency(order.base_amount)}</div>
-                  <div className="text-slate-500 text-[0.78rem] mt-0.5">бюджет заказчика · можно предложить свою цену</div>
+                  <div className="text-teal-legacy font-bold text-[1.05rem] md:text-[1.15rem]">{formatCurrency(order.base_amount)}</div>
+                  <div className="text-slate-500 text-[0.78rem] md:text-[0.85rem] mt-0.5">бюджет · можно предложить свою цену</div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <Avatar name={order.customer?.nickname} src={order.customer?.avatar_url} size={40} radius={12} isVip={order.customer?.is_vip} />
+                  <div className="min-w-0">
+                    <div className="text-slate-300 text-xs md:text-[0.92rem] truncate"><VipName name={order.customer?.nickname} isVip={order.customer?.is_vip} /></div>
+                    {formatRating(order.customer?.rating_as_customer, order.customer?.reviews_count_customer, 1) && (
+                      <div className="flex items-center gap-1 text-amber-500 text-[0.7rem] md:text-[0.85rem]">
+                        <Star size={11} fill="#f59e0b" />
+                        {formatRating(order.customer?.rating_as_customer, order.customer?.reviews_count_customer, 1)}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between mt-auto pt-1">
-                  <div className="text-slate-500 text-xs">
-                    <VipName name={order.customer?.nickname} isVip={order.customer?.is_vip} /> · {new Date(order.created_at).toLocaleDateString('ru-RU')}
+                  <div className="text-slate-500 text-xs md:text-[0.85rem]">
+                    {new Date(order.created_at).toLocaleDateString('ru-RU')}
                   </div>
                   <div className="flex gap-[6px]">
                     <Link to={`/market/orders/${order.id}`} className={CLS.btn('muted')}>

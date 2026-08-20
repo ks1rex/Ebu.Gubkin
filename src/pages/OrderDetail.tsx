@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Download, FileText, Users, Send, MessageSquare, CheckCircle, AlertOctagon, Shield } from 'lucide-react'
+import { Download, FileText, Users, Send, MessageSquare, CheckCircle, AlertOctagon, Shield, Star } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { StatusBadge } from '../lib/statusMap'
+import { formatRating } from '../lib/format'
 import StarRating from '../components/StarRating'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
@@ -14,8 +15,8 @@ const CLS = {
   card: 'bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4',
   sectionTitle: 'text-slate-400 text-[0.8rem] font-semibold uppercase tracking-[0.05em] mb-4',
   meta: 'grid grid-cols-[repeat(auto-fill,minmax(min(180px,100%),1fr))] gap-4 mb-4',
-  metaItem: 'text-slate-500 text-[0.85rem]',
-  metaValue: 'text-slate-200 font-medium mt-0.5',
+  metaItem: 'text-slate-500 text-[0.85rem] md:text-[0.95rem]',
+  metaValue: 'text-slate-200 font-medium mt-0.5 md:text-[1.05rem]',
   paymentBox: 'bg-[#0d2620] border border-teal-legacy-hover rounded-lg p-5 mb-4',
   paymentTitle: 'text-teal-legacy font-bold mb-2 text-[1.05rem]',
   paymentText: 'text-slate-400 text-[0.9rem] leading-[1.7]',
@@ -220,7 +221,10 @@ export default function OrderDetail() {
       {isOwner && order.status === 'open' && order.executor_id == null && (
         <div className={CLS.card}>
           {!cancelOpen ? (
-            <button className={CLS.disputeBtn} onClick={() => { setActionError(''); setCancelOpen(true) }}>Отменить заказ</button>
+            <div className="flex gap-2 flex-wrap">
+              <Link to={`/market/orders/${order.id}/edit`} className={`${CLS.cancelBtn} no-underline inline-block`}>Редактировать</Link>
+              <button className={CLS.disputeBtn} onClick={() => { setActionError(''); setCancelOpen(true) }}>Отменить заказ</button>
+            </div>
           ) : (
             <div>
               <div className="text-slate-400 text-[0.85rem] mb-2">Отменить заказ? Вся зарезервированная сумма ({order.reserved_amount} ₽) будет возвращена на ваш баланс.</div>
@@ -361,8 +365,30 @@ export default function OrderDetail() {
             <div className={CLS.metaItem}>Залог<div className="flex items-center gap-[5px] mt-0.5"><Shield size={13} className="text-amber-500" /><span className="text-amber-500 font-medium">{order.deposit_amount} ₽</span></div></div>
           )}
           <div className={CLS.metaItem}>Зарезервировано<div className={CLS.amount}>{order.reserved_amount} ₽</div></div>
-          {order.customer && <div className={CLS.metaItem}>Заказчик<div className={CLS.metaValue}><Link to={`/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link></div></div>}
-          {order.executor && <div className={CLS.metaItem}>Исполнитель<div className={CLS.metaValue}><Link to={`/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link></div></div>}
+          {order.customer && (
+            <div className={CLS.metaItem}>Заказчик
+              <div className={`${CLS.metaValue} flex items-center gap-1.5 flex-wrap`}>
+                <Link to={`/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link>
+                {formatRating(order.customer.rating_as_customer, order.customer.reviews_count_customer, 1) && (
+                  <span className="flex items-center gap-1 text-amber-500 text-[0.8rem] font-normal">
+                    <Star size={12} fill="#f59e0b" />{formatRating(order.customer.rating_as_customer, order.customer.reviews_count_customer, 1)}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          {order.executor && (
+            <div className={CLS.metaItem}>Исполнитель
+              <div className={`${CLS.metaValue} flex items-center gap-1.5 flex-wrap`}>
+                <Link to={`/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link>
+                {formatRating(order.executor.rating_as_executor, order.executor.reviews_count_executor, 1) && (
+                  <span className="flex items-center gap-1 text-amber-500 text-[0.8rem] font-normal">
+                    <Star size={12} fill="#f59e0b" />{formatRating(order.executor.rating_as_executor, order.executor.reviews_count_executor, 1)}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <div className={CLS.sectionTitle}>Описание</div>
         <div className={CLS.desc}>{order.description}</div>
