@@ -10,7 +10,7 @@ const GOST = import.meta.env.VITE_GOST_URL as string
 
 interface InputDatum { id: string; symbol: string; value: number | string; unit: string; description: string }
 interface TableDef { id: string; name: string; x_label: string; y_label: string; x: number[]; y: number[]; interpolation: string }
-interface Step { id: string; result_symbol: string; description: string; formula: string; unit: string; rounding: number; explanation: string; depends_on: string[] }
+interface Step { id: string; result_symbol: string; description: string; formula: string; formula_display?: string; unit: string; rounding: number; explanation: string; depends_on: string[] }
 interface Section { id: string; title: string; level: 1 | 2; intro_text: string; steps: Step[] }
 
 interface TemplateSpec {
@@ -415,12 +415,14 @@ export default function AdminGostTemplates() {
       return
     }
     const renamed = renameVar(spec, oldId, newId)
+    // symbol/result_symbol не синхронизируем с id — это отдельное, свободно
+    // редактируемое обозначение для документа (см. поле «Символ в документе»).
     setSpec({
       ...renamed,
-      input_data: renamed.input_data.map(d => d.id === oldId ? { ...d, id: newId, symbol: newId } : d),
+      input_data: renamed.input_data.map(d => d.id === oldId ? { ...d, id: newId } : d),
       sections: renamed.sections.map(sec => ({
         ...sec,
-        steps: sec.steps.map(st => st.id === oldId ? { ...st, id: newId, result_symbol: newId } : st),
+        steps: sec.steps.map(st => st.id === oldId ? { ...st, id: newId } : st),
       })),
     })
   }
@@ -640,14 +642,16 @@ export default function AdminGostTemplates() {
                   {tab === 'inputs' && (
                     <div className="space-y-2">
                       <p className="text-xs text-subtle">
-                        Обозначение — это одновременно имя в формулах и то, что печатается в документе.
-                        Можно писать по-русски: Qсут, Кмакс. При переименовании формулы обновляются автоматически.
+                        Обозначение — имя переменной в формулах (буквы, цифры, «_», без пробелов и спецсимволов).
+                        Символ в документе — как это печатается в отчёте, можно писать что угодно (индексы, точки,
+                        любой регистр) — на расчёт не влияет.
                       </p>
                       {spec.input_data.map(d => (
                         <div key={d.id} className={CARD}>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
                             <IdField label="Обозначение" value={d.id}
                               onCommit={v => renameVarId(d.id, v)} error={errors.has(`name-${d.id}`)} />
+                            <Field label="Символ в документе" value={d.symbol} onChange={v => updateInputDatum(d.id, { symbol: v })} />
                             <Field label="Значение" value={String(d.value)} onChange={v => updateInputDatum(d.id, { value: parseValue(v) })} />
                             <Field label="Единица" value={d.unit} onChange={v => updateInputDatum(d.id, { unit: v })} />
                             <Field label="Описание" value={d.description} onChange={v => updateInputDatum(d.id, { description: v })} />
@@ -768,9 +772,10 @@ export default function AdminGostTemplates() {
                                           <Trash2 size={14} />
                                         </button>
                                       </div>
-                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                                         <IdField label="Обозначение результата" value={st.id}
                                           onCommit={v => renameVarId(st.id, v)} error={errors.has(`name-${st.id}`)} />
+                                        <Field label="Символ в документе" value={st.result_symbol} onChange={v => updateStep(sec.id, st.id, { result_symbol: v })} />
                                         <Field label="Единица" value={st.unit} onChange={v => updateStep(sec.id, st.id, { unit: v })} />
                                         <div>
                                           <label className={LABEL}>Знаков после запятой</label>
@@ -783,7 +788,10 @@ export default function AdminGostTemplates() {
                                       <Field label="Формула" value={st.formula} mono
                                         onChange={v => updateStep(sec.id, st.id, { formula: v })}
                                         error={errors.has(`step-formula-${st.id}`)}
-                                        hint="Пишется в документ как есть. Имена переменных — из «Исходных данных» и формул выше, можно по-русски: Qсут / 24" />
+                                        hint="Расчётное выражение (Python), в документ печатается как есть, если не задана «Формула для печати» ниже." />
+                                      <TextAreaField label="Формула для печати (необязательно)" value={st.formula_display ?? ''}
+                                        onChange={v => updateStep(sec.id, st.id, { formula_display: v })} rows={2}
+                                        hint={'{{ id }} — подставить значение/символ переменной; _{...} и ^{...} — нижний/верхний индекс; остальное — как есть, можно вписывать любые символы напрямую (·, ρ, Δ...). Пусто — печатается «Формула» выше.'} />
                                       <TextAreaField label="Пояснение («где …»)" value={st.explanation} onChange={v => updateStep(sec.id, st.id, { explanation: v })} rows={2} />
                                     </div>
                                   ))}
