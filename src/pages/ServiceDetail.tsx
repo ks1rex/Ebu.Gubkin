@@ -68,7 +68,7 @@ export default function ServiceDetail() {
         )}
         <div className="text-slate-200 text-[1.3rem] font-bold mb-3">{listing.title}</div>
         <div className="flex items-center gap-2 mb-4">
-          <Link to={`/users/${profileLink({ id: listing.owner_id, nickname: listing.owner?.nickname })}`} className="text-teal-legacy font-semibold no-underline text-[0.9rem]"><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
+          <Link to={`/users/${profileLink({ id: listing.owner_id, profile_slug: listing.owner?.profile_slug })}`} className="text-teal-legacy font-semibold no-underline text-[0.9rem]"><VipName name={listing.owner?.nickname} isVip={listing.owner?.is_vip} /></Link>
           {formatRating(listing.owner?.rating_as_executor, listing.owner?.reviews_count_executor, 1) && (
             <div className="flex items-center gap-1 text-amber-500 text-[0.82rem]">
               <Star size={12} fill="#f59e0b" />

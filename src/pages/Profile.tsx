@@ -75,6 +75,7 @@ function Avatar({ profile, preview, size = 'lg' }: AvatarProps) {
 interface FormState {
   full_name: string
   nickname: string
+  profile_slug: string
   phone: string
   telegram_username: string
   university_group: string
@@ -82,7 +83,8 @@ interface FormState {
   skills: string[]
 }
 
-const NICKNAME_RE = /^[a-zA-Z0-9_-]{3,32}$/
+const NICKNAME_RE = /^.{2,32}$/
+const SLUG_RE = /^[a-zA-Z0-9_-]{3,32}$/
 
 const INPUT = 'w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors'
 
@@ -94,7 +96,7 @@ export default function Profile() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [editing, setEditing]           = useState(false)
-  const [form, setForm]                 = useState<FormState>({ full_name: '', nickname: '', phone: '', telegram_username: '', university_group: '', bio: '', skills: [] })
+  const [form, setForm]                 = useState<FormState>({ full_name: '', nickname: '', profile_slug: '', phone: '', telegram_username: '', university_group: '', bio: '', skills: [] })
   const [skillInput, setSkillInput]     = useState('')
   const [avatarFile, setAvatarFile]     = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -126,6 +128,7 @@ export default function Profile() {
     setForm({
       full_name:         profile!.full_name         ?? '',
       nickname:          profile!.nickname          ?? '',
+      profile_slug:      profile!.profile_slug      ?? '',
       phone:             profile!.phone             ?? '',
       telegram_username: profile!.telegram_username ?? '',
       university_group:  profile!.university_group  ?? '',
@@ -166,6 +169,9 @@ export default function Profile() {
   function validate(): string | null {
     if (!form.full_name.trim()) return 'Введите имя'
     if (form.nickname && !NICKNAME_RE.test(form.nickname)) {
+      return 'Имя пользователя: 2-32 символа'
+    }
+    if (form.profile_slug && !SLUG_RE.test(form.profile_slug)) {
       return 'Ссылка на профиль: 3-32 символа, латиница/цифры/-/_'
     }
     if (form.phone && !isValidPhone(form.phone)) return 'Некорректный формат телефона'
@@ -194,6 +200,7 @@ export default function Profile() {
         .update({
           full_name:         form.full_name.trim()         || null,
           nickname:          form.nickname.trim()          || null,
+          profile_slug:      form.profile_slug.trim()      || null,
           phone:             form.phone                    || null,
           telegram_username: form.telegram_username        || null,
           university_group:  form.university_group.trim()  || null,
@@ -205,7 +212,11 @@ export default function Profile() {
         .eq('id', profile.id)
 
       if (error) {
-        if (error.code === '23505') { toast('Эта ссылка уже занята', 'error'); return }
+        if (error.code === '23505') {
+          const takenSlug = error.message?.includes('profiles_slug_lower_idx')
+          toast(takenSlug ? 'Эта ссылка уже занята' : 'Это имя пользователя уже занято', 'error')
+          return
+        }
         throw error
       }
 
@@ -271,16 +282,28 @@ export default function Profile() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">Ссылка на профиль</label>
+              <label className="block text-sm font-medium text-ink mb-1">Имя пользователя</label>
               <input
                 type="text"
                 value={form.nickname}
-                onChange={e => setForm(f => ({ ...f, nickname: e.target.value.trim() }))}
+                onChange={e => setForm(f => ({ ...f, nickname: e.target.value }))}
+                placeholder="Иван"
+                className={INPUT}
+              />
+              <p className="text-xs text-subtle mt-1">Отображается вместо имени и фамилии, например в форуме</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1">Ссылка на профиль</label>
+              <input
+                type="text"
+                value={form.profile_slug}
+                onChange={e => setForm(f => ({ ...f, profile_slug: e.target.value.trim() }))}
                 placeholder="ivan_ivanov"
                 className={INPUT}
               />
               <p className="text-xs text-subtle mt-1">
-                /users/{form.nickname || '…'} — латиница, цифры, - и _, от 3 до 32 символов
+                /users/{form.profile_slug || '…'} — латиница, цифры, - и _, от 3 до 32 символов
               </p>
             </div>
 

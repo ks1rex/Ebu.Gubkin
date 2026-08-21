@@ -42,6 +42,7 @@ export interface PublicProfile {
 interface Review {
   author_id: string
   author_username: string | null
+  author_slug: string | null
   author_avatar: string | null
   rating: number
   text: string | null
@@ -274,7 +275,7 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                 <GlassCard key={i} className="rounded-2xl px-5 py-4">
                   <div className="flex items-center gap-2.5 mb-2">
                     <Stars rating={r.rating} />
-                    <Link to={`/users/${r.author_username || r.author_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
+                    <Link to={`/users/${r.author_slug || r.author_id}`} className="text-lav text-[13.5px] font-semibold hover:underline">
                       {r.author_username}
                     </Link>
                     <span className="text-subtle text-xs ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>

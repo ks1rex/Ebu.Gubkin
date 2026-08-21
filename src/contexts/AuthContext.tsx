@@ -7,6 +7,7 @@ export interface Profile {
   id: string
   email: string
   nickname: string | null
+  profile_slug: string | null
   full_name: string | null
   avatar_url: string | null
   phone: string | null
@@ -60,7 +61,7 @@ async function loadProfile(userId: string): Promise<Profile | null> {
   const { data } = await supabase
     .from('profiles')
     .select(`
-      id, email, nickname, full_name, avatar_url,
+      id, email, nickname, profile_slug, full_name, avatar_url,
       phone, telegram_username, university_group,
       balance, deposited_balance, earned_balance, token_balance, is_admin, is_owner, is_owner_was,
       referral_code, referral_earnings,

@@ -1,6 +1,6 @@
-/** URL segment for a user's profile — nickname when set, UUID id otherwise. */
-export function profileLink(user: { id?: string | null; nickname?: string | null } | null | undefined): string {
-  return user?.nickname || user?.id || ''
+/** URL segment for a user's profile — their chosen slug, UUID id otherwise. */
+export function profileLink(user: { id?: string | null; profile_slug?: string | null } | null | undefined): string {
+  return user?.profile_slug || user?.id || ''
 }
 
 export function formatCurrency(amount: number | string | null | undefined): string {
