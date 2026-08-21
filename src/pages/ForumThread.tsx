@@ -6,6 +6,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
+import { profileLink } from '../lib/format'
 import ReportModal from '../components/Forum/ReportModal'
 import { GlassCard, Avatar, Button } from '../components/glass'
 import VipName from '../components/VipBadge'
@@ -399,7 +400,7 @@ export default function ForumThread() {
           <div className="flex flex-col gap-4">
             <GlassCard className="rounded-[20px] p-5 text-center">
               <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={64} radius={18} isVip={thread.author?.is_vip} className="mx-auto mb-3 text-[22px]" />
-              <Link to={`/users/${thread.author?.id}`} className="font-semibold text-base text-ink hover:underline">
+              <Link to={`/users/${profileLink(thread.author)}`} className="font-semibold text-base text-ink hover:underline">
                 <VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} />
               </Link>
             </GlassCard>

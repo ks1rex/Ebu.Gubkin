@@ -4,7 +4,7 @@ import { Download, FileText, Users, Send, MessageSquare, CheckCircle, AlertOctag
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { StatusBadge } from '../lib/statusMap'
-import { formatRating } from '../lib/format'
+import { formatRating, profileLink } from '../lib/format'
 import StarRating from '../components/StarRating'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
@@ -306,7 +306,7 @@ export default function OrderDetail() {
               <div key={r.id} className="bg-[#070d14] border border-[#1e3a4a] rounded-lg p-4 mb-2">
                 <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                   <StarRating value={r.rating} size={14} gap={1} />
-                  <Link to={`/users/${r.reviewer_id}`} className="text-teal-legacy text-[0.82rem] font-semibold no-underline">{r.reviewer?.nickname}</Link>
+                  <Link to={`/users/${r.reviewer?.nickname || r.reviewer_id}`} className="text-teal-legacy text-[0.82rem] font-semibold no-underline">{r.reviewer?.nickname}</Link>
                   <span className="text-slate-500 text-[0.74rem]">{r.context === 'as_executor' ? '· о исполнителе' : '· о заказчике'}</span>
                   <span className="text-slate-500 text-[0.72rem] ml-auto">{new Date(r.created_at).toLocaleDateString('ru-RU')}</span>
                 </div>
@@ -368,7 +368,7 @@ export default function OrderDetail() {
           {order.customer && (
             <div className={CLS.metaItem}>Заказчик
               <div className={`${CLS.metaValue} flex items-center gap-1.5 flex-wrap`}>
-                <Link to={`/users/${order.customer_id}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link>
+                <Link to={`/users/${profileLink({ id: order.customer_id, nickname: order.customer.nickname })}`} className="text-teal-legacy no-underline"><VipName name={order.customer.nickname} isVip={order.customer.is_vip} /></Link>
                 {formatRating(order.customer.rating_as_customer, order.customer.reviews_count_customer, 1) && (
                   <span className="flex items-center gap-1 text-amber-500 text-[0.8rem] font-normal">
                     <Star size={12} fill="#f59e0b" />{formatRating(order.customer.rating_as_customer, order.customer.reviews_count_customer, 1)}
@@ -380,7 +380,7 @@ export default function OrderDetail() {
           {order.executor && (
             <div className={CLS.metaItem}>Исполнитель
               <div className={`${CLS.metaValue} flex items-center gap-1.5 flex-wrap`}>
-                <Link to={`/users/${order.executor_id}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link>
+                <Link to={`/users/${profileLink({ id: order.executor_id, nickname: order.executor.nickname })}`} className="text-teal-legacy no-underline"><VipName name={order.executor.nickname} isVip={order.executor.is_vip} /></Link>
                 {formatRating(order.executor.rating_as_executor, order.executor.reviews_count_executor, 1) && (
                   <span className="flex items-center gap-1 text-amber-500 text-[0.8rem] font-normal">
                     <Star size={12} fill="#f59e0b" />{formatRating(order.executor.rating_as_executor, order.executor.reviews_count_executor, 1)}

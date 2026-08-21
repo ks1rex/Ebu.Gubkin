@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, Briefcase, FileText, Wallet as WalletIcon, ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, profileLink } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
 import { GlassCard, Button, Avatar } from '../components/glass'
 import { useGostFrozenModal } from '../components/GostFrozenNotice'
@@ -270,7 +270,7 @@ export default function Home() {
               <h3 className="text-sm font-semibold text-ink mb-3.5">🏆 Топ студентов недели</h3>
               <div className="flex flex-col gap-3">
                 {leaders.map((l, i) => (
-                  <Link key={l.id} to={`/users/${l.id}`} className="flex items-center gap-2.5">
+                  <Link key={l.id} to={`/users/${profileLink(l)}`} className="flex items-center gap-2.5">
                     <span className="w-5 text-sm font-bold text-subtle shrink-0">{i + 1}</span>
                     <Avatar name={l.nickname} src={l.avatar_url} size={32} radius={10} className="text-xs" />
                     <span className="text-sm text-ink flex-1 truncate">{l.nickname}</span>

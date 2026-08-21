@@ -74,12 +74,15 @@ function Avatar({ profile, preview, size = 'lg' }: AvatarProps) {
 
 interface FormState {
   full_name: string
+  nickname: string
   phone: string
   telegram_username: string
   university_group: string
   bio: string
   skills: string[]
 }
+
+const NICKNAME_RE = /^[a-zA-Z0-9_-]{3,32}$/
 
 const INPUT = 'w-full px-3 py-2 rounded-lg border border-line bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent transition-colors'
 
@@ -91,7 +94,7 @@ export default function Profile() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [editing, setEditing]           = useState(false)
-  const [form, setForm]                 = useState<FormState>({ full_name: '', phone: '', telegram_username: '', university_group: '', bio: '', skills: [] })
+  const [form, setForm]                 = useState<FormState>({ full_name: '', nickname: '', phone: '', telegram_username: '', university_group: '', bio: '', skills: [] })
   const [skillInput, setSkillInput]     = useState('')
   const [avatarFile, setAvatarFile]     = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -122,6 +125,7 @@ export default function Profile() {
   function startEditing() {
     setForm({
       full_name:         profile!.full_name         ?? '',
+      nickname:          profile!.nickname          ?? '',
       phone:             profile!.phone             ?? '',
       telegram_username: profile!.telegram_username ?? '',
       university_group:  profile!.university_group  ?? '',
@@ -161,6 +165,9 @@ export default function Profile() {
 
   function validate(): string | null {
     if (!form.full_name.trim()) return 'Введите имя'
+    if (form.nickname && !NICKNAME_RE.test(form.nickname)) {
+      return 'Ссылка на профиль: 3-32 символа, латиница/цифры/-/_'
+    }
     if (form.phone && !isValidPhone(form.phone)) return 'Некорректный формат телефона'
     if (form.telegram_username && !form.telegram_username.startsWith('@')) return 'Telegram должен начинаться с @'
     if (form.bio.length > 300) return 'О себе — не больше 300 символов'
@@ -186,6 +193,7 @@ export default function Profile() {
         .from('profiles')
         .update({
           full_name:         form.full_name.trim()         || null,
+          nickname:          form.nickname.trim()          || null,
           phone:             form.phone                    || null,
           telegram_username: form.telegram_username        || null,
           university_group:  form.university_group.trim()  || null,
@@ -196,7 +204,10 @@ export default function Profile() {
         })
         .eq('id', profile.id)
 
-      if (error) throw error
+      if (error) {
+        if (error.code === '23505') { toast('Эта ссылка уже занята', 'error'); return }
+        throw error
+      }
 
       await refreshProfile()
       fetchPublic()
@@ -257,6 +268,20 @@ export default function Profile() {
                 placeholder="Иван Иванов"
                 className={INPUT}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-ink mb-1">Ссылка на профиль</label>
+              <input
+                type="text"
+                value={form.nickname}
+                onChange={e => setForm(f => ({ ...f, nickname: e.target.value.trim() }))}
+                placeholder="ivan_ivanov"
+                className={INPUT}
+              />
+              <p className="text-xs text-subtle mt-1">
+                /users/{form.nickname || '…'} — латиница, цифры, - и _, от 3 до 32 символов
+              </p>
             </div>
 
             <div>

@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
+import { profileLink } from '../lib/format'
 import { apiCall } from '../lib/api'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
 import { GlassCard, Button, Avatar } from '../components/glass'
@@ -214,13 +215,13 @@ export default function Forum() {
               ? <GlassCard className="rounded-2xl py-8 text-center text-subtle text-sm">Тем пока нет</GlassCard>
               : hotThreads.map(t => (
                   <GlassCard key={t.id} className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
-                    <Link to={`/users/${t.author?.id}`} className="shrink-0">
+                    <Link to={`/users/${profileLink(t.author)}`} className="shrink-0">
                       <Avatar name={t.author?.nickname} src={t.author?.avatar_url} size={34} radius={10} isVip={t.author?.is_vip} />
                     </Link>
                     <div className="flex-1 min-w-0">
                       <Link to={`/forum/thread/${t.id}`} className="text-sm text-ink hover:text-lav transition-colors truncate block">{t.title}</Link>
                       <div className="text-xs text-subtle mt-0.5 flex items-center gap-1.5">
-                        <Link to={`/users/${t.author?.id}`} className="hover:text-ink transition-colors"><VipName name={t.author?.nickname} isVip={t.author?.is_vip} badgeSize="sm" /></Link>
+                        <Link to={`/users/${profileLink(t.author)}`} className="hover:text-ink transition-colors"><VipName name={t.author?.nickname} isVip={t.author?.is_vip} badgeSize="sm" /></Link>
                         {t.category && (
                           <span className="text-[10.5px] font-semibold px-1.5 py-0.5 rounded" style={{ color: catColor(t.category.name), background: `${catColor(t.category.name)}1f` }}>
                             {t.category.name}
@@ -242,7 +243,7 @@ export default function Forum() {
               <h3 className="text-sm font-semibold text-ink mb-3.5">🏆 Топ авторов недели</h3>
               <div className="flex flex-col gap-3">
                 {leaders.map((l, i) => (
-                  <Link key={l.id} to={`/users/${l.id}`} className="flex items-center gap-2.5">
+                  <Link key={l.id} to={`/users/${profileLink(l)}`} className="flex items-center gap-2.5">
                     <span className="w-5 text-sm font-bold text-subtle shrink-0">{i + 1}</span>
                     <Avatar name={l.nickname} src={l.avatar_url} size={32} radius={10} className="text-xs" />
                     <span className="text-sm text-ink flex-1 truncate">{l.nickname}</span>
