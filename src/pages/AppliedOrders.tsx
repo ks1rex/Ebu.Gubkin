@@ -57,7 +57,7 @@ export default function AppliedOrders() {
                 </div>
               </div>
               <span className={`inline-block py-0.5 px-[9px] rounded-xl text-xs font-semibold whitespace-nowrap border ${appMeta.badgeCls}`}>Заявка: {appMeta.label}</span>
-              {order && (
+              {order && item.status === 'accepted' && (
                 <span className="inline-flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap">
                   Заказ: <StatusBadge status={order.status} />
                 </span>
