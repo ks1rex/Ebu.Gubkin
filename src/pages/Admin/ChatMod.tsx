@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { Loader2, CheckCircle2, ShieldAlert, UserX, MessageSquareWarning } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
@@ -21,6 +21,8 @@ interface FlaggedMessage {
     orders: { id: string; title: string; order_type: string } | null
   } | null
 }
+
+const DEFAULT_WARNING = '⚠️ Сообщение от администрации: пожалуйста, ведите все переговоры и передачу данных по сделке через платформу — так сделка защищена и при споре есть история переписки.'
 
 export default function AdminChatMod() {
   const { session } = useAuth()
@@ -55,6 +57,35 @@ export default function AdminChatMod() {
       toast('Ошибка при обновлении', 'error')
     } finally {
       setActing(a => ({ ...a, [msgId]: false }))
+    }
+  }
+
+  async function banSender(m: FlaggedMessage) {
+    if (!m.sender) return
+    if (!confirm(`Заблокировать пользователя «${m.sender.nickname ?? 'без ника'}»?`)) return
+    setActing(a => ({ ...a, [m.id]: true }))
+    try {
+      await apiCall('PATCH', `/admin/users/${m.sender.id}`, { is_banned: true })
+      toast('Пользователь заблокирован', 'success')
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось заблокировать', 'error')
+    } finally {
+      setActing(a => ({ ...a, [m.id]: false }))
+    }
+  }
+
+  async function warnInChat(m: FlaggedMessage) {
+    if (!m.conversations) return
+    const text = prompt('Текст предупреждения в чат:', DEFAULT_WARNING)
+    if (!text?.trim()) return
+    setActing(a => ({ ...a, [m.id]: true }))
+    try {
+      await apiCall('POST', `/admin/conversations/${m.conversations.id}/messages`, { content: text.trim() })
+      toast('Предупреждение отправлено', 'success')
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось отправить', 'error')
+    } finally {
+      setActing(a => ({ ...a, [m.id]: false }))
     }
   }
 
@@ -115,7 +146,7 @@ export default function AdminChatMod() {
                       </p>
                     )}
                   </div>
-                  <div className="shrink-0 pt-0.5">
+                  <div className="shrink-0 pt-0.5 flex flex-col items-end gap-1.5">
                     {m.moderation_reviewed ? (
                       <span className="flex items-center gap-1 text-xs text-success">
                         <CheckCircle2 size={14} /> Проверено
@@ -124,10 +155,32 @@ export default function AdminChatMod() {
                       <button
                         onClick={() => markReviewed(m.id)}
                         disabled={acting[m.id]}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-success text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-success text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 whitespace-nowrap"
                       >
                         {acting[m.id] ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
                         Проверено
+                      </button>
+                    )}
+                    {m.conversations && (
+                      <button
+                        onClick={() => warnInChat(m)}
+                        disabled={acting[m.id]}
+                        title="Отправить предупреждение в этот чат от имени администрации"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-line text-ink rounded-lg hover:bg-panel transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <MessageSquareWarning size={12} />
+                        Предупредить
+                      </button>
+                    )}
+                    {m.sender && (
+                      <button
+                        onClick={() => banSender(m)}
+                        disabled={acting[m.id]}
+                        title="Заблокировать отправителя"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-error/10 text-error rounded-lg hover:bg-error/20 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        <UserX size={12} />
+                        Забанить
                       </button>
                     )}
                   </div>
