@@ -109,6 +109,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
     setSending(true)
     setSendError('')
     try {
+      let failedFiles: string[] = []
       if (adminMode) {
         await apiCall('POST', basePath, { content: text })
       } else {
@@ -116,12 +117,16 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
         form.append('content', text)
         // Фото ужимаются перед отправкой; документы проходят как есть.
         for (const f of files) form.append('files', await compressImage(f, WORK_FILE))
-        await apiCall('POST', basePath, form)
+        const res = await apiCall('POST', basePath, form)
+        failedFiles = res?.failed_files ?? []
       }
       setText('')
       setFiles([])
       atBottomRef.current = true
       await loadMessages()
+      if (failedFiles.length > 0) {
+        toast(`Не удалось прикрепить: ${failedFiles.join(', ')}`, 'error')
+      }
     } catch (e: any) {
       if (e.data?.code === CHAT_VIP_LOCK_CODE) setChatLocked(true)
       else setSendError(e.message)
