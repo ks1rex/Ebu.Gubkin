@@ -113,7 +113,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
         await apiCall('POST', basePath, { content: text })
       } else {
         const form = new FormData()
-        form.append('content', text || ' ')
+        form.append('content', text)
         // Фото ужимаются перед отправкой; документы проходят как есть.
         for (const f of files) form.append('files', await compressImage(f, WORK_FILE))
         await apiCall('POST', basePath, form)
@@ -169,7 +169,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               ) : (
                 !isOwn && <div className="text-teal-legacy" style={S.senderName}><VipName name={msg.sender?.nickname ?? 'Пользователь'} isVip={msg.sender?.is_vip} badgeSize="sm" /></div>
               )}
-              <div style={S.msgText}>{msg.content}</div>
+              {msg.content && <div style={S.msgText}>{msg.content}</div>}
               {msg.message_attachments?.map((att: any) => (
                 <div key={att.id} style={S.attRow}>
                   <span style={S.attName}>{att.file_name}</span>
