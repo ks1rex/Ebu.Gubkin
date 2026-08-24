@@ -137,8 +137,15 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
 
   async function handleDownload(msg: any, att: any) {
     try {
-      const { url } = await apiCall('GET', `/conversations/${conversationId}/messages/${msg.id}/attachments/${att.id}/download`)
-      window.open(url, '_blank', 'noopener')
+      const downloadBase = adminMode ? `/admin/conversations/${conversationId}` : `/conversations/${conversationId}`
+      const { url, filename } = await apiCall('GET', `${downloadBase}/messages/${msg.id}/attachments/${att.id}/download`)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename ?? att.file_name
+      a.rel = 'noopener'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
     } catch (e: any) {
       toast(e.message, 'error')
     }
