@@ -40,7 +40,7 @@ export const NAV_ITEMS = [
   { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны',           ownerOnly: true },
   { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания',     ownerOnly: true },
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
-  { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты' },
+  { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты',                   ownerOnly: true },
   { to: '/admin/chat-mod',       icon: ShieldAlert,     label: 'Модерация' },
   { to: '/admin/support',        icon: LifeBuoy,        label: 'Поддержка' },
   { to: '/admin/ledger',         icon: ScrollText,      label: 'Журнал',                 ownerOnly: true },
