@@ -10,6 +10,7 @@ interface FlaggedMessage {
   content: string
   is_contact_info: boolean
   ai_suspected: boolean
+  ai_reason: string | null
   moderation_reviewed: boolean
   created_at: string
   flag_source: 'regex' | 'ai'
@@ -109,7 +110,9 @@ export default function AdminChatMod() {
                       <p className="text-xs text-warning mt-1">⚠ Обнаружены контактные данные</p>
                     )}
                     {m.ai_suspected && (
-                      <p className="text-xs text-warning mt-1">🤖 AI подозревает нарушение</p>
+                      <p className="text-xs text-warning mt-1">
+                        🤖 AI подозревает нарушение{m.ai_reason ? `: ${m.ai_reason}` : ''}
+                      </p>
                     )}
                   </div>
                   <div className="shrink-0 pt-0.5">
