@@ -13,10 +13,13 @@ import { VipBadge } from '../../components/VipBadge'
 
 interface AdminUser {
   id: string
-  email: string | null
+  // Отсутствуют в ответе бэкенда для не-владельцев (та же логика, что у
+  // is_owner ниже) — чувствительные персональные/финансовые данные, не
+  // нужные рядовому админу для его работы.
+  email?: string | null
   nickname: string | null
   avatar_url: string | null
-  balance: number
+  balance?: number
   rating_as_customer: number | null
   rating_as_executor: number | null
   reviews_count_customer: number | null
@@ -129,11 +132,15 @@ export default function AdminUsers() {
     }
   }
 
-  const EXPORT_HEADERS = ['Никнейм', 'Email', 'Баланс', 'Уровень', 'Репутация', 'Рейтинг заказчика', 'Отзывов', 'Рейтинг исполнителя', 'Отзывов', 'VIP до', 'Роль', 'Регистрация']
+  // Email/баланс — только владельцу: бэкенд для не-владельца эти поля не
+  // отдаёт вовсе, показывать в отчёте пустые/нулевые значения было бы
+  // обманчиво (выглядит как реальный 0 ₽).
+  const EXPORT_HEADERS = effectiveIsOwner
+    ? ['Никнейм', 'Email', 'Баланс', 'Уровень', 'Репутация', 'Рейтинг заказчика', 'Отзывов', 'Рейтинг исполнителя', 'Отзывов', 'VIP до', 'Роль', 'Регистрация']
+    : ['Никнейм', 'Уровень', 'Репутация', 'Рейтинг заказчика', 'Отзывов', 'Рейтинг исполнителя', 'Отзывов', 'VIP до', 'Роль', 'Регистрация']
 
   function exportRow(u: AdminUser) {
-    return [
-      u.nickname ?? '', u.email ?? '', u.balance ?? 0, u.level ?? '', u.reputation ?? '',
+    const common = [
       // Тот же формат, что в таблице админки, — файл и экран должны совпадать.
       formatRatingValue(u.rating_as_customer) ?? '',
       u.reviews_count_customer ?? 0,
@@ -143,6 +150,9 @@ export default function AdminUsers() {
       u.is_admin ? 'админ' : u.is_banned ? 'бан' : 'пользователь',
       new Date(u.created_at).toLocaleString('ru-RU'),
     ]
+    return effectiveIsOwner
+      ? [u.nickname ?? '', u.email ?? '', u.balance ?? 0, u.level ?? '', u.reputation ?? '', ...common]
+      : [u.nickname ?? '', u.level ?? '', u.reputation ?? '', ...common]
   }
 
   // Выгружаем весь отфильтрованный список постранично: и серверный предел
@@ -185,11 +195,13 @@ export default function AdminUsers() {
         meta: reportMeta(),
         headers: EXPORT_HEADERS,
         rows: rows.map(exportRow),
-        numeric: [2, 3, 4, 5, 6, 7, 8],
+        // Индексы числовых колонок сдвигаются вместе с EXPORT_HEADERS/exportRow
+        // выше (Email/Баланс есть только у владельца).
+        numeric: effectiveIsOwner ? [2, 3, 4, 5, 6, 7, 8] : [1, 2, 3, 4, 5, 6],
         landscape: true,
         totals: [
           ['Всего пользователей', String(rows.length)],
-          ['Суммарный баланс, ₽', sumBalance.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+          ...(effectiveIsOwner ? [['Суммарный баланс, ₽', sumBalance.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })] as [string, string]] : []),
           ['С активным VIP', String(rows.filter(u => u.is_vip).length)],
           ['Заблокированных', String(rows.filter(u => u.is_banned).length)],
         ],
@@ -279,11 +291,13 @@ export default function AdminUsers() {
                     {user.nickname ?? '—'}
                     {user.is_vip && <span title={vipTitle(user)}><VipBadge /></span>}
                   </p>
-                  <p className="text-xs text-subtle truncate">{user.email ?? '—'}</p>
+                  {effectiveIsOwner && <p className="text-xs text-subtle truncate">{user.email ?? '—'}</p>}
                 </div>
-                <span className="ml-auto font-bold text-ink shrink-0">
-                  {(user.balance ?? 0).toLocaleString('ru-RU')} ₽
-                </span>
+                {effectiveIsOwner && (
+                  <span className="ml-auto font-bold text-ink shrink-0">
+                    {(user.balance ?? 0).toLocaleString('ru-RU')} ₽
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-x-3 gap-y-1 mb-3">
@@ -373,9 +387,9 @@ export default function AdminUsers() {
             <thead className="bg-panel border-b border-line">
               <tr>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Пользователь</th>
-                <th className="py-2 px-3 text-left text-subtle font-medium">Email</th>
+                {effectiveIsOwner && <th className="py-2 px-3 text-left text-subtle font-medium">Email</th>}
                 <th className="py-2 px-3 text-left text-subtle font-medium">Рейтинги</th>
-                <th className="py-2 px-3 text-right text-subtle font-medium">Баланс</th>
+                {effectiveIsOwner && <th className="py-2 px-3 text-right text-subtle font-medium">Баланс</th>}
                 <th className="py-2 px-3 text-left text-subtle font-medium hidden lg:table-cell">Регистрация</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Роль</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Действия</th>
@@ -406,18 +420,22 @@ export default function AdminUsers() {
                     </div>
                     <span className="text-[11px] text-subtle">Ур. {user.level ?? 1} · {user.reputation ?? 0} rep</span>
                   </td>
-                  <td className="py-2 px-3 text-subtle truncate max-w-[180px]">
-                    {user.email ?? '—'}
-                  </td>
+                  {effectiveIsOwner && (
+                    <td className="py-2 px-3 text-subtle truncate max-w-[180px]">
+                      {user.email ?? '—'}
+                    </td>
+                  )}
                   <td className="py-2 px-3">
                     <div className="flex flex-col gap-0.5">
                       <Rating label="З" v={user.rating_as_customer} count={user.reviews_count_customer} />
                       <Rating label="И" v={user.rating_as_executor} count={user.reviews_count_executor} />
                     </div>
                   </td>
-                  <td className="py-2 px-3 text-right font-medium">
-                    {(user.balance ?? 0).toLocaleString('ru-RU')} ₽
-                  </td>
+                  {effectiveIsOwner && (
+                    <td className="py-2 px-3 text-right font-medium">
+                      {(user.balance ?? 0).toLocaleString('ru-RU')} ₽
+                    </td>
+                  )}
                   <td className="py-2 px-3 text-subtle hidden lg:table-cell">
                     {timeAgo(user.created_at)}
                   </td>
