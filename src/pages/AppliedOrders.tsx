@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { ChevronRight, Inbox } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
-import { StatusBadge } from '../lib/statusMap'
 import { formatCurrency, formatDate } from '../lib/format'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
@@ -56,12 +55,7 @@ export default function AppliedOrders() {
                   {order?.subject} · {TYPE_LABEL[order?.order_type] ?? order?.order_type} · {formatDate(item.created_at)}
                 </div>
               </div>
-              <span className={`inline-block py-0.5 px-[9px] rounded-xl text-xs font-semibold whitespace-nowrap border ${appMeta.badgeCls}`}>Заявка: {appMeta.label}</span>
-              {order && item.status === 'accepted' && (
-                <span className="inline-flex items-center gap-1 text-xs text-slate-500 whitespace-nowrap">
-                  Заказ: <StatusBadge status={order.status} />
-                </span>
-              )}
+              <span className={`inline-block py-0.5 px-[9px] rounded-xl text-xs font-semibold whitespace-nowrap border ${appMeta.badgeCls}`}>{appMeta.label}</span>
               {item.proposed_amount && <div className="text-teal-legacy font-bold whitespace-nowrap text-[0.95rem]">{formatCurrency(item.proposed_amount)}</div>}
               <ChevronRight size={16} className="text-slate-700 shrink-0" />
             </Link>
