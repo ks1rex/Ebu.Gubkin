@@ -24,7 +24,7 @@ function StarsRow({ rating, count }: { rating?: number; count?: number }) {
 
 export default function Applications() {
   const { id: orderId } = useParams<{ id: string }>()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
 
   const [order, setOrder] = useState<any>(null)
@@ -39,7 +39,7 @@ export default function Applications() {
       apiCall('GET', `/orders/${orderId}`),
       apiCall('GET', `/orders/${orderId}/applications`),
     ]).then(([ord, appList]) => {
-      if (ord.customer_id !== user?.id) {
+      if (ord.customer_id !== user?.id && !profile?.is_admin) {
         navigate(`/market/orders/${orderId}`, { replace: true })
         return
       }
@@ -47,7 +47,7 @@ export default function Applications() {
       setApps(Array.isArray(appList) ? appList : [])
       setLoading(false)
     }).catch(() => setLoading(false))
-  }, [orderId, user?.id, navigate])
+  }, [orderId, user?.id, profile?.is_admin, navigate])
 
   async function handleSelect() {
     setActing(true)

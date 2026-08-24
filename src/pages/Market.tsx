@@ -169,6 +169,7 @@ export default function Market() {
           <div className="flex flex-wrap gap-x-4 gap-y-2 text-[13px] text-subtle sm:ml-auto">
             <Link to="/market/orders/mine" className="hover:text-ink transition-colors">Мои заказы</Link>
             <Link to="/market/orders/applied" className="hover:text-ink transition-colors">Мои отклики</Link>
+            <Link to="/market/orders/executing" className="hover:text-ink transition-colors">Моя работа</Link>
             <Link to="/market/services/new" className="hover:text-ink transition-colors">Разместить услугу</Link>
           </div>
         )}

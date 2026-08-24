@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Loader2, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
@@ -127,9 +128,9 @@ export default function AdminOrders() {
                   return (
                     <tr key={o.id} className="border-b border-line last:border-0 hover:bg-panel/50">
                       <td className="py-2 px-3">
-                        <p className="text-ink font-medium truncate max-w-[200px]">{o.title}</p>
-                        {o.order_type === 'listing' && (
-                          <span className="text-xs text-subtle">Объявление</span>
+                        <Link to={`/market/orders/${o.id}`} className="text-ink font-medium truncate max-w-[200px] block hover:text-accent transition-colors">{o.title}</Link>
+                        {o.order_type === 'service' && (
+                          <span className="text-xs text-subtle">Услуга</span>
                         )}
                       </td>
                       <td className="py-2 px-3 text-subtle">{o.customer?.nickname ?? '—'}</td>

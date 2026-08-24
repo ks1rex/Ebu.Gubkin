@@ -179,7 +179,7 @@ export default function OrderDetail() {
 
       <div className="text-slate-500 text-[0.85rem] mb-6 flex items-center gap-4 flex-wrap">
         <span>Заказ #{shortId} · {order.subject} · {new Date(order.created_at).toLocaleDateString('ru-RU')}</span>
-        {isOwner && order.status === 'open' && (
+        {(isOwner || isAdmin) && order.status === 'open' && (
           <Link to={`/market/orders/${id}/applications`} className={CLS.appsLink}><Users size={14} /> Заявки исполнителей</Link>
         )}
         {chatStatuses.includes(order.status) && (isOwner || isExecutor || isAdmin) && (
