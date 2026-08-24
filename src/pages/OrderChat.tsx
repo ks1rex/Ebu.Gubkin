@@ -27,6 +27,8 @@ export default function OrderChat() {
   if (error) return <div style={{ color: '#f87171' }}>{error}</div>
   if (!convId) return <div style={{ color: '#f87171' }}>Чат для этого заказа ещё не создан</div>
 
+  const orderClosed = order?.status === 'completed' || order?.status === 'cancelled'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', maxWidth: 800, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -40,7 +42,7 @@ export default function OrderChat() {
 
       <ChatWindow
         conversationId={convId}
-        readOnly={false}
+        readOnly={orderClosed}
       />
     </div>
   )
