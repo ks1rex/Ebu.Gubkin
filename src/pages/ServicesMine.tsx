@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Shield, Eye, EyeOff, Edit, Trash2, ChevronRight } from 'lucide-react'
+import { Shield, Eye, EyeOff, Edit, Trash2 } from 'lucide-react'
 import { apiCall } from '../lib/api'
-import { StatusBadge } from '../lib/statusMap'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useToast } from '../contexts/ToastContext'
 import Spinner from '../components/Spinner'
 import EmptyState from '../components/EmptyState'
-
-const ORDER_TYPE_LABEL: Record<string, string> = { order: 'Заказ', service: 'Услуга' }
 
 const CLS = {
   badge: 'inline-flex items-center gap-1 bg-[#f59e0b22] text-amber-500 border border-[#f59e0b44] rounded-lg py-0.5 px-[7px] text-[0.72rem] font-semibold',
@@ -25,8 +22,6 @@ export default function ServicesMine() {
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState<Record<string, boolean>>({})
   const [deleting, setDeleting] = useState<Record<string, boolean>>({})
-  const [orders, setOrders] = useState<any[]>([])
-  const [ordersLoading, setOrdersLoading] = useState(true)
 
   async function load() {
     setLoading(true)
@@ -40,13 +35,6 @@ export default function ServicesMine() {
   }
 
   useEffect(() => { load() }, [])
-
-  useEffect(() => {
-    apiCall('GET', '/orders/executing')
-      .then(data => setOrders(Array.isArray(data) ? data : []))
-      .catch(() => setOrders([]))
-      .finally(() => setOrdersLoading(false))
-  }, [])
 
   async function handleToggle(id: string, current: boolean) {
     setToggling(t => ({ ...t, [id]: true }))
@@ -116,24 +104,9 @@ export default function ServicesMine() {
         ))
       )}
 
-      <div className="text-slate-200 text-[1.15rem] font-bold mt-8 mb-3">Заказы по моим услугам</div>
-      {ordersLoading ? <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ /> : orders.length === 0 ? (
-        <div className="text-slate-500 text-[0.85rem]">Пока никто не заказывал ваши услуги</div>
-      ) : (
-        orders.map((order: any) => (
-          <Link key={order.id} to={`/market/orders/${order.id}`} className="bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-3 px-4 mb-2 flex items-center gap-3 no-underline flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="text-slate-200 font-semibold text-[0.9rem]">{order.title}</div>
-              <div className="text-slate-500 text-[0.76rem] mt-0.5">
-                {order.subject} · {ORDER_TYPE_LABEL[order.order_type] ?? order.order_type} · {formatDate(order.created_at)}
-              </div>
-            </div>
-            <StatusBadge status={order.status} />
-            <div className="text-teal-legacy font-bold whitespace-nowrap text-[0.9rem]">{formatCurrency(order.final_amount ?? order.base_amount)}</div>
-            <ChevronRight size={16} className="text-slate-700 shrink-0" />
-          </Link>
-        ))
-      )}
+      <div className="text-slate-500 text-[0.82rem] mt-6">
+        Заказы по вашим услугам смотрите на странице <Link to="/market/orders/executing" className="text-teal-legacy">«Моя работа»</Link>.
+      </div>
     </div>
   )
 }

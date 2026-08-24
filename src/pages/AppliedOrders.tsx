@@ -32,7 +32,10 @@ export default function AppliedOrders() {
 
   return (
     <div className="max-w-[800px] mx-auto">
-      <div className="text-slate-200 text-[1.4rem] font-bold mb-6">Мои отклики</div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div className="text-slate-200 text-[1.4rem] font-bold">Мои отклики</div>
+        <Link to="/market/orders/executing" className="text-teal-legacy text-[0.85rem] no-underline">Моя работа →</Link>
+      </div>
 
       {items.length === 0 ? (
         <EmptyState

@@ -43,6 +43,7 @@ import SupportTicket   from './pages/SupportTicket'
 import OrderFeed        from './pages/OrderFeed'
 import MyOrders         from './pages/MyOrders'
 import AppliedOrders    from './pages/AppliedOrders'
+import ExecutingOrders  from './pages/ExecutingOrders'
 import NewOrder         from './pages/NewOrder'
 import OrderEdit        from './pages/OrderEdit'
 import OrderDetail      from './pages/OrderDetail'
@@ -91,6 +92,7 @@ export default function App() {
               <Route path="orders/new"               element={<ProtectedRoute><NewOrder /></ProtectedRoute>} />
               <Route path="orders/mine"              element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
               <Route path="orders/applied"           element={<ProtectedRoute><AppliedOrders /></ProtectedRoute>} />
+              <Route path="orders/executing"         element={<ProtectedRoute><ExecutingOrders /></ProtectedRoute>} />
               <Route path="orders/:id"               element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
               <Route path="orders/:id/edit"          element={<ProtectedRoute><OrderEdit /></ProtectedRoute>} />
               <Route path="orders/:id/applications"  element={<ProtectedRoute><Applications /></ProtectedRoute>} />
