@@ -182,7 +182,7 @@ export default function OrderDetail() {
         {(isOwner || isAdmin) && order.status === 'open' && (
           <Link to={`/market/orders/${id}/applications`} className={CLS.appsLink}><Users size={14} /> Заявки исполнителей</Link>
         )}
-        {chatStatuses.includes(order.status) && (isOwner || isExecutor || isAdmin) && (
+        {chatStatuses.includes(order.status) && (isOwner || isExecutor) && (
           <Link to={`/market/orders/${id}/chat`} className={CLS.chatLink}>
             <MessageSquare size={14} /> Перейти в чат
           </Link>
