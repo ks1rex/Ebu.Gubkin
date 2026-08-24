@@ -36,7 +36,7 @@ export default function Applications() {
 
   useEffect(() => {
     Promise.all([
-      apiCall('GET', `/market/orders/${orderId}`),
+      apiCall('GET', `/orders/${orderId}`),
       apiCall('GET', `/orders/${orderId}/applications`),
     ]).then(([ord, appList]) => {
       if (ord.customer_id !== user?.id) {

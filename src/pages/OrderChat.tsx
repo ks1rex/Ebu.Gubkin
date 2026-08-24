@@ -15,7 +15,7 @@ export default function OrderChat() {
 
   useEffect(() => {
     Promise.all([
-      apiCall('GET', `/market/orders/${orderId}`),
+      apiCall('GET', `/orders/${orderId}`),
       apiCall('GET', `/orders/${orderId}/conversation`),
     ]).then(([ord, conv]) => {
       setOrder(ord)
