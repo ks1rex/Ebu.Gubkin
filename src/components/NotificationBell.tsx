@@ -90,8 +90,8 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-w-[90vw] max-h-[70vh] overflow-y-auto rounded-2xl bg-surface border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45)] z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-line sticky top-0 bg-surface">
+        <div className="absolute right-0 top-full mt-2 w-80 max-w-[90vw] max-h-[70vh] overflow-y-auto rounded-2xl bg-canvas/90 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45)] z-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-line sticky top-0 bg-canvas/90">
             <span className="text-sm font-semibold text-ink">Уведомления</span>
             {items.some(n => !n.is_read) && (
               <button onClick={markAllRead} className="text-xs text-accent hover:underline">

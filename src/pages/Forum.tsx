@@ -5,7 +5,7 @@ import {
   PenLine, Search, Tag, Mic, Laugh, Heart, GraduationCap, Users,
   Music, Film, Trophy, Gamepad2, Dumbbell, Camera, Plane, Coffee,
   Palette, Code, FlaskConical, Globe, Car, Home, Lightbulb, Star,
-  Wrench, HelpCircle, ShoppingBag, Quote,
+  Wrench, HelpCircle, ShoppingBag, Quote, Drama,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -26,7 +26,7 @@ export const ICONS: Record<string, any> = {
   Tag, Mic, Laugh, Heart, GraduationCap, Users,
   Music, Film, Trophy, Gamepad2, Dumbbell, Camera, Plane, Coffee,
   Palette, Code, FlaskConical, Globe, Car, Home, Lightbulb, Star,
-  Wrench, HelpCircle, ShoppingBag, Quote,
+  Wrench, HelpCircle, ShoppingBag, Quote, Drama,
 }
 
 function CategoryIcon({ iconName, iconUrl, color }: { iconName: string; iconUrl: string | null; color: string }) {
