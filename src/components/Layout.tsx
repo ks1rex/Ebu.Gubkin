@@ -3,8 +3,13 @@ import Navbar from './Navbar'
 import Footer from './Footer'
 
 export default function Layout() {
+  // min-h-[100dvh], не min-h-screen: 100vh на мобильном Safari/Chrome
+  // считается от максимальной высоты вьюпорта (с убранными панелями
+  // браузера), из-за чего реальная видимая область меньше — страница
+  // чата (рассчитанная на "точно во весь экран") требовала прокрутки
+  // до поля ввода. dvh — фактический видимый вьюпорт.
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-[100dvh] flex flex-col relative overflow-hidden">
       {/* decorative blurred orbs — fixed, behind everything, never intercept clicks */}
       <div className="fixed -top-32 -left-20 w-[420px] h-[420px] rounded-full bg-[#7c3aed] opacity-55 blur-[80px] pointer-events-none" />
       <div className="fixed top-10 -right-32 w-[380px] h-[380px] rounded-full bg-[#db2777] opacity-40 blur-[80px] pointer-events-none" />

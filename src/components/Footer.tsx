@@ -1,9 +1,17 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { LEGAL_DOCS } from '../pages/Legal'
 
+// Страница чата занимает ровно оставшуюся высоту (см. MarketLayout/OrderChat) —
+// обычный mt-12 футера добавлял 48px сверх этого расчёта и утаскивал страницу
+// в прокрутку. На чате футер должен идти вплотную под полем ввода.
+const CHAT_ROUTE_RE = /^\/market\/orders\/[^/]+\/chat\/?$/
+
 export default function Footer() {
+  const { pathname } = useLocation()
+  const isChatPage = CHAT_ROUTE_RE.test(pathname)
+
   return (
-    <footer className="border-t border-line mt-12">
+    <footer className={`border-t border-line ${isChatPage ? '' : 'mt-12'}`}>
       <div
         className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6"
         style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
