@@ -12,10 +12,10 @@ import VipName from './VipBadge'
 import LevelProgressBar from './LevelProgressBar'
 
 // Matches GET /profile/:id/public's recent_activity — shape differs by type
-// (see reshbirga backend/src/routes/profile.js).
+// (see reshbirga backend/src/routes/profile.js). Used only to build the
+// Threads tab below — заработок по сделкам сюда не попадает, см. profile.js.
 type Activity =
   | { type: 'post'; text: string; forum_category: string | null; ago: string }
-  | { type: 'deal'; amount: number; ago: string }
   | { type: 'thread'; title: string; ago: string }
 
 interface Achievement { type: string; earned_at: string }
@@ -51,9 +51,8 @@ interface Review {
 
 interface Service { id: string; title: string; price: number; price_with_commission?: number }
 
-type Tab = 'activity' | 'threads' | 'services' | 'reviews'
+type Tab = 'threads' | 'services' | 'reviews'
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'activity', label: 'Активность' },
   { key: 'threads',  label: 'Темы' },
   { key: 'services', label: 'Услуги' },
   { key: 'reviews',  label: 'Отзывы' },
@@ -66,15 +65,9 @@ interface Props {
   onEdit?: () => void
 }
 
-function activityText(a: Activity): string {
-  if (a.type === 'post') return a.forum_category ? `Ответил в теме «${a.forum_category}»` : a.text
-  if (a.type === 'thread') return `Создал тему «${a.title}»`
-  return 'Завершил сделку на бирже'
-}
-
 /** Shared profile display — used by both the own-profile page and public profiles. */
 export default function ProfileView({ profile, userId, isOwner, onEdit }: Props) {
-  const [tab, setTab] = useState<Tab>('activity')
+  const [tab, setTab] = useState<Tab>('threads')
   const [reviews, setReviews]   = useState<Review[] | null>(null)
   const [services, setServices] = useState<Service[] | null>(null)
   const [tabLoading, setTabLoading] = useState(false)
@@ -223,21 +216,6 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
           </button>
         ))}
       </div>
-
-      {tab === 'activity' && (
-        activity.length === 0
-          ? <GlassCard className="rounded-2xl py-8 text-center text-subtle text-sm">Пока пусто</GlassCard>
-          : <div className="flex flex-col gap-2">
-              {activity.map((a, i) => (
-                <GlassCard key={i} className="rounded-2xl px-5 py-3.5 flex items-center gap-3">
-                  <span className="text-sm text-ink flex-1">{activityText(a)}</span>
-                  {a.type === 'deal'
-                    ? <span className="text-sm font-semibold text-mint shrink-0">+{formatCurrency(a.amount)}</span>
-                    : <span className="text-xs text-subtle shrink-0">{timeAgo(a.ago)}</span>}
-                </GlassCard>
-              ))}
-            </div>
-      )}
 
       {tab === 'threads' && (
         threads.length === 0

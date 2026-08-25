@@ -2,7 +2,10 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   MessageCircle, BookOpen, Briefcase, Megaphone, MessagesSquare,
-  PenLine, Search,
+  PenLine, Search, Tag, Mic, Laugh, Heart, GraduationCap, Users,
+  Music, Film, Trophy, Gamepad2, Dumbbell, Camera, Plane, Coffee,
+  Palette, Code, FlaskConical, Globe, Car, Home, Lightbulb, Star,
+  Wrench, HelpCircle, ShoppingBag,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -15,19 +18,21 @@ import VipName from '../components/VipBadge'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
+// Прозрачные line-иконки lucide в тонированном кружке — см. те же ключи в
+// Admin/Settings.tsx (ICON_PRESETS), там их выбирают для категории.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ICONS: Record<string, any> = {
+export const ICONS: Record<string, any> = {
   MessageCircle, BookOpen, Briefcase, Megaphone, MessagesSquare,
+  Tag, Mic, Laugh, Heart, GraduationCap, Users,
+  Music, Film, Trophy, Gamepad2, Dumbbell, Camera, Plane, Coffee,
+  Palette, Code, FlaskConical, Globe, Car, Home, Lightbulb, Star,
+  Wrench, HelpCircle, ShoppingBag,
 }
 
-// icon_name у категорий хранится как эмодзи (см. Admin/Settings.tsx), не как
-// имя lucide-компонента — ICONS остаётся только для обратной совместимости
-// со старыми значениями, если они где-то ещё встретятся.
 function CategoryIcon({ iconName, iconUrl, color }: { iconName: string; iconUrl: string | null; color: string }) {
   if (iconUrl) return <img src={iconUrl} alt="" className="w-full h-full object-cover rounded-[13px]" />
-  const Lucide = ICONS[iconName]
-  if (Lucide) return <Lucide size={20} style={{ color }} />
-  return <span className="text-xl leading-none">{iconName || '💬'}</span>
+  const Lucide = ICONS[iconName] ?? MessagesSquare
+  return <Lucide size={20} style={{ color }} />
 }
 
 // pink, mint, lav, accent, gold — token hexes from tailwind.config.ts (kept as hex since alpha suffixes are string-concatenated below)

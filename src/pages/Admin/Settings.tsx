@@ -3,16 +3,12 @@ import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff, Upload, X } from 'lu
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { ICONS } from '../Forum'
 import TwoFactor from './TwoFactor'
 
-// Набор эмодзи в том же стиле, что уже используют существующие категории
-// (💬📚💼🏷️🎤😂❤️🎓) — плоские цветные эмодзи, не lucide-иконки.
-const ICON_PRESETS = [
-  '💬', '📚', '💼', '🏷️', '🎤', '😂', '❤️', '🎓',
-  '🎮', '🎵', '🎬', '⚽', '🏆', '🔬', '💻', '🌍',
-  '🚗', '🍕', '☕', '🎨', '📷', '✈️', '🏠', '💡',
-  '📝', '🔥', '⭐', '🎯', '🤝', '📢', '🛠️', '❓',
-]
+// Прозрачные line-иконки lucide (та же карта ICONS, что рендерит форум) —
+// имя ключа и есть icon_name, который уходит в БД.
+const ICON_PRESETS = Object.keys(ICONS)
 
 interface SiteSettings {
   site: Record<string, string>
@@ -387,13 +383,13 @@ export default function AdminSettings() {
                   <div className="space-y-3">
                     <CategoryFormFields form={editForm} onChange={setEditForm} />
                     <div>
-                      <label className="block text-xs text-subtle mb-1">Своя картинка (вместо эмодзи)</label>
+                      <label className="block text-xs text-subtle mb-1">Своя картинка (вместо иконки)</label>
                       <div className="flex items-center gap-2">
                         {cat.icon_url ? (
                           <img src={cat.icon_url} alt="" className="w-9 h-9 rounded-lg object-cover border border-line" />
                         ) : (
-                          <div className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-lg">
-                            {editForm.icon_name || '💬'}
+                          <div className="w-9 h-9 rounded-lg border border-line flex items-center justify-center">
+                            {(() => { const Icon = ICONS[editForm.icon_name] ?? ICONS.MessagesSquare; return <Icon size={16} /> })()}
                           </div>
                         )}
                         <IconUploadButton
@@ -435,9 +431,7 @@ export default function AdminSettings() {
                       <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
                         {cat.icon_url ? (
                           <img src={cat.icon_url} alt="" className="w-5 h-5 rounded object-cover" />
-                        ) : cat.icon_name ? (
-                          <span className="text-base leading-none">{cat.icon_name}</span>
-                        ) : null}
+                        ) : (() => { const Icon = ICONS[cat.icon_name ?? '']; return Icon ? <Icon size={15} className="text-subtle" /> : null })()}
                         {cat.name}
                         <span className="text-xs text-subtle">#{cat.sort_order}</span>
                         {cat.is_active === false && (
@@ -544,28 +538,25 @@ function CategoryFormFields({
         />
       </div>
       <div className="col-span-2">
-        <label className="block text-xs text-subtle mb-1">Иконка (эмодзи)</label>
-        <div className="flex flex-wrap gap-1 mb-1.5">
-          {ICON_PRESETS.map(emoji => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => onChange({ ...form, icon_name: emoji })}
-              className={`w-8 h-8 rounded-lg border flex items-center justify-center text-base transition-colors ${
-                form.icon_name === emoji ? 'border-accent bg-accent/15' : 'border-line hover:bg-panel'
-              }`}
-            >
-              {emoji}
-            </button>
-          ))}
+        <label className="block text-xs text-subtle mb-1">Иконка</label>
+        <div className="flex flex-wrap gap-1">
+          {ICON_PRESETS.map(name => {
+            const Icon = ICONS[name]
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => onChange({ ...form, icon_name: name })}
+                className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-colors ${
+                  form.icon_name === name ? 'border-accent bg-accent/15 text-accent' : 'border-line hover:bg-panel text-subtle'
+                }`}
+              >
+                <Icon size={16} />
+              </button>
+            )
+          })}
         </div>
-        <input
-          type="text"
-          value={form.icon_name}
-          onChange={e => onChange({ ...form, icon_name: e.target.value })}
-          className="w-full border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
-          placeholder="Или вставьте свой эмодзи"
-        />
       </div>
     </div>
   )

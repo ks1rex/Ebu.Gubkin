@@ -4,6 +4,7 @@ import { LogOut, Menu, X, ShieldCheck, Wallet as WalletIcon } from 'lucide-react
 import { useAuth } from '../contexts/AuthContext'
 import { Avatar } from './glass'
 import { useGostFrozenModal } from './GostFrozenNotice'
+import NotificationBell from './NotificationBell'
 
 const logoMark = `${import.meta.env.BASE_URL}logo-mark.png`
 
@@ -109,6 +110,8 @@ export default function Navbar() {
                 <ShieldCheck size={17} />
               </Link>
             )}
+
+            <NotificationBell />
 
             <Link to="/profile" onClick={close}>
               <Avatar name={profile?.nickname ?? profile?.full_name ?? 'Я'} src={profile?.avatar_url} size={42} radius={14} isVip={isVip} />
