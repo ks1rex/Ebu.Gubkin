@@ -9,6 +9,7 @@ import type { Profile as ProfileType } from '../contexts/AuthContext'
 import ProfileView, { PublicProfile } from '../components/ProfileView'
 import Spinner from '../components/Spinner'
 import VipName from '../components/VipBadge'
+import TelegramLink from '../components/TelegramLink'
 
 // ─── Phone mask ──────────────────────────────────────────────────────────────
 
@@ -384,6 +385,8 @@ export default function Profile() {
                 className={INPUT}
               />
             </div>
+
+            <TelegramLink />
 
             <div className="flex gap-3 pt-2">
               <button

@@ -175,7 +175,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             ? { ...(isOwn ? S.ownBubble : S.otherBubble), ...S.adminBubble }
             : (isOwn ? S.ownBubble : S.otherBubble)
           return (
-            <div key={msg.id} style={bubbleStyle}>
+            <div key={msg.id} className="chat-msg-in" style={bubbleStyle}>
               {msg.is_admin_message ? (
                 <div style={S.adminBadge}><ShieldCheck size={11} />Администратор</div>
               ) : (

@@ -29,7 +29,7 @@ const CLS = {
   submitBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
   dangerBtn: 'inline-flex items-center gap-1.5 bg-red-500 rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
   appsLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.9rem] font-medium',
-  editLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.85rem] font-medium',
+  editLink: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-[18px] text-white no-underline font-semibold text-[0.88rem] mb-2',
   chatLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.9rem] font-medium',
   confirmBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-[18px] text-white font-semibold cursor-pointer text-[0.88rem] mr-2 mb-2',
   disputeBtn: 'inline-flex items-center gap-1.5 bg-transparent border border-red-500 rounded-lg py-[9px] px-[18px] text-red-500 font-semibold cursor-pointer text-[0.88rem] mb-2',

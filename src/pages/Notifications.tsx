@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bell, Loader2 } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { timeAgo } from '../lib/timeAgo'
+import TelegramLink from '../components/TelegramLink'
 
 interface Notification {
   id: string
@@ -58,6 +59,10 @@ export default function Notifications() {
             Прочитать всё
           </button>
         )}
+      </div>
+
+      <div className="bg-surface border border-line rounded-xl px-5 py-4">
+        <TelegramLink />
       </div>
 
       {loading ? (
