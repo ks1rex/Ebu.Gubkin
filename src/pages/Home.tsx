@@ -41,7 +41,7 @@ interface ListingPreview {
 
 interface Leader { id: string; nickname: string | null; avatar_url: string | null; reputation: number; weekly_reputation: number }
 interface CategoryStub { id: string; name: string; threads_count: number }
-interface NewsPreview { id: string; title: string; content: string }
+interface NewsPreview { id: string; title: string }
 
 export default function Home() {
   const { user, profile } = useAuth()
@@ -53,7 +53,7 @@ export default function Home() {
   const [listings, setListings] = useState<ListingPreview[]>([])
   const [leaders, setLeaders] = useState<Leader[]>([])
   const [categories, setCategories] = useState<CategoryStub[]>([])
-  const [latestNews, setLatestNews] = useState<NewsPreview | null>(null)
+  const [latestNews, setLatestNews] = useState<NewsPreview[]>([])
 
   useEffect(() => {
     apiCall('GET', '/stats/public').then(setStats).catch(() => {})
@@ -64,7 +64,7 @@ export default function Home() {
     apiCall('GET', '/forum/categories')
       .then(d => setCategories(Array.isArray(d) ? [...d].sort((a, b) => b.threads_count - a.threads_count) : []))
       .catch(() => {})
-    apiCall('GET', '/news').then(d => setLatestNews(Array.isArray(d) && d.length ? d[0] : null)).catch(() => {})
+    apiCall('GET', '/news').then(d => setLatestNews(Array.isArray(d) ? d.slice(0, 3) : [])).catch(() => {})
   }, [])
 
   const marketItems = [...orders.map(o => ({ ...o, kind: 'order' as const })), ...listings.map(l => ({ ...l, kind: 'listing' as const }))]
@@ -240,11 +240,12 @@ export default function Home() {
           <Link to="/news">
             <GlassCard hover className="rounded-[20px] p-6 !bg-gradient-to-br !from-[#7c3aed]/[.22] !to-pink/[.14]">
               <h3 className="text-xs tracking-[1.5px] text-subtle font-semibold uppercase mb-2">Новости</h3>
-              {latestNews ? (
-                <>
-                  <h4 className="text-lg font-bold text-ink mb-2 leading-snug">{latestNews.title}</h4>
-                  <p className="text-[13px] text-subtle leading-relaxed line-clamp-3">{latestNews.content}</p>
-                </>
+              {latestNews.length > 0 ? (
+                <ul className="flex flex-col gap-2">
+                  {latestNews.map(n => (
+                    <li key={n.id} className="text-[15px] font-bold text-ink leading-snug">{n.title}</li>
+                  ))}
+                </ul>
               ) : (
                 <p className="text-[13px] text-subtle leading-relaxed">Пока новостей нет</p>
               )}
