@@ -384,8 +384,8 @@ export default function ForumThread() {
                       className="w-full min-h-[96px] rounded-[14px] bg-white/[.06] border border-white/[.14] text-ink text-sm px-4 py-3.5 resize-none leading-relaxed placeholder:text-subtle2 focus:outline-none focus:border-lav/40 transition-colors"
                     />
                     <AttachmentList attachments={replyAttachments} onRemove={removeReplyAttachment} />
-                    <div className="flex items-center gap-2.5 mt-3">
-                      <div className="flex gap-2 text-subtle">
+                    <div className="flex items-center flex-wrap gap-2.5 mt-3">
+                      <div className="flex gap-2 flex-wrap text-subtle">
                         <label title="Прикрепить фото/файл" className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] cursor-pointer hover:text-ink">
                           <Paperclip size={15} />
                           <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx" className="hidden" onChange={handleReplyFiles} disabled={replyUploading} />
@@ -394,8 +394,7 @@ export default function ForumThread() {
                         <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><AtSign size={15} /></span>
                         <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Code2 size={15} /></span>
                       </div>
-                      <span className="flex-1" />
-                      <Button type="submit" variant="mint" disabled={(!reply.trim() && replyAttachments.length === 0) || sending || replyUploading}>
+                      <Button type="submit" variant="mint" className="ml-auto" disabled={(!reply.trim() && replyAttachments.length === 0) || sending || replyUploading}>
                         {sending ? 'Отправка…' : replyUploading ? 'Загрузка файлов…' : 'Отправить ответ'}
                       </Button>
                     </div>
