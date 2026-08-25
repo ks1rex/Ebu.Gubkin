@@ -20,6 +20,16 @@ const ICONS: Record<string, any> = {
   MessageCircle, BookOpen, Briefcase, Megaphone, MessagesSquare,
 }
 
+// icon_name у категорий хранится как эмодзи (см. Admin/Settings.tsx), не как
+// имя lucide-компонента — ICONS остаётся только для обратной совместимости
+// со старыми значениями, если они где-то ещё встретятся.
+function CategoryIcon({ iconName, iconUrl, color }: { iconName: string; iconUrl: string | null; color: string }) {
+  if (iconUrl) return <img src={iconUrl} alt="" className="w-full h-full object-cover rounded-[13px]" />
+  const Lucide = ICONS[iconName]
+  if (Lucide) return <Lucide size={20} style={{ color }} />
+  return <span className="text-xl leading-none">{iconName || '💬'}</span>
+}
+
 // pink, mint, lav, accent, gold — token hexes from tailwind.config.ts (kept as hex since alpha suffixes are string-concatenated below)
 const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7c3aed', '#ffd27a']
 function catColor(seed: string) {
@@ -35,6 +45,7 @@ interface Category {
   name: string
   description: string | null
   icon_name: string
+  icon_url: string | null
   threads_count: number
   last_thread: ThreadStub | null
   recent_threads: ThreadStub[]
@@ -159,13 +170,12 @@ export default function Forum() {
             {loading
               ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} />)
               : filteredCategories.map(cat => {
-                  const Icon = ICONS[cat.icon_name] ?? MessagesSquare
                   return (
                     <Link key={cat.id} to={`/forum/category/${cat.id}`}>
                       <GlassCard hover className="rounded-[20px] p-5 h-full">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-11 h-11 rounded-[13px] shrink-0 flex items-center justify-center" style={{ background: `${catColor(cat.name)}26` }}>
-                            <Icon size={20} style={{ color: catColor(cat.name) }} />
+                          <div className="w-11 h-11 rounded-[13px] shrink-0 flex items-center justify-center overflow-hidden" style={{ background: `${catColor(cat.name)}26` }}>
+                            <CategoryIcon iconName={cat.icon_name} iconUrl={cat.icon_url} color={catColor(cat.name)} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">

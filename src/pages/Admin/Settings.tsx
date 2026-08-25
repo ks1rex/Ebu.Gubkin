@@ -1,9 +1,18 @@
-import { useEffect, useState } from 'react'
-import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Loader2, Plus, Pencil, Trash2, Check, Eye, EyeOff, Upload, X } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { apiCall } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
 import TwoFactor from './TwoFactor'
+
+// Набор эмодзи в том же стиле, что уже используют существующие категории
+// (💬📚💼🏷️🎤😂❤️🎓) — плоские цветные эмодзи, не lucide-иконки.
+const ICON_PRESETS = [
+  '💬', '📚', '💼', '🏷️', '🎤', '😂', '❤️', '🎓',
+  '🎮', '🎵', '🎬', '⚽', '🏆', '🔬', '💻', '🌍',
+  '🚗', '🍕', '☕', '🎨', '📷', '✈️', '🏠', '💡',
+  '📝', '🔥', '⭐', '🎯', '🤝', '📢', '🛠️', '❓',
+]
 
 interface SiteSettings {
   site: Record<string, string>
@@ -15,6 +24,7 @@ interface ForumCategory {
   name: string
   description: string | null
   icon_name: string | null
+  icon_url: string | null
   sort_order: number
   is_active: boolean
 }
@@ -98,6 +108,7 @@ export default function AdminSettings() {
   const [showNewCatForm, setShowNewCatForm] = useState(false)
   const [newCatForm, setNewCatForm] = useState<CategoryForm>(EMPTY_FORM)
   const [catActing, setCatActing] = useState<Record<string, boolean>>({})
+  const [uploadingIcon, setUploadingIcon] = useState<string | null>(null)
 
   async function fetchSettings() {
     setLoadingSettings(true)
@@ -211,6 +222,33 @@ export default function AdminSettings() {
       toast('Ошибка при обновлении', 'error')
     } finally {
       setCatActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
+  async function uploadCategoryIcon(id: string, file: File) {
+    setUploadingIcon(id)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const { icon_url } = await apiCall('POST', `/admin/forum/categories/${id}/icon`, form)
+      setCategories(c => c.map(x => x.id === id ? { ...x, icon_url } : x))
+      toast('Иконка загружена', 'success')
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось загрузить иконку', 'error')
+    } finally {
+      setUploadingIcon(null)
+    }
+  }
+
+  async function removeCategoryIcon(id: string) {
+    setUploadingIcon(id)
+    try {
+      await apiCall('PATCH', `/admin/forum/categories/${id}`, { icon_url: null })
+      setCategories(c => c.map(x => x.id === id ? { ...x, icon_url: null } : x))
+    } catch {
+      toast('Не удалось убрать иконку', 'error')
+    } finally {
+      setUploadingIcon(null)
     }
   }
 
@@ -348,6 +386,32 @@ export default function AdminSettings() {
                 {editingCat === cat.id ? (
                   <div className="space-y-3">
                     <CategoryFormFields form={editForm} onChange={setEditForm} />
+                    <div>
+                      <label className="block text-xs text-subtle mb-1">Своя картинка (вместо эмодзи)</label>
+                      <div className="flex items-center gap-2">
+                        {cat.icon_url ? (
+                          <img src={cat.icon_url} alt="" className="w-9 h-9 rounded-lg object-cover border border-line" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-lg">
+                            {editForm.icon_name || '💬'}
+                          </div>
+                        )}
+                        <IconUploadButton
+                          uploading={uploadingIcon === cat.id}
+                          onFile={file => uploadCategoryIcon(cat.id, file)}
+                        />
+                        {cat.icon_url && (
+                          <button
+                            onClick={() => removeCategoryIcon(cat.id)}
+                            disabled={uploadingIcon === cat.id}
+                            title="Убрать картинку, вернуться к эмодзи"
+                            className="p-1.5 rounded-lg hover:bg-error/10 text-subtle hover:text-error transition-colors disabled:opacity-50"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => updateCategory(cat.id)}
@@ -369,7 +433,11 @@ export default function AdminSettings() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
-                        {cat.icon_name && <span className="text-subtle">[{cat.icon_name}]</span>}
+                        {cat.icon_url ? (
+                          <img src={cat.icon_url} alt="" className="w-5 h-5 rounded object-cover" />
+                        ) : cat.icon_name ? (
+                          <span className="text-base leading-none">{cat.icon_name}</span>
+                        ) : null}
                         {cat.name}
                         <span className="text-xs text-subtle">#{cat.sort_order}</span>
                         {cat.is_active === false && (
@@ -466,16 +534,6 @@ function CategoryFormFields({
         />
       </div>
       <div>
-        <label className="block text-xs text-subtle mb-1">Иконка (Lucide)</label>
-        <input
-          type="text"
-          value={form.icon_name}
-          onChange={e => onChange({ ...form, icon_name: e.target.value })}
-          className="w-full border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
-          placeholder="BookOpen"
-        />
-      </div>
-      <div>
         <label className="block text-xs text-subtle mb-1">Порядок сортировки</label>
         <input
           type="number"
@@ -485,6 +543,58 @@ function CategoryFormFields({
           placeholder="0"
         />
       </div>
+      <div className="col-span-2">
+        <label className="block text-xs text-subtle mb-1">Иконка (эмодзи)</label>
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          {ICON_PRESETS.map(emoji => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => onChange({ ...form, icon_name: emoji })}
+              className={`w-8 h-8 rounded-lg border flex items-center justify-center text-base transition-colors ${
+                form.icon_name === emoji ? 'border-accent bg-accent/15' : 'border-line hover:bg-panel'
+              }`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          value={form.icon_name}
+          onChange={e => onChange({ ...form, icon_name: e.target.value })}
+          className="w-full border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
+          placeholder="Или вставьте свой эмодзи"
+        />
+      </div>
     </div>
+  )
+}
+
+function IconUploadButton({ uploading, onFile }: { uploading: boolean; onFile: (file: File) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0]
+          if (file) onFile(file)
+          e.target.value = ''
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs border border-line rounded-lg hover:bg-panel text-ink transition-colors disabled:opacity-50"
+      >
+        {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+        Загрузить картинку
+      </button>
+    </>
   )
 }
