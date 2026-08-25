@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Scale } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Loader2, Scale, ExternalLink } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
@@ -99,7 +100,19 @@ export default function AdminDisputes() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="font-semibold text-ink">
-                      {d.orders?.title ?? `Заказ #${d.orders?.id?.slice(0, 8) ?? d.id.slice(0, 8)}`}
+                      {d.orders?.id ? (
+                        <Link
+                          to={`/market/orders/${d.orders.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 hover:text-accent transition-colors"
+                        >
+                          {d.orders.title ?? `Заказ #${d.orders.id.slice(0, 8)}`}
+                          <ExternalLink size={14} />
+                        </Link>
+                      ) : (
+                        `Заказ #${d.id.slice(0, 8)}`
+                      )}
                     </h3>
                     <div className="flex items-center gap-3 mt-1 text-xs text-subtle">
                       <span>Заказчик: <strong className="text-ink">{customerNick}</strong></span>
