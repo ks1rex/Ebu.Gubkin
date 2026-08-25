@@ -6,7 +6,7 @@ product
 
 ## Users
 
-Students at a university (СтудБиржа / Ebu.Gubkin) using the platform on
+Students at a university (Ebu.Gubkin) using the platform on
 desktop and mobile, in short goal-directed sessions between classes: posting
 or browsing orders/services, checking wallet balance, reading forum threads,
 looking up their class schedule, or resolving a support/dispute issue. Admins

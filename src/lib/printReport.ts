@@ -28,7 +28,7 @@ export interface ReportSpec {
   landscape?: boolean
 }
 
-const PLATFORM = 'СтудБиржа'
+const PLATFORM = 'Ebu.Gubkin'
 
 function esc(v: unknown): string {
   return String(v ?? '')
