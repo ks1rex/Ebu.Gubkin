@@ -12,40 +12,50 @@ const TABS = [
   { to: '/market/orders/executing', label: 'Моя работа', icon: Hammer },
 ]
 
+// Чат заказа сам показывает свою навигацию ("← К заказу") — вкладки
+// биржи здесь лишние и на телефоне съедают место, которого чату и так
+// не хватает до поля ввода.
+const CHAT_ROUTE_RE = /^\/market\/orders\/[^/]+\/chat\/?$/
+
 export default function MarketLayout() {
   const { pathname } = useLocation()
+  const isChatPage = CHAT_ROUTE_RE.test(pathname)
 
   return (
-    <div>
+    <div className={isChatPage ? 'h-full flex flex-col' : undefined}>
       {/* Top bar */}
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <Link
-          to="/market"
-          className="inline-flex items-center gap-[5px] text-slate-500 no-underline text-[0.85rem] shrink-0"
-        >
-          <ArrowLeft size={14} /> Биржа
-        </Link>
+      {!isChatPage && (
+        <div className="flex items-center gap-3 mb-5 flex-wrap">
+          <Link
+            to="/market"
+            className="inline-flex items-center gap-[5px] text-slate-500 no-underline text-[0.85rem] shrink-0"
+          >
+            <ArrowLeft size={14} /> Биржа
+          </Link>
 
-        <div className="flex gap-1 flex-wrap">
-          {TABS.map(({ to, label, icon: Icon }) => {
-            const active = pathname === to || (to !== '/market/orders' && to !== '/market/services' && pathname.startsWith(to))
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`inline-flex items-center gap-[5px] py-[5px] px-3 rounded-lg text-[0.8rem] font-medium no-underline border ${
-                  active ? 'bg-[#14a89a22] text-teal-legacy border-[#14a89a55]' : 'bg-transparent text-slate-500 border-transparent'
-                }`}
-              >
-                <Icon size={13} />
-                {label}
-              </Link>
-            )
-          })}
+          <div className="flex gap-1 flex-wrap">
+            {TABS.map(({ to, label, icon: Icon }) => {
+              const active = pathname === to || (to !== '/market/orders' && to !== '/market/services' && pathname.startsWith(to))
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`inline-flex items-center gap-[5px] py-[5px] px-3 rounded-lg text-[0.8rem] font-medium no-underline border ${
+                    active ? 'bg-[#14a89a22] text-teal-legacy border-[#14a89a55]' : 'bg-transparent text-slate-500 border-transparent'
+                  }`}
+                >
+                  <Icon size={13} />
+                  {label}
+                </Link>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      <Outlet />
+      <div className={isChatPage ? 'flex-1 min-h-0' : undefined}>
+        <Outlet />
+      </div>
     </div>
   )
 }

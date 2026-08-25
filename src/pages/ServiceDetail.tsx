@@ -134,7 +134,7 @@ export default function ServiceDetail() {
 
       {isOwner && (
         <div className="flex gap-2.5">
-          <Link to={`/market/services/${id}/edit`} className="bg-[#1e3a4a] rounded-lg py-[9px] px-[18px] text-slate-200 no-underline font-medium text-[0.88rem]">Редактировать</Link>
+          <Link to={`/market/services/${id}/edit`} className="bg-[#0d2620] border border-teal-legacy-hover rounded-lg py-[9px] px-[18px] text-teal-legacy no-underline font-medium text-[0.88rem]">Редактировать</Link>
           <Link to="/market/services/mine" className="text-slate-500 text-[0.85rem] py-[9px] no-underline">← Мои услуги</Link>
         </div>
       )}

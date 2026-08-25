@@ -28,7 +28,8 @@ const CLS = {
   input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[9px] px-3 text-slate-200 text-[0.9rem] box-border',
   submitBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
   dangerBtn: 'inline-flex items-center gap-1.5 bg-red-500 rounded-lg py-[9px] px-5 text-white font-semibold cursor-pointer text-[0.9rem]',
-  appsLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#1e3a4a] text-slate-400 no-underline text-[0.9rem] font-medium',
+  appsLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.9rem] font-medium',
+  editLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.85rem] font-medium',
   chatLink: 'inline-flex items-center gap-1.5 py-[9px] px-5 rounded-lg bg-[#0d2620] text-teal-legacy border border-teal-legacy-hover no-underline text-[0.9rem] font-medium',
   confirmBtn: 'inline-flex items-center gap-1.5 bg-teal-legacy rounded-lg py-[9px] px-[18px] text-white font-semibold cursor-pointer text-[0.88rem] mr-2 mb-2',
   disputeBtn: 'inline-flex items-center gap-1.5 bg-transparent border border-red-500 rounded-lg py-[9px] px-[18px] text-red-500 font-semibold cursor-pointer text-[0.88rem] mb-2',
@@ -222,7 +223,7 @@ export default function OrderDetail() {
         <div className={CLS.card}>
           {!cancelOpen ? (
             <div className="flex gap-2 flex-wrap">
-              <Link to={`/market/orders/${order.id}/edit`} className={`${CLS.cancelBtn} no-underline inline-block`}>Редактировать</Link>
+              <Link to={`/market/orders/${order.id}/edit`} className={CLS.editLink}>Редактировать</Link>
               <button className={CLS.disputeBtn} onClick={() => { setActionError(''); setCancelOpen(true) }}>Отменить заказ</button>
             </div>
           ) : (

@@ -238,21 +238,19 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
             <textarea
               ref={textareaRef}
               style={S.textarea}
-              placeholder={ENTER_SENDS_MESSAGE
-                ? 'Напишите сообщение... (Enter — отправить, Shift+Enter — перенос)'
-                : 'Напишите сообщение...'}
+              placeholder="Напишите сообщение..."
               value={text}
               onChange={e => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
             />
             <button
-              className={sendDisabled ? '' : 'bg-teal-legacy'}
-              style={{ background: sendDisabled ? '#1e3a4a' : undefined, border: 'none', borderRadius: 8, padding: '10px 14px', cursor: sendDisabled ? 'default' : 'pointer', color: sendDisabled ? '#64748b' : '#fff', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600, flexShrink: 0, fontSize: '0.88rem' }}
+              className={`${sendDisabled ? '' : 'bg-teal-legacy'} flex items-center gap-[5px] font-semibold text-[0.88rem] shrink-0 rounded-lg px-3 sm:px-3.5 py-2.5 border-0`}
+              style={{ background: sendDisabled ? '#1e3a4a' : undefined, cursor: sendDisabled ? 'default' : 'pointer', color: sendDisabled ? '#64748b' : '#fff' }}
               onClick={doSend}
               disabled={sendDisabled}
             >
-              <Send size={15} />{sending ? '...' : 'Отправить'}
+              <Send size={15} /><span className="hidden sm:inline">{sending ? '...' : 'Отправить'}</span>
             </button>
           </div>
           {sendError && (
