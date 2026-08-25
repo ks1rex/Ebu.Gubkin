@@ -170,7 +170,10 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
           <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem', fontSize: '0.9rem' }}>Сообщений пока нет</div>
         )}
         {messages.map(msg => {
-          const isOwn = msg.sender_id === user?.id
+          // Бэкенд отдаёт sender как вложенный объект (sender:profiles!...),
+          // плоского msg.sender_id в ответе нет — сравнение с ним всегда
+          // давало false, и свои сообщения всегда рисовались как чужие.
+          const isOwn = msg.sender?.id === user?.id
           const bubbleStyle = msg.is_admin_message
             ? { ...(isOwn ? S.ownBubble : S.otherBubble), ...S.adminBubble }
             : (isOwn ? S.ownBubble : S.otherBubble)
