@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { Attachment, MAX_ATTACHMENTS, MAX_FILE_BYTES, isImage } from '../lib/attachments'
 import { compressImage, SHOWCASE } from '../lib/compressImage'
+import ImageCropper from '../components/ImageCropper'
 
 const CLS = {
   input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.93rem] box-border',
@@ -48,6 +49,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
   const [category, setCategory] = useState(initial.category ?? '')
   const [categories, setCategories] = useState<string[]>([])
   const [commissionPct, setCommissionPct] = useState(10)
+  const [coverToCrop, setCoverToCrop] = useState<File | null>(null)
 
   useEffect(() => {
     apiCall('GET', '/listings/categories')
@@ -68,13 +70,19 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
     return uploaded
   }
 
-  async function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0]
     e.target.value = ''
     if (!picked || !user) return
+    setCoverToCrop(picked)
+  }
+
+  async function uploadCover(cropped: File) {
+    setCoverToCrop(null)
+    if (!user) return
     setFileError('')
     setUploading(true)
-    const uploaded = await upload(picked)
+    const uploaded = await upload(cropped)
     if (uploaded) setCoverUrl(uploaded.url)
     setUploading(false)
   }
@@ -272,6 +280,9 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
           <Link to={cancelTo} className="text-slate-500 text-[0.85rem] ml-4 no-underline">Отмена</Link>
         </div>
       </form>
+      {coverToCrop && (
+        <ImageCropper file={coverToCrop} aspect={2} onCancel={() => setCoverToCrop(null)} onConfirm={uploadCover} />
+      )}
     </div>
   )
 }

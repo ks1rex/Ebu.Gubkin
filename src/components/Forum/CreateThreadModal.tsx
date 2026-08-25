@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { uploadForumFile } from '../../lib/forumMedia'
 import { useForumAttachments } from '../../lib/useForumAttachments'
 import AttachmentList from './AttachmentList'
+import ImageCropper from '../ImageCropper'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -31,14 +32,21 @@ export default function CreateThreadModal({ token, prefillCategoryId, prefillCat
   const [loading,  setLoading]  = useState(false)
   const [coverUrl, setCoverUrl] = useState('')
   const [coverUploading, setCoverUploading] = useState(false)
+  const [coverToCrop, setCoverToCrop] = useState<File | null>(null)
   const { attachments, uploading, handleFiles, removeAttachment } = useForumAttachments()
 
-  async function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0]
     e.target.value = ''
     if (!picked || !user) return
+    setCoverToCrop(picked)
+  }
+
+  async function uploadCover(cropped: File) {
+    setCoverToCrop(null)
+    if (!user) return
     setCoverUploading(true)
-    const uploaded = await uploadForumFile(picked, user.id)
+    const uploaded = await uploadForumFile(cropped, user.id)
     if (uploaded) setCoverUrl(uploaded.url)
     else showToast('Не удалось загрузить обложку', 'error')
     setCoverUploading(false)
@@ -146,6 +154,9 @@ export default function CreateThreadModal({ token, prefillCategoryId, prefillCat
           </button>
         </div>
       </form>
+      {coverToCrop && (
+        <ImageCropper file={coverToCrop} aspect={16 / 9} onCancel={() => setCoverToCrop(null)} onConfirm={uploadCover} />
+      )}
     </Modal>
   )
 }
