@@ -14,6 +14,7 @@ const NAV_ITEMS_PUBLIC = [
   { label: 'Расписание',       to: '/schedule' },
   { label: 'ГОСТ-калькулятор', to: '/gost', frozen: true },
   { label: 'Новости',          to: '/news' },
+  { label: 'Преподаватели',    to: '/teachers' },
 ]
 
 const NAV_ITEMS_AUTH = [
