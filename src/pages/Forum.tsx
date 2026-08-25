@@ -144,9 +144,9 @@ export default function Forum() {
       <GlassCard className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7 mb-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 mb-5">
           <div>
-            <h1 className="text-[24px] sm:text-[28px] font-bold tracking-[-.5px] text-ink">Общение студентов Губки</h1>
+            <h1 className="text-[24px] sm:text-[28px] font-bold tracking-[-.5px] text-ink">Форум студентов Губки</h1>
             <p className="text-sm text-subtle mt-1.5 max-w-lg leading-relaxed">
-              С правилами, горячий, разнообразный — это не место всех, без парадоксов.
+              Обсуждаем учебу, жизнь в универе и всё, что волнует студентов
             </p>
           </div>
           <Button onClick={openCreate} variant="pri">
@@ -287,11 +287,11 @@ export default function Forum() {
           )}
 
           <GlassCard className="rounded-[20px] p-5">
-            <h3 className="text-sm font-semibold text-ink mb-3.5">📋 Правила коротко</h3>
+            <h3 className="text-sm font-semibold text-ink mb-3.5">📋 Правила форума</h3>
             <ol className="text-[13px] text-subtle leading-relaxed space-y-2 list-decimal list-inside">
-              <li>Уважай собеседников — даже если не согласен</li>
-              <li>Реклама — только в специальных темах</li>
-              <li>Помогай форуму — репортируй нарушения</li>
+              <li>Уважай других - у каждого свое мнение</li>
+              <li>Реклама - только в специальных темах</li>
+              <li>Помогай форуму - сообщай о нарушения</li>
             </ol>
           </GlassCard>
         </div>

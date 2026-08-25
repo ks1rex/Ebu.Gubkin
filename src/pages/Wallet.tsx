@@ -593,7 +593,7 @@ export default function Wallet() {
                 <span className="text-xl sm:text-2xl font-semibold opacity-85 text-white">₽</span>
               </div>
             )}
-            <p className="text-[13px] text-white/75 relative">Доступно к выводу и оплате на платформе · рубли</p>
+            <p className="text-[13px] text-white/75 relative">Доступно к выводу и оплате на платформе</p>
             <div className="flex gap-2.5 mt-5 relative">
               <Button variant="mint" onClick={() => setDepositOpen(true)} className="flex-1 justify-center">
                 <ArrowDownCircle size={16} /> Пополнить
@@ -822,7 +822,7 @@ export default function Wallet() {
             <ul className="flex flex-col gap-2 text-[13px] text-ink/90 mb-3">
               <li>· Приоритет объявлений на бирже</li>
               <li>· Скидка{vipPricing?.gostTokenDiscountPercent ? ` ${vipPricing.gostTokenDiscountPercent}%` : ''} на ГОСТ-токены</li>
-              <li>· Косметика: бейдж, рамка аватара, цветной ник</li>
+              <li>· Эксклюзивное оформление профиля: бейдж, рамка аватара, цветной ник</li>
             </ul>
             <p className="text-xs text-subtle mb-4">На 10 уровне — бесплатно</p>
             <Button to="/vip-info" variant="ghost" className="w-full justify-center">Подробнее →</Button>

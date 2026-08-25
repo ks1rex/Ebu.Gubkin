@@ -106,12 +106,12 @@ export default function Market() {
       {/* Hero */}
       <GlassCard className="rounded-[26px] px-5 py-6 sm:px-8 sm:py-7 mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 sm:gap-6">
         <div className="min-w-0">
-          <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Биржа · фриланс между студентами</div>
+          <div className="text-[13px] tracking-wide text-lav font-semibold uppercase">Биржа · Умеешь делать - делай деньги</div>
           <h1 className="text-[26px] sm:text-[34px] leading-[1.06] tracking-[-1px] font-bold mt-2.5 text-ink">
             Найди исполнителя или <em className="not-italic bg-gradient-to-r from-mint to-pink bg-clip-text text-transparent">заработай сам</em>
           </h1>
           <p className="mt-2.5 text-sm text-subtle max-w-[440px] leading-relaxed">
-            Заказы и услуги от студентов Губки — дизайн, код, курсовые, чертежи. Оплата рублями, безопасная сделка.
+            Находи исполнителей, бери заказы, и зарабатывай на своих навыках. Безопасная оплата внутри платформы.
           </p>
           <div className="flex gap-6 mt-5">
             <div><b className="block text-2xl font-bold text-ink">{counts?.orders_count ?? 0}</b><span className="text-xs text-subtle">заказов</span></div>
@@ -272,8 +272,8 @@ export default function Market() {
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
           <GlassCard className="rounded-[20px] p-7 text-center !bg-gradient-to-br !from-mint/[.18] !to-pink/[.16]">
-            <h3 className="text-xl font-bold mb-2 text-ink">Есть навык? 💸</h3>
-            <p className="text-[13.5px] text-subtle mb-5 leading-relaxed">Размести услугу и получай заказы от студентов прямо в кошелёк.</p>
+            <h3 className="text-xl font-bold mb-2 text-ink">Есть навык?</h3>
+            <p className="text-[13.5px] text-subtle mb-5 leading-relaxed">Размести услугу и получай заказы от студентов.</p>
             <Button to="/market/services/new" variant="mint" className="w-full justify-center">Стать исполнителем</Button>
           </GlassCard>
           <GlassCard className="rounded-[20px] p-5">
@@ -285,9 +285,9 @@ export default function Market() {
           <GlassCard className="rounded-[20px] p-5">
             <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink">⚖️ Правила биржи</h3>
             <ul className="text-[13px] text-subtle leading-relaxed space-y-1.5 mb-3.5 list-disc pl-4">
-              <li>Не пытайтесь обмануть заказчика или исполнителя — бан необратим</li>
-              <li>Сделки — только через сайт: в обход платформы вы теряете защиту</li>
-              <li>🛡️ Деньги в безопасности — резервируются при заказе, переходят исполнителю только после приёмки работы</li>
+              <li>Будь честным - не пытайтесь обмануть заказчика или исполнителя</li>
+              <li>Сделки только через сайт - в обход платформы вы теряете защиту</li>
+              <li>Деньги в безопасности — резервируются при заказе, переходят только после выполнения работы</li>
             </ul>
             <Link to="/market-rules" className="text-[13px] font-semibold text-accent hover:underline">Все правила →</Link>
           </GlassCard>
