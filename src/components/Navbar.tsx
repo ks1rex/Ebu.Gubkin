@@ -13,6 +13,7 @@ const NAV_ITEMS_PUBLIC = [
   { label: 'Биржа',            to: '/market' },
   { label: 'Расписание',       to: '/schedule' },
   { label: 'ГОСТ-калькулятор', to: '/gost', frozen: true },
+  { label: 'Новости',          to: '/news' },
 ]
 
 const NAV_ITEMS_AUTH = [

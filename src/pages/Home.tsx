@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BookOpen, Briefcase, FileText, Wallet as WalletIcon, ArrowRight } from 'lucide-react'
+import { BookOpen, Briefcase, Newspaper, Wallet as WalletIcon, ArrowRight } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatCurrency, profileLink } from '../lib/format'
@@ -49,7 +49,7 @@ export default function Home() {
   const gostFrozen = !profile?.is_owner
 
   const [stats, setStats] = useState<Stats | null>(null)
-  const [feedMode, setFeedMode] = useState<'forum' | 'market'>('forum')
+  const [feedMode, setFeedMode] = useState<'forum' | 'market'>('market')
   const [threads, setThreads] = useState<ThreadPreview[]>([])
   const [orders, setOrders]   = useState<OrderPreview[]>([])
   const [listings, setListings] = useState<ListingPreview[]>([])
@@ -92,7 +92,7 @@ export default function Home() {
         </p>
         <div className="flex items-center justify-center gap-3">
           <Button to="/market" variant="pri">Перейти на биржу</Button>
-          <Button to="/forum" variant="ghost">Как это работает</Button>
+          <Button to="/guide" variant="ghost">Как это работает</Button>
         </div>
       </div>
 
@@ -141,35 +141,19 @@ export default function Home() {
             </div>
           </GlassCard>
         </Link>
-        {gostFrozen ? (
-          <button type="button" onClick={openGostFrozenModal} className="text-left cursor-default">
-            <GlassCard className="rounded-[20px] p-6 h-full flex flex-col opacity-50">
-              <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
-                <FileText size={20} className="text-gold" />
-              </div>
-              <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
-              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">В разработке...</p>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-subtle">от 1 токена</span>
-                <ArrowRight size={15} className="text-gold" />
-              </div>
-            </GlassCard>
-          </button>
-        ) : (
-          <Link to="/gost">
-            <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
-              <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
-                <FileText size={20} className="text-gold" />
-              </div>
-              <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
-              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">В разработке...</p>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-subtle">от 1 токена</span>
-                <ArrowRight size={15} className="text-gold" />
-              </div>
-            </GlassCard>
-          </Link>
-        )}
+        <Link to="/news">
+          <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
+            <div className="w-11 h-11 rounded-[13px] bg-gold/[.15] flex items-center justify-center mb-4">
+              <Newspaper size={20} className="text-gold" />
+            </div>
+            <h3 className="font-semibold text-ink mb-1.5">Новости</h3>
+            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Что нового появилось на платформе</p>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-subtle">&nbsp;</span>
+              <ArrowRight size={15} className="text-gold" />
+            </div>
+          </GlassCard>
+        </Link>
         <Link to="/wallet">
           <GlassCard hover className="rounded-[20px] p-6 h-full flex flex-col">
             <div className="w-11 h-11 rounded-[13px] bg-pink/[.15] flex items-center justify-center mb-4">
@@ -192,13 +176,13 @@ export default function Home() {
             <h2 className="font-semibold text-ink">Что происходит сейчас</h2>
             <div className="flex gap-1 bg-white/[.07] border border-white/[.12] rounded-[12px] p-1 ml-auto">
               <button
-                onClick={() => setFeedMode('forum')}
-                className={`text-sm font-semibold px-4 py-1.5 rounded-[9px] transition-colors ${feedMode === 'forum' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
-              >Форум</button>
-              <button
                 onClick={() => setFeedMode('market')}
                 className={`text-sm font-semibold px-4 py-1.5 rounded-[9px] transition-colors ${feedMode === 'market' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
               >Биржа</button>
+              <button
+                onClick={() => setFeedMode('forum')}
+                className={`text-sm font-semibold px-4 py-1.5 rounded-[9px] transition-colors ${feedMode === 'forum' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+              >Форум</button>
             </div>
           </div>
 

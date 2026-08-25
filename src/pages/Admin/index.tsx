@@ -22,6 +22,7 @@ import {
   HelpCircle,
   Eye,
   EyeOff,
+  Newspaper,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
@@ -36,6 +37,7 @@ export const NAV_ITEMS = [
   { to: '/admin/deposits',       icon: ArrowDownCircle, label: 'Пополнения',             ownerOnly: true },
   { to: '/admin/withdrawals',    icon: ArrowUpCircle,   label: 'Выводы',                 ownerOnly: true },
   { to: '/admin/disputes',       icon: Scale,           label: 'Споры' },
+  { to: '/admin/news',           icon: Newspaper,       label: 'Новости' },
   { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
   { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны',           ownerOnly: true },
   { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания',     ownerOnly: true },

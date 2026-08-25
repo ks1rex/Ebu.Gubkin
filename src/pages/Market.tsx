@@ -40,7 +40,7 @@ interface Listing {
 
 export default function Market() {
   const { user } = useAuth()
-  const [mode, setMode] = useState<'orders' | 'services'>('orders')
+  const [mode, setMode] = useState<'orders' | 'services'>('services')
   const [search, setSearch] = useState('')
 
   const [orders, setOrders]     = useState<Order[]>([])
@@ -143,13 +143,13 @@ export default function Market() {
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <div className="flex gap-1 bg-white/[.07] border border-white/[.12] rounded-[13px] p-1">
           <button
-            onClick={() => setMode('orders')}
-            className={`font-semibold text-sm px-5 py-2.5 min-h-[40px] rounded-[10px] whitespace-nowrap transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
-          >Заказы</button>
-          <button
             onClick={() => setMode('services')}
             className={`font-semibold text-sm px-5 py-2.5 min-h-[40px] rounded-[10px] whitespace-nowrap transition-colors ${mode === 'services' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
           >Услуги</button>
+          <button
+            onClick={() => setMode('orders')}
+            className={`font-semibold text-sm px-5 py-2.5 min-h-[40px] rounded-[10px] whitespace-nowrap transition-colors ${mode === 'orders' ? 'text-[#1a1140] bg-gradient-to-br from-lav to-[#ddd6fe]' : 'text-subtle'}`}
+          >Заказы</button>
         </div>
         <div className="flex items-center gap-2 bg-white/[.07] border border-white/[.12] rounded-[14px] px-3.5 py-2.5 text-sm flex-1 min-w-[180px] max-w-sm">
           <Search size={15} className="text-subtle shrink-0" />

@@ -35,6 +35,7 @@ import AdminConversations from './pages/Admin/Conversations'
 import AdminChatMod       from './pages/Admin/ChatMod'
 import AdminSupport       from './pages/Admin/Support'
 import AdminGostTemplates from './pages/Admin/GostTemplates'
+import AdminNews          from './pages/Admin/News'
 import AdminHelp          from './pages/Admin/Help'
 import ForgotPassword  from './pages/ForgotPassword'
 import ResetPassword   from './pages/ResetPassword'
@@ -58,6 +59,8 @@ import ServicesMine     from './pages/ServicesMine'
 import UserProfile      from './pages/UserProfile'
 import GostChat         from './pages/GostChat'
 import Schedule         from './pages/Schedule'
+import News             from './pages/News'
+import Guide            from './pages/Guide'
 import Legal, { LEGAL_DOCS } from './pages/Legal'
 
 function NotFound() {
@@ -110,6 +113,8 @@ export default function App() {
             <Route path="users/:id" element={<UserProfile />} />
             <Route path="market/users/:id" element={<LegacyProfileRedirect />} />
             <Route path="schedule" element={<Schedule />} />
+            <Route path="news" element={<News />} />
+            <Route path="guide" element={<Guide />} />
             <Route path="gost" element={<GostLayout />}>
               <Route index element={<Gost />} />
               <Route path="chat/:id" element={<ProtectedRoute><GostChat /></ProtectedRoute>} />
@@ -135,6 +140,7 @@ export default function App() {
               <Route path="deposits"         element={<AdminDeposits />} />
               <Route path="withdrawals"      element={<AdminWithdrawals />} />
               <Route path="disputes"         element={<AdminDisputes />} />
+              <Route path="news"             element={<AdminNews />} />
               <Route path="forum"            element={<AdminForumMod />} />
               <Route path="orders"           element={<AdminOrders />} />
               <Route path="conversations"    element={<AdminConversations />} />
