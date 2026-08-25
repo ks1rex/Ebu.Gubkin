@@ -6,39 +6,10 @@ import { apiCall } from '../../lib/api'
 import { stampedName, fetchAllPages } from '../../lib/reportData'
 import { downloadXlsx } from '../../lib/exportXlsx'
 import { printReport } from '../../lib/printReport'
+import { TX_LABELS, INCOME_TYPES } from '../../lib/transactionLabels'
 import { VipBadge } from '../../components/VipBadge'
 
-// Полный список типов из transaction_type. Раньше здесь не было vip_purchase,
-// balance_to_token, deposit_referral и order_refund_excess — они показывались
-// сырым ключом и отсутствовали в фильтре «Все типы».
-const TX_LABELS: Record<string, string> = {
-  deposit:                 'Пополнение',
-  deposit_referral:        'Пополнение (реферальное)',
-  withdrawal:              'Вывод',
-  order_payment:           'Оплата заказа',
-  order_cancel_refund:     'Возврат (отмена)',
-  order_refund_excess:     'Возврат излишка',
-  order_topup:             'Доплата по заказу',
-  order_payout:            'Выплата исполнителю',
-  dispute_refund_customer: 'Возврат (спор)',
-  dispute_refund_full:     'Возврат (спор, полный)',
-  deposit_hold:            'Заморозка',
-  deposit_release:         'Разморозка',
-  deposit_forfeit:         'Конфискация',
-  referral_bonus:          'Реферальный бонус',
-  vip_purchase:            'Покупка VIP',
-  balance_to_token:        'Покупка ГОСТ-токенов',
-}
-
 const TX_TYPES = Object.keys(TX_LABELS)
-
-// deposit_referral — это зачисление на баланс (реферальное пополнение), а не
-// списание: раньше он не попадал в этот набор и рисовался красным минусом.
-const INCOME_TYPES = new Set([
-  'deposit', 'deposit_referral', 'order_payout', 'dispute_refund_customer',
-  'dispute_refund_full', 'deposit_release', 'order_cancel_refund',
-  'order_refund_excess', 'referral_bonus',
-])
 
 interface TxEntry {
   id: string

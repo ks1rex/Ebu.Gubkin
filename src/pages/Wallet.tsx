@@ -7,6 +7,7 @@ import { useToast } from '../contexts/ToastContext'
 import { supabase } from '../lib/supabase'
 import { apiCall } from '../lib/api'
 import { formatDate } from '../lib/format'
+import { TX_LABELS, INCOME_TYPES } from '../lib/transactionLabels'
 import Modal from '../components/Modal'
 import { GlassCard, Button, Chip, Avatar } from '../components/glass'
 
@@ -89,30 +90,11 @@ interface Transaction {
 
 const PAGE_SIZE = 20
 
-const TX_LABELS: Record<string, string> = {
-  deposit:                 'Пополнение',
-  withdrawal:              'Вывод',
-  order_payment:           'Оплата заказа',
-  order_cancel_refund:     'Возврат (отмена)',
-  order_topup:             'Доплата по заказу',
-  order_payout:            'Выплата',
-  dispute_refund_customer: 'Возврат (спор)',
-  deposit_hold:            'Заморозка средств',
-  deposit_release:         'Разморозка средств',
-  deposit_forfeit:         'Конфискация',
-  referral_bonus:          'Реферальный бонус',
-}
-
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   pending:   { label: 'В обработке', cls: 'text-gold bg-gold/10'   },
   completed: { label: 'Выполнено',   cls: 'text-mint bg-mint/10'   },
   rejected:  { label: 'Отклонено',   cls: 'text-error bg-error/10' },
 }
-
-const INCOME_TYPES = new Set([
-  'deposit', 'order_payout', 'dispute_refund_customer',
-  'deposit_release', 'order_cancel_refund', 'referral_bonus',
-])
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
