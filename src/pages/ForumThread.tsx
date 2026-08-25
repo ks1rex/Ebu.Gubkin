@@ -199,7 +199,7 @@ export default function ForumThread() {
   const [thread,     setThread]     = useState<Thread | null>(null)
   const [posts,      setPosts]      = useState<Post[]>([])
   const [page,       setPage]       = useState(1)
-  const [hasMore,    setHasMore]    = useState(false)
+  const [hasMoreRaw, setHasMoreRaw] = useState(false)
   const [loading,    setLoading]    = useState(true)
   const [reply,      setReply]      = useState('')
   const [sending,    setSending]    = useState(false)
@@ -215,6 +215,13 @@ export default function ForumThread() {
   const mentionPopRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = profile?.is_admin ?? false
+
+  // has_more от бэкенда — это просто "страница пришла полной" (10 из 10),
+  // что ошибочно при ровно кратном POSTS_PAGE_SIZE количестве постов (10,
+  // 20, 30…) — показывало бы лишнюю пустую страницу. Как только знаем
+  // общее число постов темы, считаем страницы от него, а не гадаем.
+  const totalPages = thread ? Math.max(1, Math.ceil(thread.posts_count / POSTS_PAGE_SIZE)) : page + (hasMoreRaw ? 1 : 0)
+  const hasMore = thread ? page < totalPages : hasMoreRaw
 
   // Закрытие поповеров кликом снаружи — без fixed-подложки на весь экран.
   useEffect(() => {
@@ -265,7 +272,7 @@ export default function ForumThread() {
       const res  = await fetch(`${API}/forum/threads/${id}/posts?page=${p}`)
       const data = await res.json()
       setPosts(data.posts ?? [])
-      setHasMore(data.has_more ?? false)
+      setHasMoreRaw(data.has_more ?? false)
       setPage(p)
       if (scroll) postsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     } catch {
@@ -437,23 +444,23 @@ export default function ForumThread() {
             </GlassCard>
           )}
 
-          {!loading && (page > 1 || hasMore) && (
+          {(page > 1 || hasMore) && (
             <div className="flex items-center justify-center gap-1.5 mb-4">
-              <button onClick={() => loadPosts(page - 1, true)} disabled={page <= 1}
+              <button onClick={() => loadPosts(page - 1, true)} disabled={loading || page <= 1}
                 className="w-9 h-9 grid place-items-center text-sm border border-line rounded-xl text-ink hover:bg-panel transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 ‹
               </button>
-              {pageNumbers(page, thread ? Math.max(1, Math.ceil(thread.posts_count / POSTS_PAGE_SIZE)) : page + (hasMore ? 1 : 0)).map((n, i) => n === '…' ? (
+              {pageNumbers(page, totalPages).map((n, i) => n === '…' ? (
                 <span key={`gap-${i}`} className="px-1 text-subtle text-sm">…</span>
               ) : (
-                <button key={n} onClick={() => loadPosts(n, true)}
-                  className={`w-9 h-9 grid place-items-center text-sm rounded-xl transition-colors ${
+                <button key={n} onClick={() => loadPosts(n, true)} disabled={loading}
+                  className={`w-9 h-9 grid place-items-center text-sm rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
                     n === page ? 'bg-lav text-canvas font-semibold' : 'border border-line text-ink hover:bg-panel'
                   }`}>
                   {n}
                 </button>
               ))}
-              <button onClick={() => loadPosts(page + 1, true)} disabled={!hasMore}
+              <button onClick={() => loadPosts(page + 1, true)} disabled={loading || !hasMore}
                 className="w-9 h-9 grid place-items-center text-sm border border-line rounded-xl text-ink hover:bg-panel transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 ›
               </button>

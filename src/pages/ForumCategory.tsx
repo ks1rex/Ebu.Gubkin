@@ -57,18 +57,17 @@ function ThreadCard({ t }: { t: Thread }) {
           </div>
 
           {/* Meta */}
-          <div className="mt-1 flex items-center gap-3 text-xs lg:text-[13px] text-subtle flex-wrap">
-            <span><VipName name={t.author?.nickname ?? 'Аноним'} isVip={t.author?.is_vip} badgeSize="sm" /> · {timeAgo(t.created_at)}</span>
-            <span className="flex items-center gap-1"><MessageSquare size={11} />{t.posts_count}</span>
-            <span className="flex items-center gap-1"><Eye size={11} />{t.views_count}</span>
+          <div className="mt-1 text-xs lg:text-[13px] text-subtle">
+            <VipName name={t.author?.nickname ?? 'Аноним'} isVip={t.author?.is_vip} badgeSize="sm" /> · {timeAgo(t.created_at)}
           </div>
 
-          {/* Last activity */}
-          {t.last_post_at && (
-            <div className="mt-1 text-xs lg:text-[13px] text-subtle">
-              Обновлено {timeAgo(t.last_post_at)}
-            </div>
-          )}
+          {/* Counts + last activity — на одной строке, чтобы на мобильных не
+              переносились по одному разом с "Обновлено" */}
+          <div className="mt-1 flex items-center gap-3 text-xs lg:text-[13px] text-subtle flex-wrap">
+            <span className="flex items-center gap-1"><MessageSquare size={11} />{t.posts_count}</span>
+            <span className="flex items-center gap-1"><Eye size={11} />{t.views_count}</span>
+            {t.last_post_at && <span>· Обновлено {timeAgo(t.last_post_at)}</span>}
+          </div>
         </div>
       </div>
     </Link>
