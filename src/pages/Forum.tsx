@@ -177,28 +177,28 @@ export default function Forum() {
               : filteredCategories.map(cat => {
                   return (
                     <Link key={cat.id} to={`/forum/category/${cat.id}`}>
-                      <GlassCard hover className="rounded-[20px] p-5 h-full">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-11 h-11 rounded-[13px] shrink-0 flex items-center justify-center overflow-hidden" style={{ background: `${catColor(cat.name)}26` }}>
+                      <GlassCard hover className="rounded-[20px] p-5 lg:p-6 h-full">
+                        <div className="flex items-start gap-3 lg:gap-4 mb-3">
+                          <div className="w-11 h-11 lg:w-14 lg:h-14 rounded-[13px] shrink-0 flex items-center justify-center overflow-hidden" style={{ background: `${catColor(cat.name)}26` }}>
                             <CategoryIcon iconName={cat.icon_name} iconUrl={cat.icon_url} color={catColor(cat.name)} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold text-ink">{cat.name}</span>
-                              <span className="text-xs text-subtle bg-white/[.08] px-2 py-0.5 rounded-full">{cat.threads_count} тем</span>
+                              <span className="font-semibold text-ink lg:text-lg">{cat.name}</span>
+                              <span className="text-xs lg:text-[13px] text-subtle bg-white/[.08] px-2 py-0.5 rounded-full">{cat.threads_count} тем</span>
                             </div>
-                            {cat.description && <p className="text-sm text-subtle mt-0.5 leading-snug">{cat.description}</p>}
+                            {cat.description && <p className="text-sm lg:text-[15px] text-subtle mt-0.5 leading-snug">{cat.description}</p>}
                           </div>
                         </div>
                         {cat.last_thread?.last_post_at && (
-                          <div className="text-xs text-subtle mb-2.5 truncate">
+                          <div className="text-xs lg:text-[13px] text-subtle mb-2.5 truncate">
                             Последнее: {cat.last_thread.title} · {timeAgo(cat.last_thread.last_post_at)}
                           </div>
                         )}
                         {cat.recent_threads.length > 0 && (
                           <div className="border-t border-white/[.08] pt-2.5 flex flex-col gap-1.5">
                             {cat.recent_threads.map(t => (
-                              <div key={t.id} className="text-xs text-ink/80 truncate">· {t.title}</div>
+                              <div key={t.id} className="text-xs lg:text-[13px] text-ink/80 truncate">· {t.title}</div>
                             ))}
                           </div>
                         )}

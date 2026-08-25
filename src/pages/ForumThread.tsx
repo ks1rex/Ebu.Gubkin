@@ -45,6 +45,7 @@ interface Thread {
   is_locked: boolean
   views_count: number
   posts_count: number
+  participants_count: number
   created_at: string
   cover_url: string | null
   author: Author | null
@@ -340,7 +341,7 @@ export default function ForumThread() {
                   <div className="font-semibold text-[14.5px] text-ink"><VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} /></div>
                   <div className="text-[12.5px] text-subtle">{timeAgo(thread.created_at)}</div>
                 </div>
-                <div className="ml-auto flex gap-5 text-right">
+                <div className="w-full sm:w-auto sm:ml-auto flex gap-5 sm:text-right">
                   <div><b className="block text-lg font-bold text-ink">{thread.posts_count}</b><span className="text-[11px] text-subtle">{plural(thread.posts_count, 'ответ', 'ответа', 'ответов')}</span></div>
                   <div><b className="block text-lg font-bold text-mint">{thread.views_count}</b><span className="text-[11px] text-subtle">просмотров</span></div>
                   <div><b className="block text-lg font-bold text-gold">{totalReactions}</b><span className="text-[11px] text-subtle">реакций</span></div>
@@ -526,6 +527,10 @@ export default function ForumThread() {
                   <Link to={`/forum/category/${thread.category.id}`} className="ml-auto text-ink hover:underline">{thread.category.name}</Link>
                 </div>
               )}
+              <div className="flex gap-2.5 py-2.5 border-b border-white/[.08] text-[13px]">
+                <span className="text-subtle">Участников</span>
+                <span className="ml-auto text-ink">{thread.participants_count}</span>
+              </div>
               <div className="flex gap-2.5 py-2.5 text-[13px]">
                 <span className="text-subtle">Статус</span>
                 <span className={`ml-auto ${thread.is_locked ? 'text-subtle' : 'text-mint'}`}>
