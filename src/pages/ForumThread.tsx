@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, Lock, Pin, Trash2, Flag, Shield, Paperclip, Smile, AtSign,
+  ArrowLeft, Lock, Pin, Trash2, Flag, Shield, Paperclip, Smile, SmilePlus, AtSign,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -57,12 +57,25 @@ function ReactionBar({
 }: {
   reactions: Reaction[]; postId: string; userId: string | null; token: string | null; onChange: () => void
 }) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!pickerOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (!pickerRef.current?.contains(e.target as Node)) setPickerOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [pickerOpen])
+
   const counts: Record<string, number> = {}
   const mine: Record<string, boolean>  = {}
   for (const r of reactions) {
     counts[r.emoji] = (counts[r.emoji] ?? 0) + 1
     if (r.user_id === userId) mine[r.emoji] = true
   }
+  const used = EMOJIS.filter(e => (counts[e] ?? 0) > 0)
 
   async function toggle(emoji: Emoji) {
     if (!token) return
@@ -71,12 +84,13 @@ function ReactionBar({
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body:    JSON.stringify({ emoji }),
     })
+    setPickerOpen(false)
     onChange()
   }
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {EMOJIS.map(emoji => (
+      {used.map(emoji => (
         <button key={emoji} onClick={() => toggle(emoji)}
           className={`inline-flex items-center gap-1.5 text-[13px] font-semibold px-3 py-1.5 rounded-[11px] transition-colors duration-150 ${
             mine[emoji]
@@ -84,9 +98,27 @@ function ReactionBar({
               : 'bg-white/[.07] border border-white/[.12] text-ink hover:bg-white/[.13]'
           }`}>
           {emoji}
-          {(counts[emoji] ?? 0) > 0 && <span>{counts[emoji]}</span>}
+          <span>{counts[emoji]}</span>
         </button>
       ))}
+      {token && (
+        <div className="relative" ref={pickerRef}>
+          <button type="button" title="Поставить реакцию" onClick={() => setPickerOpen(v => !v)}
+            className="w-[34px] h-[34px] rounded-[11px] grid place-items-center bg-white/[.07] border border-white/[.12] text-subtle hover:text-ink hover:bg-white/[.13] transition-colors">
+            <SmilePlus size={15} />
+          </button>
+          {pickerOpen && (
+            <div className="absolute bottom-full left-0 mb-2 z-20 flex gap-1 p-1.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl">
+              {EMOJIS.map(emoji => (
+                <button key={emoji} type="button" onClick={() => toggle(emoji)}
+                  className={`text-lg leading-none w-9 h-9 rounded-lg grid place-items-center transition-colors ${mine[emoji] ? 'bg-mint/[.16]' : 'hover:bg-white/[.08]'}`}>
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
