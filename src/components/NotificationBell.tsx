@@ -82,7 +82,7 @@ export default function NotificationBell() {
   function toggle() {
     if (!open && rootRef.current) {
       const r = rootRef.current.getBoundingClientRect()
-      const margin = 12
+      const margin = 20
       const width = Math.min(320, window.innerWidth - margin * 2)
       // right — отступ от правого края экрана. Выравниваем по кнопке, но
       // зажимаем в [margin, innerWidth - margin - width]: без верхней
