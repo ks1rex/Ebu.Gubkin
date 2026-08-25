@@ -84,7 +84,13 @@ export default function NotificationBell() {
       const r = rootRef.current.getBoundingClientRect()
       const margin = 12
       const width = Math.min(320, window.innerWidth - margin * 2)
-      setPanelPos({ top: r.bottom + 8, right: Math.max(margin, window.innerWidth - r.right), width })
+      // right — отступ от правого края экрана. Выравниваем по кнопке, но
+      // зажимаем в [margin, innerWidth - margin - width]: без верхней
+      // границы панель шириной 320px могла уехать за левый край, если
+      // кнопка стоит недостаточно далеко от правого края экрана.
+      const raw = window.innerWidth - r.right
+      const right = Math.max(margin, Math.min(raw, window.innerWidth - margin - width))
+      setPanelPos({ top: r.bottom + 8, right, width })
     }
     setOpen(v => !v)
   }
