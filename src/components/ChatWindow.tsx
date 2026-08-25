@@ -5,9 +5,42 @@ import { useAuth } from '../contexts/AuthContext'
 import { apiCall, apiUpload } from '../lib/api'
 import { autoGrowTextarea, CHAT_TEXTAREA_MAX_H } from '../lib/autoGrowTextarea'
 import { ENTER_SENDS_MESSAGE } from '../lib/platform'
+import { isImageName } from '../lib/attachments'
 import { useToast } from '../contexts/ToastContext'
 import VipName from './VipBadge'
 import { compressImage, WORK_FILE } from '../lib/compressImage'
+
+// Подписанная ссылка живёт 300с на бэкенде — кэш вне компонента, чтобы опрос
+// сообщений каждые 5с не перезапрашивал превью уже отрисованных картинок.
+const previewCache = new Map<string, string>()
+
+function ChatImage({ url, name, onDownload }: { url: string; name: string; onDownload: () => void }) {
+  const [src, setSrc] = useState(previewCache.get(url) ?? null)
+
+  useEffect(() => {
+    if (previewCache.has(url)) { setSrc(previewCache.get(url)!); return }
+    let cancelled = false
+    apiCall('GET', url).then(({ url: signed }: { url: string }) => {
+      if (cancelled) return
+      previewCache.set(url, signed)
+      setSrc(signed)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [url])
+
+  if (!src) return <div style={{ ...S.attRow, color: '#64748b', fontSize: '0.78rem' }}>{name}…</div>
+
+  return (
+    <div style={{ position: 'relative', marginTop: 6, width: 'fit-content' }}>
+      <a href={src} target="_blank" rel="noopener noreferrer">
+        <img src={src} alt={name} style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, display: 'block' }} />
+      </a>
+      <button onClick={onDownload} title="Скачать" style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(15,25,35,0.75)', border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', color: '#e2e8f0', display: 'flex' }}>
+        <Download size={13} />
+      </button>
+    </div>
+  )
+}
 
 const S: Record<string, any> = {
   wrap: { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 },
@@ -208,11 +241,20 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               )}
               {msg.content && <div style={S.msgText}>{msg.content}</div>}
               {msg.message_attachments?.map((att: any) => (
-                <div key={att.id} style={S.attRow}>
-                  <span style={S.attName}>{att.file_name}</span>
-                  <span style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{(att.file_size / 1024).toFixed(0)} КБ</span>
-                  <button className="text-teal-legacy" style={S.dlBtn} onClick={() => handleDownload(msg, att)}><Download size={13} /></button>
-                </div>
+                isImageName(att.file_name) ? (
+                  <ChatImage
+                    key={att.id}
+                    url={`${adminMode ? `/admin/conversations/${conversationId}` : `/conversations/${conversationId}`}/messages/${msg.id}/attachments/${att.id}/preview`}
+                    name={att.file_name}
+                    onDownload={() => handleDownload(msg, att)}
+                  />
+                ) : (
+                  <div key={att.id} style={S.attRow}>
+                    <span style={S.attName}>{att.file_name}</span>
+                    <span style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{(att.file_size / 1024).toFixed(0)} КБ</span>
+                    <button className="text-teal-legacy" style={S.dlBtn} onClick={() => handleDownload(msg, att)}><Download size={13} /></button>
+                  </div>
+                )
               ))}
               <div style={S.msgTime}>
                 {new Date(msg.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}

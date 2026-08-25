@@ -1,7 +1,12 @@
 import { useState, useEffect, FormEvent } from 'react'
+import { ImagePlus, Paperclip, X } from 'lucide-react'
 import Modal from '../Modal'
+import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { useNavigate } from 'react-router-dom'
+import { uploadForumFile } from '../../lib/forumMedia'
+import { useForumAttachments } from '../../lib/useForumAttachments'
+import AttachmentList from './AttachmentList'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -15,6 +20,7 @@ interface Props {
 }
 
 export default function CreateThreadModal({ token, prefillCategoryId, prefillCategoryName, onClose }: Props) {
+  const { user }   = useAuth()
   const showToast = useToast()
   const navigate  = useNavigate()
 
@@ -23,6 +29,20 @@ export default function CreateThreadModal({ token, prefillCategoryId, prefillCat
   const [title,    setTitle]    = useState('')
   const [content,  setContent]  = useState('')
   const [loading,  setLoading]  = useState(false)
+  const [coverUrl, setCoverUrl] = useState('')
+  const [coverUploading, setCoverUploading] = useState(false)
+  const { attachments, uploading, handleFiles, removeAttachment } = useForumAttachments()
+
+  async function handleCover(e: React.ChangeEvent<HTMLInputElement>) {
+    const picked = e.target.files?.[0]
+    e.target.value = ''
+    if (!picked || !user) return
+    setCoverUploading(true)
+    const uploaded = await uploadForumFile(picked, user.id)
+    if (uploaded) setCoverUrl(uploaded.url)
+    else showToast('Не удалось загрузить обложку', 'error')
+    setCoverUploading(false)
+  }
 
   useEffect(() => {
     if (prefillCategoryId) return
@@ -40,7 +60,10 @@ export default function CreateThreadModal({ token, prefillCategoryId, prefillCat
       const res  = await fetch(`${API}/forum/threads`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body:    JSON.stringify({ category_id: categoryId, title: title.trim(), content: content.trim() }),
+        body:    JSON.stringify({
+          category_id: categoryId, title: title.trim(), content: content.trim(),
+          cover_url: coverUrl || undefined, attachments,
+        }),
       })
       const data = await res.json()
       if (!res.ok) { showToast(data.error ?? 'Ошибка при создании темы', 'error'); return }
@@ -87,12 +110,37 @@ export default function CreateThreadModal({ token, prefillCategoryId, prefillCat
           className={`${INPUT} resize-none`}
         />
 
+        <div>
+          {coverUrl ? (
+            <div className="relative w-fit">
+              <img src={coverUrl} alt="Обложка темы" className="w-[160px] h-[90px] object-cover rounded-lg border border-line" />
+              <button type="button" onClick={() => setCoverUrl('')}
+                className="absolute -top-1.5 -right-1.5 w-[20px] h-[20px] rounded-full bg-canvas border border-line text-subtle flex items-center justify-center">
+                <X size={11} />
+              </button>
+            </div>
+          ) : (
+            <label className="inline-flex items-center gap-1.5 text-sm text-subtle border border-line rounded-md px-3 py-1.5 cursor-pointer hover:text-ink">
+              <ImagePlus size={14} /> {coverUploading ? 'Загрузка…' : 'Обложка темы (необязательно)'}
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCover} disabled={coverUploading} />
+            </label>
+          )}
+        </div>
+
+        <div>
+          <label className="inline-flex items-center gap-1.5 text-sm text-subtle border border-line rounded-md px-3 py-1.5 cursor-pointer hover:text-ink">
+            <Paperclip size={14} /> {uploading ? 'Загрузка…' : 'Прикрепить фото/файлы'}
+            <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx" className="hidden" onChange={handleFiles} disabled={uploading} />
+          </label>
+          <AttachmentList attachments={attachments} onRemove={removeAttachment} />
+        </div>
+
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onClose}
             className="px-4 py-1.5 text-sm border border-line rounded-md text-ink hover:bg-panel transition-colors">
             Отмена
           </button>
-          <button type="submit" disabled={loading || !categoryId || !title.trim() || !content.trim()}
+          <button type="submit" disabled={loading || uploading || coverUploading || !categoryId || !title.trim() || !content.trim()}
             className="px-4 py-1.5 text-sm bg-accent text-white rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50">
             {loading ? 'Создание…' : 'Создать тему'}
           </button>

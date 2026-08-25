@@ -7,7 +7,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
 import { profileLink } from '../lib/format'
+import { Attachment } from '../lib/attachments'
+import { useForumAttachments } from '../lib/useForumAttachments'
 import ReportModal from '../components/Forum/ReportModal'
+import AttachmentList from '../components/Forum/AttachmentList'
 import { GlassCard, Avatar, Button } from '../components/glass'
 import VipName from '../components/VipBadge'
 
@@ -23,6 +26,7 @@ interface Reaction { id: string; user_id: string; emoji: string }
 interface Post {
   id: string
   content: string
+  attachments: Attachment[]
   is_deleted: boolean
   moderation_status: string
   created_at: string
@@ -38,6 +42,7 @@ interface Thread {
   views_count: number
   posts_count: number
   created_at: string
+  cover_url: string | null
   author: Author | null
   category: { id: string; name: string } | null
 }
@@ -124,7 +129,8 @@ function PostCard({
           <span className="text-[12.5px] text-subtle ml-auto">{timeAgo(post.created_at)}</span>
         </div>
 
-        <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>
+        {post.content && <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>}
+        <AttachmentList attachments={post.attachments} />
 
         <div className="mt-4 flex items-center gap-2.5 flex-wrap">
           <ReactionBar
@@ -167,6 +173,7 @@ export default function ForumThread() {
   const [reportId,   setReportId]   = useState<string | null>(null)
   const [locking,    setLocking]    = useState(false)
   const viewTracked = useRef(false)
+  const { attachments: replyAttachments, uploading: replyUploading, handleFiles: handleReplyFiles, removeAttachment: removeReplyAttachment, reset: resetReplyAttachments } = useForumAttachments()
 
   const isAdmin = profile?.is_admin ?? false
 
@@ -206,17 +213,18 @@ export default function ForumThread() {
 
   async function sendReply(e: FormEvent) {
     e.preventDefault()
-    if (!reply.trim() || !session) return
+    if ((!reply.trim() && replyAttachments.length === 0) || !session) return
     setSending(true)
     try {
       const res  = await fetch(`${API}/forum/threads/${id}/posts`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body:    JSON.stringify({ content: reply.trim() }),
+        body:    JSON.stringify({ content: reply.trim(), attachments: replyAttachments }),
       })
       const data = await res.json()
       if (!res.ok) { showToast(data.error ?? 'Ошибка при отправке', 'error'); return }
       setReply('')
+      resetReplyAttachments()
       await loadPosts(1, true)
     } catch {
       showToast('Не удалось отправить ответ', 'error')
@@ -280,6 +288,9 @@ export default function ForumThread() {
           {/* Thread header */}
           {thread && (
             <GlassCard className="rounded-[24px] px-5 py-5 sm:px-7 sm:py-6 mb-4">
+              {thread.cover_url && (
+                <img src={thread.cover_url} alt="" className="w-full max-h-[220px] object-cover rounded-[16px] mb-4" />
+              )}
               <div className="flex items-start gap-2 flex-wrap mb-3.5">
                 {thread.is_pinned && <Pin size={15} className="text-lav mt-1 shrink-0" />}
                 {thread.is_locked && <Lock size={15} className="text-subtle mt-1 shrink-0" />}
@@ -363,7 +374,7 @@ export default function ForumThread() {
               ) : (
                 <form onSubmit={sendReply} className="flex gap-3.5">
                   <Avatar name={profile?.nickname ?? 'Я'} src={profile?.avatar_url} size={44} radius={13} isVip={isVip} />
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <textarea
                       value={reply}
                       onChange={e => setReply(e.target.value)}
@@ -372,16 +383,20 @@ export default function ForumThread() {
                       maxLength={10000}
                       className="w-full min-h-[96px] rounded-[14px] bg-white/[.06] border border-white/[.14] text-ink text-sm px-4 py-3.5 resize-none leading-relaxed placeholder:text-subtle2 focus:outline-none focus:border-lav/40 transition-colors"
                     />
+                    <AttachmentList attachments={replyAttachments} onRemove={removeReplyAttachment} />
                     <div className="flex items-center gap-2.5 mt-3">
                       <div className="flex gap-2 text-subtle">
-                        <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Paperclip size={15} /></span>
+                        <label title="Прикрепить фото/файл" className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] cursor-pointer hover:text-ink">
+                          <Paperclip size={15} />
+                          <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx" className="hidden" onChange={handleReplyFiles} disabled={replyUploading} />
+                        </label>
                         <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Smile size={15} /></span>
                         <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><AtSign size={15} /></span>
                         <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Code2 size={15} /></span>
                       </div>
                       <span className="flex-1" />
-                      <Button type="submit" variant="mint" disabled={!reply.trim() || sending}>
-                        {sending ? 'Отправка…' : 'Отправить ответ'}
+                      <Button type="submit" variant="mint" disabled={(!reply.trim() && replyAttachments.length === 0) || sending || replyUploading}>
+                        {sending ? 'Отправка…' : replyUploading ? 'Загрузка файлов…' : 'Отправить ответ'}
                       </Button>
                     </div>
                   </div>
@@ -398,24 +413,33 @@ export default function ForumThread() {
         {/* Sidebar */}
         {thread && (
           <div className="flex flex-col gap-4">
-            <GlassCard className="rounded-[20px] p-5 text-center">
-              <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={64} radius={18} isVip={thread.author?.is_vip} className="mx-auto mb-3 text-[22px]" />
-              <Link to={`/users/${profileLink(thread.author)}`} className="font-semibold text-base text-ink hover:underline">
-                <VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} />
-              </Link>
-            </GlassCard>
             <GlassCard className="rounded-[20px] p-5">
               <h3 className="text-sm font-semibold text-ink mb-3.5 flex items-center gap-2">📌 Об этой теме</h3>
+
+              <Link to={`/users/${profileLink(thread.author)}`} className="flex items-center gap-3 py-2.5 border-b border-white/[.08] hover:opacity-80 transition-opacity">
+                <Avatar name={thread.author?.nickname} src={thread.author?.avatar_url} size={40} radius={12} isVip={thread.author?.is_vip} />
+                <div className="min-w-0">
+                  <div className="text-[13px] text-subtle">Автор</div>
+                  <div className="font-semibold text-[14px] text-ink truncate"><VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} /></div>
+                </div>
+              </Link>
+
               <div className="flex gap-2.5 py-2.5 border-b border-white/[.08] text-[13px]">
                 <span className="text-subtle">Создана</span>
                 <span className="ml-auto text-ink">{new Date(thread.created_at).toLocaleDateString('ru-RU')}</span>
               </div>
               {thread.category && (
-                <div className="flex gap-2.5 py-2.5 text-[13px]">
+                <div className="flex gap-2.5 py-2.5 border-b border-white/[.08] text-[13px]">
                   <span className="text-subtle">Категория</span>
-                  <span className="ml-auto text-ink">{thread.category.name}</span>
+                  <Link to={`/forum/category/${thread.category.id}`} className="ml-auto text-ink hover:underline">{thread.category.name}</Link>
                 </div>
               )}
+              <div className="flex gap-2.5 py-2.5 text-[13px]">
+                <span className="text-subtle">Статус</span>
+                <span className={`ml-auto ${thread.is_locked ? 'text-subtle' : 'text-mint'}`}>
+                  {thread.is_locked ? 'Закрыта' : 'Открыта'}
+                </span>
+              </div>
             </GlassCard>
           </div>
         )}
