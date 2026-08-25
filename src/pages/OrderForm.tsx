@@ -20,12 +20,15 @@ const CLS = {
 
 interface FileItem { id: string; file: File; visibility: 'public' | 'after_assignment' }
 
+interface ExistingAttachment { id: string; file_name: string; file_size: number; visibility: 'public' | 'after_assignment' }
+
 interface Initial {
   title?: string
   description?: string
   subject?: string
   category?: string
   reserved_amount?: number
+  attachments?: ExistingAttachment[]
 }
 
 interface Props {
@@ -36,9 +39,10 @@ interface Props {
   submittingLabel: string
   pageTitle: string
   onSubmit: (data: { title: string; description: string; subject: string; base_amount: number; category?: string }, files: FileItem[]) => Promise<void>
+  onDeleteAttachment?: (attachmentId: string) => Promise<void>
 }
 
-export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles = true, submitLabel, submittingLabel, pageTitle, onSubmit }: Props) {
+export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles = true, submitLabel, submittingLabel, pageTitle, onSubmit, onDeleteAttachment }: Props) {
   const { profile } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -55,10 +59,25 @@ export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles
   }, [])
   const [baseAmount, setBaseAmount] = useState(initial.reserved_amount != null ? String(initial.reserved_amount) : '')
   const [files, setFiles]       = useState<FileItem[]>([])
+  const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>(initial.attachments ?? [])
+  const [deletingAttachment, setDeletingAttachment] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const [error, setError]       = useState('')
   const [errorCode, setErrorCode] = useState('')
   const [loading, setLoading]   = useState(false)
+
+  async function deleteExistingAttachment(id: string) {
+    if (!onDeleteAttachment) return
+    setDeletingAttachment(id)
+    try {
+      await onDeleteAttachment(id)
+      setExistingAttachments(prev => prev.filter(a => a.id !== id))
+    } catch (err: any) {
+      setError(err.message ?? 'Не удалось удалить файл')
+    } finally {
+      setDeletingAttachment(null)
+    }
+  }
 
   const amount = parseFloat(baseAmount) || 0
   // Заказчик платит ровно введённую сумму — комиссия сервиса уже внутри неё,
@@ -177,6 +196,21 @@ export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles
               <div className="text-slate-500 text-[0.78rem]">Максимум 10 МБ на файл</div>
               <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => addFiles(e.target.files)} />
             </div>
+            {existingAttachments.map(({ id, file_name, file_size, visibility }) => (
+              <div key={id} className="bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 mb-1.5 flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-slate-200 text-[0.88rem] overflow-hidden text-ellipsis whitespace-nowrap">{file_name}</div>
+                  <div className="text-slate-500 text-xs">{(file_size / 1024).toFixed(0)} КБ</div>
+                </div>
+                <span className={CLS.toggleVisBtn(visibility === 'public')}>
+                  {visibility === 'public' ? <Eye size={13} /> : <Lock size={13} />}
+                  {visibility === 'public' ? 'Видно всем' : 'После выбора'}
+                </span>
+                <button type="button" disabled={deletingAttachment === id} className="bg-transparent border-none text-slate-500 cursor-pointer flex items-center disabled:opacity-50" onClick={() => deleteExistingAttachment(id)}>
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
             {files.map(({ id, file, visibility }) => (
               <div key={id} className="bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 mb-1.5 flex items-center gap-3">
                 <div className="flex-1 min-w-0">

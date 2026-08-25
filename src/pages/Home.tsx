@@ -46,7 +46,7 @@ interface CategoryStub { id: string; name: string; threads_count: number }
 export default function Home() {
   const { user, profile } = useAuth()
   const { openGostFrozenModal, gostFrozenModal } = useGostFrozenModal()
-  const gostFrozen = !profile?.is_admin
+  const gostFrozen = !profile?.is_owner
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [feedMode, setFeedMode] = useState<'forum' | 'market'>('forum')
