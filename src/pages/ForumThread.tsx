@@ -115,47 +115,45 @@ function PostCard({
 
   return (
     <GlassCard
-      className={`rounded-[20px] px-6 py-5 mb-3.5 flex gap-4 ${post.is_deleted ? 'opacity-50' : ''} ${
+      className={`rounded-[20px] px-6 py-5 mb-3.5 ${post.is_deleted ? 'opacity-50' : ''} ${
         isOp ? '!bg-accent/[.12] !border-lav/[.35]' : ''
       }`}
     >
-      <Avatar name={post.author?.nickname} src={post.author?.avatar_url} size={46} radius={14} isVip={post.author?.is_vip} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
-          <span className="font-semibold text-[15px] text-ink"><VipName name={post.author?.nickname ?? 'Аноним'} isVip={post.author?.is_vip} /></span>
-          {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-canvas bg-gold">Автор</span>}
-          {post.moderation_status === 'flagged' && isAdmin && (
-            <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>
-          )}
-          {post.is_deleted && <span className="text-xs bg-panel text-subtle px-1.5 py-0.5 rounded">Удалён</span>}
-        </div>
+      <div className="flex items-center gap-2.5 flex-wrap mb-3">
+        <Avatar name={post.author?.nickname} src={post.author?.avatar_url} size={32} radius={10} isVip={post.author?.is_vip} />
+        <span className="font-semibold text-[15px] text-ink"><VipName name={post.author?.nickname ?? 'Аноним'} isVip={post.author?.is_vip} /></span>
+        {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-canvas bg-gold">Автор</span>}
+        {post.moderation_status === 'flagged' && isAdmin && (
+          <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>
+        )}
+        {post.is_deleted && <span className="text-xs bg-panel text-subtle px-1.5 py-0.5 rounded">Удалён</span>}
+      </div>
 
-        {post.content && <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>}
-        <AttachmentList attachments={post.attachments} />
+      {post.content && <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>}
+      <AttachmentList attachments={post.attachments} />
 
-        <div className="mt-4 flex items-center gap-2.5 flex-wrap">
-          <ReactionBar
-            reactions={post.reactions}
-            postId={post.id}
-            userId={currentUserId}
-            token={token}
-            onChange={onReactionChange}
-          />
-        </div>
+      <div className="mt-4 flex items-center gap-2.5 flex-wrap">
+        <ReactionBar
+          reactions={post.reactions}
+          postId={post.id}
+          userId={currentUserId}
+          token={token}
+          onChange={onReactionChange}
+        />
+      </div>
 
-        <div className="mt-2.5 flex items-center gap-4 flex-wrap">
-          <span className="text-[12.5px] text-subtle">{timeAgo(post.created_at)}</span>
-          {currentUserId && !post.is_deleted && (
-            <button onClick={() => onReport(post.id)} className="text-[13px] font-medium text-subtle hover:text-ink transition-colors flex items-center gap-1">
-              <Flag size={12} /> Пожаловаться
-            </button>
-          )}
-          {(isOwn || isAdmin) && !post.is_deleted && (
-            <button onClick={() => onDelete(post.id)} className="text-[13px] font-medium text-subtle hover:text-error transition-colors flex items-center gap-1">
-              <Trash2 size={12} /> Удалить
-            </button>
-          )}
-        </div>
+      <div className="mt-2.5 flex items-center gap-4 flex-wrap">
+        <span className="text-[12.5px] text-subtle">{timeAgo(post.created_at)}</span>
+        {currentUserId && !post.is_deleted && (
+          <button onClick={() => onReport(post.id)} className="text-[13px] font-medium text-subtle hover:text-ink transition-colors flex items-center gap-1">
+            <Flag size={12} /> Пожаловаться
+          </button>
+        )}
+        {(isOwn || isAdmin) && !post.is_deleted && (
+          <button onClick={() => onDelete(post.id)} className="text-[13px] font-medium text-subtle hover:text-error transition-colors flex items-center gap-1">
+            <Trash2 size={12} /> Удалить
+          </button>
+        )}
       </div>
     </GlassCard>
   )
@@ -181,8 +179,21 @@ export default function ForumThread() {
   const replyRef = useRef<HTMLTextAreaElement>(null)
   const [emojiOpen,   setEmojiOpen]   = useState(false)
   const [mentionOpen, setMentionOpen] = useState(false)
+  const emojiPopRef   = useRef<HTMLDivElement>(null)
+  const mentionPopRef = useRef<HTMLDivElement>(null)
 
   const isAdmin = profile?.is_admin ?? false
+
+  // Закрытие поповеров кликом снаружи — без fixed-подложки на весь экран.
+  useEffect(() => {
+    if (!emojiOpen && !mentionOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (emojiOpen && !emojiPopRef.current?.contains(e.target as Node)) setEmojiOpen(false)
+      if (mentionOpen && !mentionPopRef.current?.contains(e.target as Node)) setMentionOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [emojiOpen, mentionOpen])
 
   // Кому можно упомянуть — только участники этой темы (кто уже написал в неё
   // или её создал), без похода за отдельным списком пользователей.
@@ -341,7 +352,7 @@ export default function ForumThread() {
                   <div className="font-semibold text-[14.5px] text-ink"><VipName name={thread.author?.nickname ?? 'Аноним'} isVip={thread.author?.is_vip} /></div>
                   <div className="text-[12.5px] text-subtle">{timeAgo(thread.created_at)}</div>
                 </div>
-                <div className="w-full sm:w-auto sm:ml-auto flex gap-5 sm:text-right">
+                <div className="w-full sm:w-auto sm:ml-auto flex justify-between sm:justify-start gap-5 sm:text-right">
                   <div><b className="block text-lg font-bold text-ink">{thread.posts_count}</b><span className="text-[11px] text-subtle">{plural(thread.posts_count, 'ответ', 'ответа', 'ответов')}</span></div>
                   <div><b className="block text-lg font-bold text-mint">{thread.views_count}</b><span className="text-[11px] text-subtle">просмотров</span></div>
                   <div><b className="block text-lg font-bold text-gold">{totalReactions}</b><span className="text-[11px] text-subtle">реакций</span></div>
@@ -446,44 +457,38 @@ export default function ForumThread() {
                           <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx" className="hidden" onChange={handleReplyFiles} disabled={replyUploading} />
                         </label>
 
-                        <div className="relative">
+                        <div className="relative" ref={emojiPopRef}>
                           <button type="button" title="Смайлики" onClick={() => { setEmojiOpen(v => !v); setMentionOpen(false) }}
                             className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] hover:text-ink">
                             <Smile size={15} />
                           </button>
                           {emojiOpen && (
-                            <>
-                              <div className="fixed inset-0 z-10" onClick={() => setEmojiOpen(false)} />
-                              <div className="absolute bottom-full left-0 mb-2 z-20 w-[220px] p-2.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl grid grid-cols-6 gap-1">
-                                {REPLY_EMOJIS.map(em => (
-                                  <button key={em} type="button" onClick={() => { insertAtCursor(em); setEmojiOpen(false) }}
-                                    className="text-lg leading-none w-8 h-8 rounded-lg hover:bg-white/[.08] grid place-items-center">
-                                    {em}
-                                  </button>
-                                ))}
-                              </div>
-                            </>
+                            <div className="absolute bottom-full left-0 mb-2 z-20 w-[220px] p-2.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl grid grid-cols-6 gap-1">
+                              {REPLY_EMOJIS.map(em => (
+                                <button key={em} type="button" onClick={() => { insertAtCursor(em); setEmojiOpen(false) }}
+                                  className="text-lg leading-none w-8 h-8 rounded-lg hover:bg-white/[.08] grid place-items-center">
+                                  {em}
+                                </button>
+                              ))}
+                            </div>
                           )}
                         </div>
 
                         {participants.length > 0 && (
-                          <div className="relative">
+                          <div className="relative" ref={mentionPopRef}>
                             <button type="button" title="Упомянуть участника" onClick={() => { setMentionOpen(v => !v); setEmojiOpen(false) }}
                               className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] hover:text-ink">
                               <AtSign size={15} />
                             </button>
                             {mentionOpen && (
-                              <>
-                                <div className="fixed inset-0 z-10" onClick={() => setMentionOpen(false)} />
-                                <div className="absolute bottom-full left-0 mb-2 z-20 w-[200px] max-h-[220px] overflow-y-auto p-1.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl">
-                                  {participants.map(p => (
-                                    <button key={p.id} type="button" onClick={() => { insertAtCursor(`@${p.nickname} `); setMentionOpen(false) }}
-                                      className="w-full text-left text-sm text-ink px-2.5 py-2 rounded-lg hover:bg-white/[.08] truncate">
-                                      @{p.nickname}
-                                    </button>
-                                  ))}
-                                </div>
-                              </>
+                              <div className="absolute bottom-full left-0 mb-2 z-20 w-[200px] max-h-[220px] overflow-y-auto p-1.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl">
+                                {participants.map(p => (
+                                  <button key={p.id} type="button" onClick={() => { insertAtCursor(`@${p.nickname} `); setMentionOpen(false) }}
+                                    className="w-full text-left text-sm text-ink px-2.5 py-2 rounded-lg hover:bg-white/[.08] truncate">
+                                    @{p.nickname}
+                                  </button>
+                                ))}
+                              </div>
                             )}
                           </div>
                         )}
