@@ -51,7 +51,7 @@ function ThreadCard({ t }: { t: Thread }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             {t.is_pinned && <Pin size={13} className="text-accent shrink-0" />}
             {t.is_locked && <Lock size={13} className="text-subtle shrink-0" />}
-            <span className="font-medium text-ink group-hover:text-accent transition-colors text-sm lg:text-base leading-snug">
+            <span className="font-medium text-ink group-hover:text-accent transition-colors text-sm lg:text-base leading-snug min-w-0 break-words">
               {t.title}
             </span>
           </div>
