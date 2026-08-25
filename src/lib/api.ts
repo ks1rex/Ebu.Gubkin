@@ -30,3 +30,33 @@ export async function apiCall(method: string, path: string, body?: unknown): Pro
   }
   return res.json()
 }
+
+// fetch не даёт событий прогресса аплоада — только XHR умеет xhr.upload.onprogress.
+// Нужен отдельно от apiCall только там, где важно показать, сколько уже
+// загрузилось (вложения в чат): без этого при большом файле на медленной
+// сети непонятно, сайт завис или всё ещё грузит.
+export function apiUpload(method: string, path: string, form: FormData, onProgress?: (pct: number) => void): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    const token = await getToken()
+    const xhr = new XMLHttpRequest()
+    xhr.open(method, `${BASE}${path}`)
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onerror = () => reject(new Error('Ошибка сети'))
+    xhr.onload = () => {
+      let body: any = {}
+      try { body = JSON.parse(xhr.responseText) } catch { /* пустой/нестандартный ответ */ }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body)
+      } else {
+        const e: any = new Error(body.error ?? `HTTP ${xhr.status}`)
+        e.data = body
+        reject(e)
+      }
+    }
+    xhr.send(form)
+  })
+}

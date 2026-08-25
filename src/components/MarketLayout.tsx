@@ -22,7 +22,7 @@ export default function MarketLayout() {
   const isChatPage = CHAT_ROUTE_RE.test(pathname)
 
   return (
-    <div className={isChatPage ? 'h-full flex flex-col' : undefined}>
+    <div>
       {/* Top bar */}
       {!isChatPage && (
         <div className="flex items-center gap-3 mb-5 flex-wrap">
@@ -53,9 +53,7 @@ export default function MarketLayout() {
         </div>
       )}
 
-      <div className={isChatPage ? 'flex-1 min-h-0' : undefined}>
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   )
 }

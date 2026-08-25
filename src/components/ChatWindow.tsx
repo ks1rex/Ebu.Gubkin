@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react
 import { Paperclip, Send, Download, X, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { apiCall } from '../lib/api'
+import { apiCall, apiUpload } from '../lib/api'
 import { autoGrowTextarea, CHAT_TEXTAREA_MAX_H } from '../lib/autoGrowTextarea'
 import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { useToast } from '../contexts/ToastContext'
@@ -39,6 +39,23 @@ const S: Record<string, any> = {
 
 const CHAT_VIP_LOCK_CODE = 'VIP_EXPIRED_CHAT_LOCKED'
 
+// Кольцо прогресса вместо иконки отправки на время загрузки вложений —
+// без него при большом файле на медленной сети непонятно, сайт завис
+// или всё ещё грузит.
+function UploadRing({ progress }: { progress: number }) {
+  const r = 7, c = 2 * Math.PI * r
+  return (
+    <svg width={15} height={15} viewBox="0 0 18 18" className="shrink-0">
+      <circle cx="9" cy="9" r={r} fill="none" stroke="rgba(255,255,255,.28)" strokeWidth="2.5" />
+      <circle
+        cx="9" cy="9" r={r} fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"
+        strokeDasharray={c} strokeDashoffset={c * (1 - progress / 100)}
+        transform="rotate(-90 9 9)" style={{ transition: 'stroke-dashoffset .15s linear' }}
+      />
+    </svg>
+  )
+}
+
 interface Props {
   conversationId: string
   readOnly?: boolean
@@ -55,6 +72,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   const [text, setText] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [sending, setSending] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [sendError, setSendError] = useState('')
   const [chatLocked, setChatLocked] = useState(false)
 
@@ -108,6 +126,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
   async function doSend() {
     setSending(true)
     setSendError('')
+    setUploadProgress(files.length > 0 ? 0 : null)
     try {
       let failedFiles: string[] = []
       if (adminMode) {
@@ -117,7 +136,9 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
         form.append('content', text)
         // Фото ужимаются перед отправкой; документы проходят как есть.
         for (const f of files) form.append('files', await compressImage(f, WORK_FILE))
-        const res = await apiCall('POST', basePath, form)
+        const res = files.length > 0
+          ? await apiUpload('POST', basePath, form, setUploadProgress)
+          : await apiCall('POST', basePath, form)
         failedFiles = res?.failed_files ?? []
       }
       setText('')
@@ -132,6 +153,7 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
       else setSendError(e.message)
     } finally {
       setSending(false)
+      setUploadProgress(null)
     }
   }
 
@@ -253,7 +275,16 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
               onClick={doSend}
               disabled={sendDisabled}
             >
-              <Send size={15} /><span className="hidden sm:inline">{sending ? '...' : 'Отправить'}</span>
+              {uploadProgress != null ? (
+                <UploadRing progress={uploadProgress} />
+              ) : sending ? (
+                <Send size={15} className="animate-pulse" />
+              ) : (
+                <Send size={15} />
+              )}
+              <span className="hidden sm:inline">
+                {uploadProgress != null ? `${uploadProgress}%` : sending ? '...' : 'Отправить'}
+              </span>
             </button>
           </div>
           {sendError && (
