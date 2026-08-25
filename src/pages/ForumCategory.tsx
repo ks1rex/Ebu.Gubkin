@@ -33,14 +33,14 @@ interface CategoryInfo { id: string; name: string; icon_name: string }
 function ThreadCard({ t }: { t: Thread }) {
   return (
     <Link to={`/forum/thread/${t.id}`}
-      className="block bg-surface border border-line rounded-xl p-4 hover:border-accent/40 hover:shadow-sm transition-all group">
-      <div className="flex items-start gap-3">
+      className="block bg-surface border border-line rounded-xl p-4 lg:p-5 hover:border-accent/40 hover:shadow-sm transition-all group">
+      <div className="flex items-start gap-3 lg:gap-4">
         {/* Author avatar */}
         <div className="shrink-0 mt-0.5">
           {t.author?.avatar_url ? (
-            <img src={t.author.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+            <img src={t.author.avatar_url} className="w-8 h-8 lg:w-11 lg:h-11 rounded-full object-cover" alt="" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-accent-subtle flex items-center justify-center">
+            <div className="w-8 h-8 lg:w-11 lg:h-11 rounded-full bg-accent-subtle flex items-center justify-center">
               <User size={14} className="text-accent" />
             </div>
           )}
@@ -51,13 +51,13 @@ function ThreadCard({ t }: { t: Thread }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             {t.is_pinned && <Pin size={13} className="text-accent shrink-0" />}
             {t.is_locked && <Lock size={13} className="text-subtle shrink-0" />}
-            <span className="font-medium text-ink group-hover:text-accent transition-colors text-sm leading-snug">
+            <span className="font-medium text-ink group-hover:text-accent transition-colors text-sm lg:text-base leading-snug">
               {t.title}
             </span>
           </div>
 
           {/* Meta */}
-          <div className="mt-1 flex items-center gap-3 text-xs text-subtle flex-wrap">
+          <div className="mt-1 flex items-center gap-3 text-xs lg:text-[13px] text-subtle flex-wrap">
             <span><VipName name={t.author?.nickname ?? 'Аноним'} isVip={t.author?.is_vip} badgeSize="sm" /> · {timeAgo(t.created_at)}</span>
             <span className="flex items-center gap-1"><MessageSquare size={11} />{t.posts_count}</span>
             <span className="flex items-center gap-1"><Eye size={11} />{t.views_count}</span>
@@ -65,7 +65,7 @@ function ThreadCard({ t }: { t: Thread }) {
 
           {/* Last activity */}
           {t.last_post_at && (
-            <div className="mt-1 text-xs text-subtle">
+            <div className="mt-1 text-xs lg:text-[13px] text-subtle">
               Обновлено {timeAgo(t.last_post_at)}
             </div>
           )}
