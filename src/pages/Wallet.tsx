@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react'
 import {
-  ArrowDownCircle, ArrowUpCircle, Copy, Plus, Minus, ChevronDown, Gift, Coins, Crown,
+  ArrowDownCircle, ArrowUpCircle, Copy, Plus, Minus, ChevronDown, Gift, Crown,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -8,7 +8,6 @@ import { supabase } from '../lib/supabase'
 import { apiCall } from '../lib/api'
 import { formatDate } from '../lib/format'
 import Modal from '../components/Modal'
-import BuyTokensModal from '../components/Gost/BuyTokensModal'
 import { GlassCard, Button, Chip, Avatar } from '../components/glass'
 
 // ─── VIP purchase confirm (one-off modal, pattern follows useGostFrozenModal) ─
@@ -22,7 +21,6 @@ interface VipPricing {
   monthBasePrice: number
   yearBasePrice: number
   discountPercent: number
-  gostTokenDiscountPercent: number
 }
 
 // nbsp перед ₽: с обычным пробелом «1 500 ₽» рвётся на две строки в узких ячейках/кнопках.
@@ -77,8 +75,6 @@ function useVipPurchaseModal(onPurchased: () => void, pricing: VipPricing | null
 
   return { openVipPurchase: (p: VipPlan) => setPlan(p), vipPurchaseModal: modal }
 }
-
-const API = import.meta.env.VITE_BACKEND_URL as string
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -445,7 +441,7 @@ function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: Withd
 type TxFilter = 'all' | 'in' | 'out'
 
 export default function Wallet() {
-  const { user, session, profile, isVip, refreshProfile } = useAuth()
+  const { user, profile, isVip, refreshProfile } = useAuth()
   const toast = useToast()
   const vipPricing = useVipPricing()
   const { openVipPurchase, vipPurchaseModal } = useVipPurchaseModal(refreshProfile, vipPricing)
@@ -466,15 +462,8 @@ export default function Wallet() {
   const [depositOpen, setDepositOpen]   = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
 
-  const [tokenBalance, setTokenBalance] = useState(0)
-  const [tokenPrice, setTokenPrice]     = useState(10)
-  const [unlimited, setUnlimited]       = useState(false)
-  const [buyTokensOpen, setBuyTokensOpen] = useState(false)
-
   const [chart, setChart] = useState<ChartPoint[]>([])
   const [referrals, setReferrals] = useState<Referral[]>([])
-
-  const token = session?.access_token ?? null
 
   useEffect(() => {
     if (!user) return
@@ -485,18 +474,6 @@ export default function Wallet() {
     apiCall('GET', '/wallet/referrals').then(d => setReferrals(Array.isArray(d) ? d : [])).catch(() => setReferrals([]))
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
-
-  useEffect(() => {
-    if (!token) return
-    fetch(`${API}/gost/token-balance`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => {
-        setTokenBalance(d.token_balance ?? 0)
-        setUnlimited(d.unlimited_access ?? false)
-        setTokenPrice(d.token_price ?? 10)
-      })
-      .catch(() => {})
-  }, [token])
 
   async function fetchBalance() {
     setBalanceLoading(true)
@@ -821,30 +798,11 @@ export default function Wallet() {
             <h3 className="text-sm font-semibold mb-3.5 flex items-center gap-2 text-ink"><Crown size={16} className="text-gold" /> VIP</h3>
             <ul className="flex flex-col gap-2 text-[13px] text-ink/90 mb-3">
               <li>· Приоритет объявлений на бирже</li>
-              <li>· Скидка{vipPricing?.gostTokenDiscountPercent ? ` ${vipPricing.gostTokenDiscountPercent}%` : ''} на ГОСТ-токены</li>
               <li>· Эксклюзивное оформление профиля: бейдж, рамка аватара, цветной ник</li>
+              <li>· Больше постов на форуме</li>
             </ul>
             <p className="text-xs text-subtle mb-4">На 10 уровне — бесплатно</p>
             <Button to="/vip-info" variant="ghost" className="w-full justify-center">Подробнее →</Button>
-          </GlassCard>
-
-          <GlassCard className="rounded-[20px] p-5">
-            <h3 className="text-sm font-semibold mb-1 flex items-center gap-2 text-ink">◈ ГОСТ-токены</h3>
-            <p className="text-xs text-subtle mb-4">Курс 1 ₮ = {tokenPrice} ₽ · списывается с баланса</p>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-11 h-11 rounded-[13px] bg-mint/[.15] grid place-items-center shrink-0">
-                <Coins size={18} className="text-mint" />
-              </div>
-              <div>
-                <b className="text-lg font-bold text-ink">{unlimited ? 'Безлимит' : `${tokenBalance} ₮`}</b>
-                <div className="text-xs text-subtle">текущий баланс</div>
-              </div>
-            </div>
-            {token && !unlimited && (
-              <Button variant="mint" onClick={() => setBuyTokensOpen(true)} className="w-full justify-center">
-                Купить токены
-              </Button>
-            )}
           </GlassCard>
 
           <GlassCard className="rounded-[20px] p-5">
@@ -869,15 +827,6 @@ export default function Wallet() {
         depositedBalance={depositedBalance}
         earnedBalance={earnedBalance}
       />
-      {buyTokensOpen && token && (
-        <BuyTokensModal
-          walletBalance={currentBalance}
-          tokenPrice={tokenPrice}
-          token={token}
-          onClose={() => setBuyTokensOpen(false)}
-          onSuccess={(tb, wb) => { setTokenBalance(tb); setBalance(wb); setBuyTokensOpen(false) }}
-        />
-      )}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Crown, TrendingUp, Sparkles, Coins } from 'lucide-react'
+import { Crown, TrendingUp, Sparkles, ListPlus } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { formatDate } from '../lib/format'
@@ -13,7 +13,6 @@ interface VipPricing {
   monthBasePrice: number
   yearBasePrice: number
   discountPercent: number
-  gostTokenDiscountPercent: number
 }
 
 // Same rule the backend applies (utils/vip.js vipDiscountPct): +10% per level,
@@ -65,7 +64,7 @@ export default function VipInfo() {
           <Crown size={28} className="text-gold shrink-0" /> VIP-статус
         </h1>
         <p className="mt-2.5 text-sm text-subtle max-w-[520px] leading-relaxed">
-          Приоритет на бирже, скидка на ГОСТ-токены и заметное оформление профиля.
+          Приоритет на бирже, больше объявлений и заметное оформление профиля.
           Чем выше ваш уровень — тем дешевле подписка.
         </p>
       </GlassCard>
@@ -111,21 +110,18 @@ export default function VipInfo() {
             </div>
           </div>
 
-          {(pricing?.gostTokenDiscountPercent ?? 0) > 0 && (
-            <div className="flex gap-3.5">
-              <div className="w-10 h-10 rounded-[12px] bg-mint/[.15] grid place-items-center shrink-0">
-                <Coins size={18} className="text-mint" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-ink mb-1">
-                  Скидка {pricing!.gostTokenDiscountPercent}% на ГОСТ-токены
-                </h3>
-                <p className="text-[13px] text-subtle leading-relaxed">
-                  Применяется автоматически при покупке токенов, пока VIP активен.
-                </p>
-              </div>
+          <div className="flex gap-3.5">
+            <div className="w-10 h-10 rounded-[12px] bg-mint/[.15] grid place-items-center shrink-0">
+              <ListPlus size={18} className="text-mint" />
             </div>
-          )}
+            <div>
+              <h3 className="text-sm font-semibold text-ink mb-1">Больше объявлений на бирже</h3>
+              <p className="text-[13px] text-subtle leading-relaxed">
+                Повышенный лимит одновременно активных заказов и услуг по сравнению
+                с обычным аккаунтом.
+              </p>
+            </div>
+          </div>
         </div>
       </GlassCard>
 
