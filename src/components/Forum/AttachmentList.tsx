@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { FileText, X } from 'lucide-react'
 import { Attachment, isImage } from '../../lib/attachments'
+import Lightbox from '../Lightbox'
 
 export default function AttachmentList({ attachments, onRemove }: { attachments: Attachment[]; onRemove?: (url: string) => void }) {
+  const [preview, setPreview] = useState<string | null>(null)
   if (attachments.length === 0) return null
   const images = attachments.filter(isImage)
   const files  = attachments.filter(a => !isImage(a))
@@ -12,9 +15,9 @@ export default function AttachmentList({ attachments, onRemove }: { attachments:
         <div className="flex flex-wrap gap-2">
           {images.map(a => (
             <div key={a.url} className="relative">
-              <a href={a.url} target="_blank" rel="noopener noreferrer">
+              <button type="button" onClick={() => setPreview(a.url)}>
                 <img src={a.url} alt={a.name} className="w-[92px] h-[92px] object-cover rounded-[12px] border border-white/[.12]" />
-              </a>
+              </button>
               {onRemove && (
                 <button type="button" onClick={() => onRemove(a.url)}
                   className="absolute -top-1.5 -right-1.5 w-[20px] h-[20px] rounded-full bg-canvas border border-white/20 text-subtle flex items-center justify-center">
@@ -39,6 +42,7 @@ export default function AttachmentList({ attachments, onRemove }: { attachments:
           ))}
         </div>
       )}
+      {preview && <Lightbox url={preview} onClose={() => setPreview(null)} />}
     </div>
   )
 }

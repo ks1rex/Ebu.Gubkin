@@ -63,15 +63,10 @@ function ThreadCard({ t }: { t: Thread }) {
             <span className="flex items-center gap-1"><Eye size={11} />{t.views_count}</span>
           </div>
 
-          {/* Last reply */}
-          {t.last_post_at && t.last_post_author && (
-            <div className="mt-1 text-xs text-subtle flex items-center gap-1">
-              <span>Последний ответ:</span>
-              {t.last_post_author.avatar_url && (
-                <img src={t.last_post_author.avatar_url} className="w-3.5 h-3.5 rounded-full" alt="" />
-              )}
-              <span>{t.last_post_author.nickname ?? 'Аноним'}</span>
-              <span>· {timeAgo(t.last_post_at)}</span>
+          {/* Last activity */}
+          {t.last_post_at && (
+            <div className="mt-1 text-xs text-subtle">
+              Обновлено {timeAgo(t.last_post_at)}
             </div>
           )}
         </div>

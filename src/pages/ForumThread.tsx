@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
-  ArrowLeft, Lock, Pin, Trash2, Flag, Shield, Paperclip, Smile, AtSign, Code2,
+  ArrowLeft, Lock, Pin, Trash2, Flag, Shield, Paperclip, Smile, AtSign,
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
@@ -18,6 +18,8 @@ const API = import.meta.env.VITE_BACKEND_URL as string
 
 const EMOJIS = ['👍', '👎', '😂', '🔥'] as const
 type Emoji = typeof EMOJIS[number]
+
+const REPLY_EMOJIS = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '🔥', '🎉', '🙏', '😮', '😴', '🤝', '💯', '❤️']
 
 interface Author { id: string; nickname: string | null; avatar_url: string | null; level?: number; is_vip?: boolean }
 
@@ -118,9 +120,6 @@ function PostCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 flex-wrap mb-2.5">
           <span className="font-semibold text-[15px] text-ink"><VipName name={post.author?.nickname ?? 'Аноним'} isVip={post.author?.is_vip} /></span>
-          {post.author?.level != null && (
-            <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-md text-lav bg-white/[.08]">Ур. {post.author.level}</span>
-          )}
           {isOp && <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-[7px] text-canvas bg-gold">Автор</span>}
           {post.moderation_status === 'flagged' && isAdmin && (
             <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>
@@ -174,8 +173,37 @@ export default function ForumThread() {
   const [locking,    setLocking]    = useState(false)
   const viewTracked = useRef(false)
   const { attachments: replyAttachments, uploading: replyUploading, handleFiles: handleReplyFiles, removeAttachment: removeReplyAttachment, reset: resetReplyAttachments } = useForumAttachments()
+  const replyRef = useRef<HTMLTextAreaElement>(null)
+  const [emojiOpen,   setEmojiOpen]   = useState(false)
+  const [mentionOpen, setMentionOpen] = useState(false)
 
   const isAdmin = profile?.is_admin ?? false
+
+  // Кому можно упомянуть — только участники этой темы (кто уже написал в неё
+  // или её создал), без похода за отдельным списком пользователей.
+  const participants = (() => {
+    const byId = new Map<string, string>()
+    if (thread?.author?.id && thread.author.nickname) byId.set(thread.author.id, thread.author.nickname)
+    for (const p of posts) {
+      if (p.author?.id && p.author.nickname) byId.set(p.author.id, p.author.nickname)
+    }
+    byId.delete(user?.id ?? '')
+    return [...byId.entries()].map(([id, nickname]) => ({ id, nickname }))
+  })()
+
+  function insertAtCursor(text: string) {
+    const el = replyRef.current
+    if (!el) { setReply(r => r + text); return }
+    const start = el.selectionStart ?? reply.length
+    const end   = el.selectionEnd ?? reply.length
+    const next  = reply.slice(0, start) + text + reply.slice(end)
+    setReply(next)
+    requestAnimationFrame(() => {
+      el.focus()
+      const pos = start + text.length
+      el.setSelectionRange(pos, pos)
+    })
+  }
 
   async function loadThread() {
     const res  = await fetch(`${API}/forum/threads/${id}`)
@@ -376,6 +404,7 @@ export default function ForumThread() {
                   <Avatar name={profile?.nickname ?? 'Я'} src={profile?.avatar_url} size={44} radius={13} isVip={isVip} />
                   <div className="flex-1 min-w-0">
                     <textarea
+                      ref={replyRef}
                       value={reply}
                       onChange={e => setReply(e.target.value)}
                       placeholder="Написать ответ…"
@@ -390,9 +419,48 @@ export default function ForumThread() {
                           <Paperclip size={15} />
                           <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.doc,.docx" className="hidden" onChange={handleReplyFiles} disabled={replyUploading} />
                         </label>
-                        <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Smile size={15} /></span>
-                        <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><AtSign size={15} /></span>
-                        <span className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12]"><Code2 size={15} /></span>
+
+                        <div className="relative">
+                          <button type="button" title="Смайлики" onClick={() => { setEmojiOpen(v => !v); setMentionOpen(false) }}
+                            className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] hover:text-ink">
+                            <Smile size={15} />
+                          </button>
+                          {emojiOpen && (
+                            <>
+                              <div className="fixed inset-0 z-10" onClick={() => setEmojiOpen(false)} />
+                              <div className="absolute bottom-full left-0 mb-2 z-20 w-[220px] p-2.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl grid grid-cols-6 gap-1">
+                                {REPLY_EMOJIS.map(em => (
+                                  <button key={em} type="button" onClick={() => { insertAtCursor(em); setEmojiOpen(false) }}
+                                    className="text-lg leading-none w-8 h-8 rounded-lg hover:bg-white/[.08] grid place-items-center">
+                                    {em}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        {participants.length > 0 && (
+                          <div className="relative">
+                            <button type="button" title="Упомянуть участника" onClick={() => { setMentionOpen(v => !v); setEmojiOpen(false) }}
+                              className="w-[38px] h-[38px] rounded-[11px] grid place-items-center bg-white/[.06] border border-white/[.12] hover:text-ink">
+                              <AtSign size={15} />
+                            </button>
+                            {mentionOpen && (
+                              <>
+                                <div className="fixed inset-0 z-10" onClick={() => setMentionOpen(false)} />
+                                <div className="absolute bottom-full left-0 mb-2 z-20 w-[200px] max-h-[220px] overflow-y-auto p-1.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl">
+                                  {participants.map(p => (
+                                    <button key={p.id} type="button" onClick={() => { insertAtCursor(`@${p.nickname} `); setMentionOpen(false) }}
+                                      className="w-full text-left text-sm text-ink px-2.5 py-2 rounded-lg hover:bg-white/[.08] truncate">
+                                      @{p.nickname}
+                                    </button>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <Button type="submit" variant="mint" className="ml-auto" disabled={(!reply.trim() && replyAttachments.length === 0) || sending || replyUploading}>
                         {sending ? 'Отправка…' : replyUploading ? 'Загрузка файлов…' : 'Отправить ответ'}

@@ -8,6 +8,7 @@ import { ENTER_SENDS_MESSAGE } from '../lib/platform'
 import { isImageName } from '../lib/attachments'
 import { useToast } from '../contexts/ToastContext'
 import VipName from './VipBadge'
+import Lightbox from './Lightbox'
 import { compressImage, WORK_FILE } from '../lib/compressImage'
 
 // Подписанная ссылка живёт 300с на бэкенде — кэш вне компонента, чтобы опрос
@@ -16,6 +17,7 @@ const previewCache = new Map<string, string>()
 
 function ChatImage({ url, name, onDownload }: { url: string; name: string; onDownload: () => void }) {
   const [src, setSrc] = useState(previewCache.get(url) ?? null)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     if (previewCache.has(url)) { setSrc(previewCache.get(url)!); return }
@@ -32,12 +34,13 @@ function ChatImage({ url, name, onDownload }: { url: string; name: string; onDow
 
   return (
     <div style={{ position: 'relative', marginTop: 6, width: 'fit-content' }}>
-      <a href={src} target="_blank" rel="noopener noreferrer">
+      <button onClick={() => setOpen(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}>
         <img src={src} alt={name} style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, display: 'block' }} />
-      </a>
+      </button>
       <button onClick={onDownload} title="Скачать" style={{ position: 'absolute', bottom: 6, right: 6, background: 'rgba(15,25,35,0.75)', border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', color: '#e2e8f0', display: 'flex' }}>
         <Download size={13} />
       </button>
+      {open && <Lightbox url={src} onClose={() => setOpen(false)} />}
     </div>
   )
 }

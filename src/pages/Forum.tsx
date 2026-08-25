@@ -191,8 +191,8 @@ export default function Forum() {
                           </div>
                         </div>
                         {cat.last_thread?.last_post_at && (
-                          <div className="text-xs text-subtle mb-2.5">
-                            Последнее: {cat.last_thread.last_post_author?.nickname ?? 'Аноним'} · {timeAgo(cat.last_thread.last_post_at)}
+                          <div className="text-xs text-subtle mb-2.5 truncate">
+                            Последнее: {cat.last_thread.title} · {timeAgo(cat.last_thread.last_post_at)}
                           </div>
                         )}
                         {cat.recent_threads.length > 0 && (
