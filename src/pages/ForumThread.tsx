@@ -21,6 +21,8 @@ type Emoji = typeof EMOJIS[number]
 
 const REPLY_EMOJIS = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '🔥', '🎉', '🙏', '😮', '😴', '🤝', '💯', '❤️']
 
+const POSTS_PAGE_SIZE = 10 // держим в паре с reshbirga/backend/src/routes/forum.js
+
 interface Author { id: string; nickname: string | null; avatar_url: string | null; level?: number; is_vip?: boolean }
 
 interface Reaction { id: string; user_id: string; emoji: string }
@@ -125,7 +127,6 @@ function PostCard({
             <span className="text-xs bg-error/10 text-error px-1.5 py-0.5 rounded">AI-флаг</span>
           )}
           {post.is_deleted && <span className="text-xs bg-panel text-subtle px-1.5 py-0.5 rounded">Удалён</span>}
-          <span className="text-[12.5px] text-subtle ml-auto">{timeAgo(post.created_at)}</span>
         </div>
 
         {post.content && <p className="text-[14.5px] leading-relaxed text-ink/90 whitespace-pre-wrap break-words">{post.content}</p>}
@@ -139,7 +140,10 @@ function PostCard({
             token={token}
             onChange={onReactionChange}
           />
-          <span className="flex-1" />
+        </div>
+
+        <div className="mt-2.5 flex items-center gap-4 flex-wrap">
+          <span className="text-[12.5px] text-subtle">{timeAgo(post.created_at)}</span>
           {currentUserId && !post.is_deleted && (
             <button onClick={() => onReport(post.id)} className="text-[13px] font-medium text-subtle hover:text-ink transition-colors flex items-center gap-1">
               <Flag size={12} /> Пожаловаться
@@ -166,12 +170,12 @@ export default function ForumThread() {
   const [page,       setPage]       = useState(1)
   const [hasMore,    setHasMore]    = useState(false)
   const [loading,    setLoading]    = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [reply,      setReply]      = useState('')
   const [sending,    setSending]    = useState(false)
   const [reportId,   setReportId]   = useState<string | null>(null)
   const [locking,    setLocking]    = useState(false)
   const viewTracked = useRef(false)
+  const postsTopRef = useRef<HTMLDivElement>(null)
   const { attachments: replyAttachments, uploading: replyUploading, handleFiles: handleReplyFiles, removeAttachment: removeReplyAttachment, reset: resetReplyAttachments } = useForumAttachments()
   const replyRef = useRef<HTMLTextAreaElement>(null)
   const [emojiOpen,   setEmojiOpen]   = useState(false)
@@ -211,26 +215,26 @@ export default function ForumThread() {
     if (res.ok) setThread(data)
   }
 
-  async function loadPosts(p: number, reset = false) {
-    const setter = reset ? setLoading : setLoadingMore
-    setter(true)
+  async function loadPosts(p: number, scroll = false) {
+    setLoading(true)
     try {
       const res  = await fetch(`${API}/forum/threads/${id}/posts?page=${p}`)
       const data = await res.json()
-      setPosts(prev => reset ? (data.posts ?? []) : [...prev, ...(data.posts ?? [])])
+      setPosts(data.posts ?? [])
       setHasMore(data.has_more ?? false)
       setPage(p)
+      if (scroll) postsTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     } catch {
       showToast('Не удалось загрузить сообщения', 'error')
     } finally {
-      setter(false)
+      setLoading(false)
     }
   }
 
   useEffect(() => {
     if (!id) return
     loadThread()
-    loadPosts(1, true)
+    loadPosts(1)
     const key = `forum_viewed_${id}`
     if (!viewTracked.current && !sessionStorage.getItem(key)) {
       viewTracked.current = true
@@ -253,7 +257,13 @@ export default function ForumThread() {
       if (!res.ok) { showToast(data.error ?? 'Ошибка при отправке', 'error'); return }
       setReply('')
       resetReplyAttachments()
-      await loadPosts(1, true)
+      // Новый ответ уходит в конец темы — открываем последнюю страницу,
+      // иначе свежий ответ не будет виден без ручного перехода по страницам.
+      const threadRes  = await fetch(`${API}/forum/threads/${id}`)
+      const threadData = await threadRes.json()
+      if (threadRes.ok) setThread(threadData)
+      const total = threadData.posts_count ?? 1
+      await loadPosts(Math.max(1, Math.ceil(total / POSTS_PAGE_SIZE)))
     } catch {
       showToast('Не удалось отправить ответ', 'error')
     } finally {
@@ -349,6 +359,7 @@ export default function ForumThread() {
           )}
 
           {/* Posts */}
+          <div ref={postsTopRef} />
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <GlassCard key={i} className="rounded-[20px] px-6 py-5 mb-3.5 animate-pulse">
@@ -372,7 +383,7 @@ export default function ForumThread() {
                   token={session?.access_token ?? null}
                   onDelete={handleDelete}
                   onReport={setReportId}
-                  onReactionChange={() => loadPosts(1, true)}
+                  onReactionChange={() => loadPosts(page)}
                 />
               ))
           }
@@ -382,11 +393,25 @@ export default function ForumThread() {
             </GlassCard>
           )}
 
-          {hasMore && (
-            <div className="text-center mb-4">
-              <button onClick={() => loadPosts(page + 1)} disabled={loadingMore}
-                className="px-6 py-2.5 text-sm border border-line rounded-xl text-ink hover:bg-panel transition-colors disabled:opacity-50">
-                {loadingMore ? 'Загрузка…' : 'Загрузить ещё'}
+          {!loading && (page > 1 || hasMore) && (
+            <div className="flex items-center justify-center gap-1.5 mb-4">
+              <button onClick={() => loadPosts(page - 1, true)} disabled={page <= 1}
+                className="w-9 h-9 grid place-items-center text-sm border border-line rounded-xl text-ink hover:bg-panel transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                ‹
+              </button>
+              {pageNumbers(page, thread ? Math.max(1, Math.ceil(thread.posts_count / POSTS_PAGE_SIZE)) : page + (hasMore ? 1 : 0)).map((n, i) => n === '…' ? (
+                <span key={`gap-${i}`} className="px-1 text-subtle text-sm">…</span>
+              ) : (
+                <button key={n} onClick={() => loadPosts(n, true)}
+                  className={`w-9 h-9 grid place-items-center text-sm rounded-xl transition-colors ${
+                    n === page ? 'bg-lav text-canvas font-semibold' : 'border border-line text-ink hover:bg-panel'
+                  }`}>
+                  {n}
+                </button>
+              ))}
+              <button onClick={() => loadPosts(page + 1, true)} disabled={!hasMore}
+                className="w-9 h-9 grid place-items-center text-sm border border-line rounded-xl text-ink hover:bg-panel transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                ›
               </button>
             </div>
           )}
@@ -522,6 +547,17 @@ export default function ForumThread() {
       )}
     </div>
   )
+}
+
+// Номера страниц с многоточием: 1 … 4 5 [6] 7 8 … 12
+function pageNumbers(current: number, total: number): (number | '…')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '…')[] = [1]
+  if (current > 3) pages.push('…')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i)
+  if (current < total - 2) pages.push('…')
+  pages.push(total)
+  return pages
 }
 
 function plural(n: number, one: string, few: string, many: string) {
