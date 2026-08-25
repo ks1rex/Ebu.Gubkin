@@ -34,6 +34,21 @@ interface CategoryForm {
 
 const EMPTY_FORM: CategoryForm = { name: '', description: '', icon_name: '', sort_order: '0' }
 
+interface MarketCategory {
+  id: string
+  name: string
+  icon: string | null
+  sort_order: number
+}
+
+interface MarketCategoryForm {
+  name: string
+  icon: string
+  sort_order: string
+}
+
+const EMPTY_MARKET_FORM: MarketCategoryForm = { name: '', icon: '', sort_order: '0' }
+
 interface AdminSettingKey {
   key: string
   label: string
@@ -106,6 +121,14 @@ export default function AdminSettings() {
   const [catActing, setCatActing] = useState<Record<string, boolean>>({})
   const [uploadingIcon, setUploadingIcon] = useState<string | null>(null)
 
+  const [marketCats, setMarketCats] = useState<MarketCategory[]>([])
+  const [loadingMarketCats, setLoadingMarketCats] = useState(false)
+  const [editingMarketCat, setEditingMarketCat] = useState<string | null>(null)
+  const [marketEditForm, setMarketEditForm] = useState<MarketCategoryForm>(EMPTY_MARKET_FORM)
+  const [showNewMarketCatForm, setShowNewMarketCatForm] = useState(false)
+  const [newMarketCatForm, setNewMarketCatForm] = useState<MarketCategoryForm>(EMPTY_MARKET_FORM)
+  const [marketCatActing, setMarketCatActing] = useState<Record<string, boolean>>({})
+
   async function fetchSettings() {
     setLoadingSettings(true)
     try {
@@ -135,12 +158,25 @@ export default function AdminSettings() {
     }
   }
 
+  async function fetchMarketCategories() {
+    setLoadingMarketCats(true)
+    try {
+      const data = await apiCall('GET', '/admin/market-categories')
+      setMarketCats(Array.isArray(data) ? data : (data.data ?? []))
+    } catch {
+      toast('Не удалось загрузить категории биржи', 'error')
+    } finally {
+      setLoadingMarketCats(false)
+    }
+  }
+
   useEffect(() => {
     // Разделы 1-3 (реквизиты, платформенные параметры, категории форума)
     // owner-only на бэкенде — рядовому админу их даже не запрашиваем.
     if (!effectiveIsOwner) { setLoadingSettings(false); return }
     fetchSettings()
     fetchCategories()
+    fetchMarketCategories()
   }, [effectiveIsOwner])
 
   async function saveDepositInstructions() {
@@ -259,6 +295,57 @@ export default function AdminSettings() {
       toast('Ошибка при удалении', 'error')
     } finally {
       setCatActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
+  async function createMarketCategory() {
+    setMarketCatActing(a => ({ ...a, new: true }))
+    try {
+      await apiCall('POST', '/admin/market-categories', {
+        name: newMarketCatForm.name,
+        icon: newMarketCatForm.icon || null,
+        sort_order: parseInt(newMarketCatForm.sort_order) || 0,
+      })
+      toast('Категория создана', 'success')
+      setNewMarketCatForm(EMPTY_MARKET_FORM)
+      setShowNewMarketCatForm(false)
+      fetchMarketCategories()
+    } catch {
+      toast('Ошибка при создании', 'error')
+    } finally {
+      setMarketCatActing(a => ({ ...a, new: false }))
+    }
+  }
+
+  async function updateMarketCategory(id: string) {
+    setMarketCatActing(a => ({ ...a, [id]: true }))
+    try {
+      await apiCall('PATCH', `/admin/market-categories/${id}`, {
+        name: marketEditForm.name,
+        icon: marketEditForm.icon || null,
+        sort_order: parseInt(marketEditForm.sort_order) || 0,
+      })
+      toast('Категория обновлена', 'success')
+      setEditingMarketCat(null)
+      fetchMarketCategories()
+    } catch {
+      toast('Ошибка при обновлении', 'error')
+    } finally {
+      setMarketCatActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
+  async function deleteMarketCategory(id: string) {
+    if (!confirm('Удалить категорию безвозвратно?')) return
+    setMarketCatActing(a => ({ ...a, [id]: true }))
+    try {
+      await apiCall('DELETE', `/admin/market-categories/${id}`)
+      toast('Категория удалена', 'success')
+      setMarketCats(c => c.filter(x => x.id !== id))
+    } catch {
+      toast('Ошибка при удалении', 'error')
+    } finally {
+      setMarketCatActing(a => ({ ...a, [id]: false }))
     }
   }
 
@@ -488,6 +575,105 @@ export default function AdminSettings() {
         )}
       </section>
 
+      {/* Section 3b: Market categories (order/listing filters) */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between border-b border-line pb-2">
+          <h2 className="text-base font-semibold text-ink">Категории биржи</h2>
+          <button
+            onClick={() => { setShowNewMarketCatForm(v => !v); setNewMarketCatForm(EMPTY_MARKET_FORM) }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-line rounded-lg hover:bg-panel text-ink transition-colors"
+          >
+            <Plus size={13} />
+            Добавить
+          </button>
+        </div>
+        <p className="text-sm text-subtle">Фильтры заказов и объявлений на бирже (Учёба, Другое и т.д.)</p>
+
+        {showNewMarketCatForm && (
+          <div className="bg-panel rounded-xl border border-line p-4 space-y-3">
+            <h3 className="text-sm font-medium text-ink">Новая категория</h3>
+            <MarketCategoryFormFields form={newMarketCatForm} onChange={setNewMarketCatForm} />
+            <div className="flex gap-2">
+              <button
+                onClick={createMarketCategory}
+                disabled={marketCatActing['new'] || !newMarketCatForm.name.trim()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+              >
+                {marketCatActing['new'] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Создать
+              </button>
+              <button
+                onClick={() => setShowNewMarketCatForm(false)}
+                className="px-3 py-1.5 text-xs border border-line rounded-lg hover:bg-surface text-ink transition-colors"
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        )}
+
+        {loadingMarketCats ? (
+          <div className="py-8 flex justify-center"><Loader2 size={18} className="animate-spin text-subtle" /></div>
+        ) : (
+          <div className="space-y-2">
+            {marketCats.map(cat => (
+              <div key={cat.id} className="bg-surface rounded-xl border border-line p-4">
+                {editingMarketCat === cat.id ? (
+                  <div className="space-y-3">
+                    <MarketCategoryFormFields form={marketEditForm} onChange={setMarketEditForm} />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => updateMarketCategory(cat.id)}
+                        disabled={marketCatActing[cat.id] || !marketEditForm.name.trim()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                      >
+                        {marketCatActing[cat.id] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                        Сохранить
+                      </button>
+                      <button
+                        onClick={() => setEditingMarketCat(null)}
+                        className="px-3 py-1.5 text-xs border border-line rounded-lg hover:bg-panel text-ink transition-colors"
+                      >
+                        Отмена
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
+                      {(() => { const Icon = ICONS[cat.icon ?? '']; return Icon ? <Icon size={15} className="text-subtle" /> : null })()}
+                      {cat.name}
+                      <span className="text-xs text-subtle">#{cat.sort_order}</span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingMarketCat(cat.id)
+                          setMarketEditForm({ name: cat.name, icon: cat.icon ?? '', sort_order: String(cat.sort_order) })
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-panel text-subtle hover:text-ink transition-colors"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => deleteMarketCategory(cat.id)}
+                        disabled={marketCatActing[cat.id]}
+                        className="p-1.5 rounded-lg hover:bg-error/10 text-subtle hover:text-error transition-colors disabled:opacity-50"
+                      >
+                        {marketCatActing[cat.id] ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            {marketCats.length === 0 && (
+              <p className="text-sm text-subtle text-center py-6">Категорий нет</p>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* Section 4: Security / 2FA */}
       <section className="space-y-3">
         <h2 className="text-base font-semibold text-ink border-b border-line pb-2">Безопасность</h2>
@@ -550,6 +736,60 @@ function CategoryFormFields({
                 onClick={() => onChange({ ...form, icon_name: name })}
                 className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-colors ${
                   form.icon_name === name ? 'border-accent bg-accent/15 text-accent' : 'border-line hover:bg-panel text-subtle'
+                }`}
+              >
+                <Icon size={16} />
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MarketCategoryFormFields({
+  form,
+  onChange,
+}: {
+  form: MarketCategoryForm
+  onChange: (f: MarketCategoryForm) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <div className="col-span-2">
+        <label className="block text-xs text-subtle mb-1">Название *</label>
+        <input
+          type="text"
+          value={form.name}
+          onChange={e => onChange({ ...form, name: e.target.value })}
+          className="w-full border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
+          placeholder="Название категории"
+        />
+      </div>
+      <div>
+        <label className="block text-xs text-subtle mb-1">Порядок сортировки</label>
+        <input
+          type="number"
+          value={form.sort_order}
+          onChange={e => onChange({ ...form, sort_order: e.target.value })}
+          className="w-full border border-line rounded-lg px-3 py-1.5 text-sm text-ink bg-canvas focus:outline-none focus:border-accent"
+          placeholder="0"
+        />
+      </div>
+      <div className="col-span-2">
+        <label className="block text-xs text-subtle mb-1">Иконка</label>
+        <div className="flex flex-wrap gap-1">
+          {ICON_PRESETS.map(name => {
+            const Icon = ICONS[name]
+            return (
+              <button
+                key={name}
+                type="button"
+                title={name}
+                onClick={() => onChange({ ...form, icon: name })}
+                className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-colors ${
+                  form.icon === name ? 'border-accent bg-accent/15 text-accent' : 'border-line hover:bg-panel text-subtle'
                 }`}
               >
                 <Icon size={16} />
