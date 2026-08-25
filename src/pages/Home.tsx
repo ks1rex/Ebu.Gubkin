@@ -82,13 +82,13 @@ export default function Home() {
               Студенческая платформа Губкинского университета
             </div>
             <h1 className="text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-1px]">
-              <span className="text-ink">Вся студжизнь Губки —</span><br />
+              <span className="text-ink">Вся студжизнь Губки -</span><br />
               <span className="bg-gradient-to-r from-[#7c3aed] to-pink bg-clip-text text-transparent">в одном месте</span>
             </h1>
           </div>
         </div>
         <p className="text-subtle text-[15px] leading-relaxed mb-7 max-w-md mx-auto">
-          Форум, биржа подработок, оформление документов по ГОСТ и кошелёк. Без официоза — для своих.
+          Общайся, находи помощь, зарабатывай и решай студенческие вопросы - всё в одном месте.
         </p>
         <div className="flex items-center justify-center gap-3">
           <Button to="/market" variant="pri">Перейти на биржу</Button>
@@ -101,7 +101,7 @@ export default function Home() {
       <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-10">
         <GlassCard className="rounded-[18px] p-3 sm:p-5 text-center">
           <b className="block text-xl sm:text-2xl font-bold text-ink">{stats?.users_count ?? '—'}</b>
-          <span className="text-[11px] sm:text-xs text-subtle break-words">студентов на сайте</span>
+          <span className="text-[11px] sm:text-xs text-subtle break-words">человек на сайте</span>
         </GlassCard>
         <GlassCard className="rounded-[18px] p-3 sm:p-5 text-center">
           <b className="block text-xl sm:text-2xl font-bold text-ink">{stats?.threads_count ?? '—'}</b>
@@ -121,7 +121,7 @@ export default function Home() {
               <BookOpen size={20} className="text-lav" />
             </div>
             <h3 className="font-semibold text-ink mb-1.5">Форум</h3>
-            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Обсуждения по предметам, курсам и жизни университета</p>
+            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Общайся, задавай вопросы и находи ответы от студентов Губки</p>
             <div className="flex items-center justify-between text-xs">
               <span className="text-subtle">{stats ? `${stats.threads_count} тем` : ''}</span>
               <ArrowRight size={15} className="text-lav" />
@@ -134,7 +134,7 @@ export default function Home() {
               <Briefcase size={20} className="text-mint" />
             </div>
             <h3 className="font-semibold text-ink mb-1.5">Биржа</h3>
-            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Заказы и услуги между студентами — быстро и безопасно</p>
+            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Находи заказы, предлагай свои услуги и зарабатывай</p>
             <div className="flex items-center justify-between text-xs">
               <span className="text-subtle">{stats ? `${stats.orders_count} заказов` : ''}</span>
               <ArrowRight size={15} className="text-mint" />
@@ -148,7 +148,7 @@ export default function Home() {
                 <FileText size={20} className="text-gold" />
               </div>
               <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
-              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">AI-генерация документов по ГОСТ с автоформатированием</p>
+              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">В разработке...</p>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-subtle">от 1 токена</span>
                 <ArrowRight size={15} className="text-gold" />
@@ -162,7 +162,7 @@ export default function Home() {
                 <FileText size={20} className="text-gold" />
               </div>
               <h3 className="font-semibold text-ink mb-1.5">ГОСТ-калькулятор</h3>
-              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">AI-генерация документов по ГОСТ с автоформатированием</p>
+              <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">В разработке...</p>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-subtle">от 1 токена</span>
                 <ArrowRight size={15} className="text-gold" />
@@ -176,7 +176,7 @@ export default function Home() {
               <WalletIcon size={20} className="text-pink" />
             </div>
             <h3 className="font-semibold text-ink mb-1.5">Кошелёк</h3>
-            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Рублёвый баланс и ГОСТ-токены в одном месте</p>
+            <p className="text-sm text-subtle leading-relaxed mb-3 flex-1">Управляй балансом. оплачивай заказы и пользуйся преимуществами VIP</p>
             <div className="flex items-center justify-between text-xs">
               <span className="text-subtle">{user ? `баланс ${formatCurrency(profile?.balance ?? 0)}` : 'реферальная программа'}</span>
               <ArrowRight size={15} className="text-pink" />
@@ -254,9 +254,9 @@ export default function Home() {
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
           <GlassCard className="rounded-[20px] p-6 !bg-gradient-to-br !from-[#7c3aed]/[.22] !to-pink/[.14]">
-            <h3 className="text-lg font-bold text-ink mb-2">Курсач по ГОСТ за ночь?</h3>
+            <h3 className="text-lg font-bold text-ink mb-2">Курсач за ночь?</h3>
             <p className="text-[13px] text-subtle leading-relaxed mb-4">
-              Загрузи задание, оформим по ГОСТ за пару минут. Списывай токены — не нервы.
+              В разработке...
             </p>
             {gostFrozen ? (
               <Button variant="pri" className="w-full justify-center opacity-50 cursor-default" onClick={openGostFrozenModal}>Открыть ГОСТ-калькулятор →</Button>
