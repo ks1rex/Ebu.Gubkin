@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Edit3 } from 'lucide-react'
+import { Edit3, Bell } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { formatCurrency } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
@@ -120,12 +120,20 @@ export default function ProfileView({ profile, userId, isOwner, onEdit }: Props)
                   {profile.bio && <p className="text-sm text-ink/90 mt-2 leading-relaxed">{profile.bio}</p>}
                 </div>
                 {isOwner && (
-                  <button
-                    onClick={onEdit}
-                    className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium text-ink bg-white/[.1] border border-white/[.16] rounded-xl hover:bg-white/[.16] transition-colors shrink-0 w-full sm:w-auto lg:w-full"
-                  >
-                    <Edit3 size={14} /> Редактировать
-                  </button>
+                  <div className="flex gap-2 w-full sm:w-auto lg:w-full">
+                    <Link
+                      to="/notifications"
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium text-ink bg-white/[.1] border border-white/[.16] rounded-xl hover:bg-white/[.16] transition-colors shrink-0"
+                    >
+                      <Bell size={14} /> Уведомления
+                    </Link>
+                    <button
+                      onClick={onEdit}
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium text-ink bg-white/[.1] border border-white/[.16] rounded-xl hover:bg-white/[.16] transition-colors shrink-0 flex-1 sm:flex-none"
+                    >
+                      <Edit3 size={14} /> Редактировать
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

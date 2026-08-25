@@ -39,6 +39,7 @@ import AdminHelp          from './pages/Admin/Help'
 import ForgotPassword  from './pages/ForgotPassword'
 import ResetPassword   from './pages/ResetPassword'
 import Support         from './pages/Support'
+import Notifications    from './pages/Notifications'
 import SupportTicket   from './pages/SupportTicket'
 import OrderFeed        from './pages/OrderFeed'
 import MyOrders         from './pages/MyOrders'
@@ -126,6 +127,7 @@ export default function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="reset-password"  element={<ResetPassword />} />
             <Route path="support"         element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="notifications"   element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="support/:id"     element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
             <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index                   element={<AdminDashboard />} />

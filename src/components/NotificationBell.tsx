@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { apiCall } from '../lib/api'
 import { timeAgo } from '../lib/timeAgo'
@@ -15,6 +15,7 @@ interface Notification {
 }
 
 const POLL_MS = 25000
+const PREVIEW_LIMIT = 3
 
 export default function NotificationBell() {
   const navigate = useNavigate()
@@ -35,7 +36,7 @@ export default function NotificationBell() {
   async function fetchList() {
     setLoading(true)
     try {
-      setItems(await apiCall('GET', '/notifications?limit=20'))
+      setItems(await apiCall('GET', `/notifications?limit=${PREVIEW_LIMIT}`))
     } catch { /* см. выше */ } finally {
       setLoading(false)
     }
@@ -145,6 +146,16 @@ export default function NotificationBell() {
                 </button>
               ))}
             </div>
+          )}
+
+          {items.length > 0 && (
+            <Link
+              to="/notifications"
+              onClick={() => setOpen(false)}
+              className="block text-center text-xs text-accent hover:underline px-4 py-3 border-t border-line sticky bottom-0 bg-canvas/90"
+            >
+              Все уведомления
+            </Link>
           )}
         </div>
       )}
