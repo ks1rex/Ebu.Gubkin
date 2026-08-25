@@ -6,7 +6,6 @@ import { apiCall } from '../lib/api'
 import { formatCurrency, profileLink } from '../lib/format'
 import { timeAgo } from '../lib/timeAgo'
 import { GlassCard, Button, Avatar } from '../components/glass'
-import { useGostFrozenModal } from '../components/GostFrozenNotice'
 
 const logoMark = `${import.meta.env.BASE_URL}logo-mark.png`
 
@@ -42,11 +41,10 @@ interface ListingPreview {
 
 interface Leader { id: string; nickname: string | null; avatar_url: string | null; reputation: number; weekly_reputation: number }
 interface CategoryStub { id: string; name: string; threads_count: number }
+interface NewsPreview { id: string; title: string; content: string }
 
 export default function Home() {
   const { user, profile } = useAuth()
-  const { openGostFrozenModal, gostFrozenModal } = useGostFrozenModal()
-  const gostFrozen = !profile?.is_owner
 
   const [stats, setStats] = useState<Stats | null>(null)
   const [feedMode, setFeedMode] = useState<'forum' | 'market'>('market')
@@ -55,6 +53,7 @@ export default function Home() {
   const [listings, setListings] = useState<ListingPreview[]>([])
   const [leaders, setLeaders] = useState<Leader[]>([])
   const [categories, setCategories] = useState<CategoryStub[]>([])
+  const [latestNews, setLatestNews] = useState<NewsPreview | null>(null)
 
   useEffect(() => {
     apiCall('GET', '/stats/public').then(setStats).catch(() => {})
@@ -65,6 +64,7 @@ export default function Home() {
     apiCall('GET', '/forum/categories')
       .then(d => setCategories(Array.isArray(d) ? [...d].sort((a, b) => b.threads_count - a.threads_count) : []))
       .catch(() => {})
+    apiCall('GET', '/news').then(d => setLatestNews(Array.isArray(d) && d.length ? d[0] : null)).catch(() => {})
   }, [])
 
   const marketItems = [...orders.map(o => ({ ...o, kind: 'order' as const })), ...listings.map(l => ({ ...l, kind: 'listing' as const }))]
@@ -237,17 +237,19 @@ export default function Home() {
 
         {/* Sidebar */}
         <div className="flex flex-col gap-4">
-          <GlassCard className="rounded-[20px] p-6 !bg-gradient-to-br !from-[#7c3aed]/[.22] !to-pink/[.14]">
-            <h3 className="text-lg font-bold text-ink mb-2">Курсач за ночь?</h3>
-            <p className="text-[13px] text-subtle leading-relaxed mb-4">
-              В разработке...
-            </p>
-            {gostFrozen ? (
-              <Button variant="pri" className="w-full justify-center opacity-50 cursor-default" onClick={openGostFrozenModal}>Открыть ГОСТ-калькулятор →</Button>
-            ) : (
-              <Button to="/gost" variant="pri" className="w-full justify-center">Открыть ГОСТ-калькулятор →</Button>
-            )}
-          </GlassCard>
+          <Link to="/news">
+            <GlassCard hover className="rounded-[20px] p-6 !bg-gradient-to-br !from-[#7c3aed]/[.22] !to-pink/[.14]">
+              <h3 className="text-xs tracking-[1.5px] text-subtle font-semibold uppercase mb-2">Новости</h3>
+              {latestNews ? (
+                <>
+                  <h4 className="text-lg font-bold text-ink mb-2 leading-snug">{latestNews.title}</h4>
+                  <p className="text-[13px] text-subtle leading-relaxed line-clamp-3">{latestNews.content}</p>
+                </>
+              ) : (
+                <p className="text-[13px] text-subtle leading-relaxed">Пока новостей нет</p>
+              )}
+            </GlassCard>
+          </Link>
 
           {leaders.length > 0 && (
             <GlassCard className="rounded-[20px] p-5">
@@ -283,7 +285,6 @@ export default function Home() {
           )}
         </div>
       </div>
-      {gostFrozenModal}
     </div>
   )
 }
