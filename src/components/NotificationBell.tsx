@@ -22,6 +22,7 @@ export default function NotificationBell() {
   const [count, setCount] = useState(0)
   const [items, setItems] = useState<Notification[]>([])
   const [loading, setLoading] = useState(false)
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number; width: number } | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
 
   async function fetchCount() {
@@ -74,10 +75,24 @@ export default function NotificationBell() {
     apiCall('PATCH', '/notifications/read-all').catch(() => {})
   }
 
+  // Плашка позиционируется fixed по реальным координатам кнопки, а не
+  // просто "right-0" от обёртки — на телефоне колокольчик стоит близко к
+  // правому краю среди других иконок, и якорь от его правого края уводил
+  // фикс.ширину панели (320px) за левый край экрана.
+  function toggle() {
+    if (!open && rootRef.current) {
+      const r = rootRef.current.getBoundingClientRect()
+      const margin = 12
+      const width = Math.min(320, window.innerWidth - margin * 2)
+      setPanelPos({ top: r.bottom + 8, right: Math.max(margin, window.innerWidth - r.right), width })
+    }
+    setOpen(v => !v)
+  }
+
   return (
     <div ref={rootRef} className="relative">
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={toggle}
         title="Уведомления"
         className="relative flex items-center justify-center w-10 h-10 rounded-[14px] text-subtle hover:text-ink hover:bg-white/[.06] transition-colors"
       >
@@ -89,8 +104,11 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-w-[90vw] max-h-[70vh] overflow-y-auto rounded-2xl bg-canvas/90 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45)] z-50">
+      {open && panelPos && (
+        <div
+          style={{ top: panelPos.top, right: panelPos.right, width: panelPos.width }}
+          className="fixed max-h-[70vh] overflow-y-auto rounded-2xl bg-canvas/90 border border-line backdrop-blur-glass shadow-[0_18px_50px_rgba(20,8,50,.45)] z-50"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-line sticky top-0 bg-canvas/90">
             <span className="text-sm font-semibold text-ink">Уведомления</span>
             {items.some(n => !n.is_read) && (
