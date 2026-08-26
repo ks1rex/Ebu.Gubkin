@@ -12,7 +12,11 @@ npm run preview   # preview production build
 
 No test runner or linter is configured in this repo. `npm run build` is the only correctness gate (TypeScript `strict`, `noUnusedLocals`, `noUnusedParameters`).
 
-Deploy is automatic: push to `main` triggers `.github/workflows/deploy.yml`, which builds with secrets (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_BACKEND_URL`, `VITE_GOST_URL`) and publishes `dist/` to GitHub Pages. Vite `base` is `/Ebu.Gubkin/` — routing uses `basename={import.meta.env.BASE_URL}` in `App.tsx`, so local dev and Pages deploy resolve routes differently; don't hardcode absolute paths.
+**Two separate deploy targets, only one of which is real production** (since 2026-08-26):
+- **GitHub Pages** (`ks1rex.github.io/Ebu.Gubkin/`) — automatic: push to `main` triggers `.github/workflows/deploy.yml`, which builds with secrets (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_BACKEND_URL`, `VITE_GOST_URL`) and publishes `dist/` to GitHub Pages. Vite `base` is `/Ebu.Gubkin/` for this build — routing uses `basename={import.meta.env.BASE_URL}` in `App.tsx`. This target is kept as a secondary/backup deploy, **not** what real users hit.
+- **`ebugubkin.ru`** (the actual production site) — a separate Timeweb Hosting shared-hosting account (`cp284850`, docroot `gubka/public_html/`, IP `92.53.96.169`), **manually** built and uploaded via FTP: `MSYS_NO_PATHCONV=1 npx vite build --base=/` (note the different `base` — root, not `/Ebu.Gubkin/`, since this serves from the domain root) using `.env.production` (gitignored, holds the same values as the GitHub secrets above), then upload `dist/*` over FTP. No CI/CD for this target — re-run manually after any change that should reach real users. See root `CLAUDE.md` "Infrastructure" for the backend-side VPS this now talks to.
+
+Don't hardcode absolute paths that assume one `base` or the other — local dev, GitHub Pages, and `ebugubkin.ru` all resolve routes differently.
 
 ## Architecture
 

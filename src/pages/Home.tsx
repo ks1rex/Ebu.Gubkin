@@ -88,7 +88,7 @@ export default function Home() {
           </div>
         </div>
         <p className="text-subtle text-[15px] leading-relaxed mb-7 max-w-md mx-auto">
-          Общайся, находи помощь, зарабатывай и решай студенческие вопросы - всё в одном месте.
+          Общайся, находи помощь, зарабатывай и решай студенческие вопросы.
         </p>
         <div className="flex items-center justify-center gap-3">
           <Button to="/market" variant="pri">Перейти на биржу</Button>
