@@ -33,6 +33,18 @@ export default function Applications() {
   const [modal, setModal] = useState<any>(null)
   const [acting, setActing] = useState(false)
   const [error, setError] = useState('')
+  const [commissionPct, setCommissionPct] = useState(10)
+
+  // Исполнитель называет свой гонорар, а заказчик платит гонорар + комиссию.
+  // На этом экране (его смотрит заказчик) показываем именно сумму к оплате —
+  // иначе он видит одно число, а списывается другое.
+  const toPay = (fee: number) => Math.round(fee * (1 + commissionPct / 100) * 100) / 100
+
+  useEffect(() => {
+    apiCall('GET', '/settings/public/commissions')
+      .then((r: { marketplace_commission_pct: number }) => setCommissionPct(r.marketplace_commission_pct))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -82,7 +94,7 @@ export default function Applications() {
             <div className="flex-1">
               <Link to={`/users/${profileLink(app.executor)}`} className="text-teal-legacy font-bold text-base mb-1 no-underline block"><VipName name={app.executor?.nickname} isVip={app.executor?.is_vip} /></Link>
               <StarsRow rating={app.executor?.rating_as_executor} count={app.executor?.reviews_count_executor} />
-              {app.proposed_amount && <div className="text-teal-legacy text-[1.1rem] font-bold mb-2.5">{app.proposed_amount} ₽ — предложенная цена</div>}
+              {app.proposed_amount && <div className="text-teal-legacy text-[1.1rem] font-bold mb-2.5">{toPay(app.proposed_amount)} ₽ — предложенная цена</div>}
               <div className="text-slate-300 text-[0.88rem] leading-[1.6] mb-2.5">{app.message}</div>
               <div className="text-slate-500 text-xs">{new Date(app.created_at).toLocaleString('ru-RU')}</div>
             </div>
@@ -104,7 +116,7 @@ export default function Applications() {
             </div>
             <div className="text-slate-400 text-[0.9rem] leading-[1.6] mb-6">
               Вы выбираете <strong>{modal.executor?.nickname}</strong>
-              {modal.proposed_amount && <> с ценой <strong>{modal.proposed_amount} ₽</strong></>}.
+              {modal.proposed_amount && <> с ценой <strong>{toPay(modal.proposed_amount)} ₽</strong></>}.
               <br />Остальные заявки будут отклонены. Отменить это действие нельзя.
             </div>
             <div className="flex flex-wrap gap-3 justify-end">
