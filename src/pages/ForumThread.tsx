@@ -16,10 +16,13 @@ import VipName from '../components/VipBadge'
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
-const EMOJIS = ['👍', '👎', '😂', '🔥'] as const
-type Emoji = typeof EMOJIS[number]
-
 const REPLY_EMOJIS = ['😀', '😂', '😍', '🤔', '😢', '😡', '👍', '👎', '🔥', '🎉', '🙏', '😮', '😴', '🤝', '💯', '❤️']
+
+// Реакции на пост используют тот же набор, что и смайлики в редакторе ответа —
+// один список, один источник правды. Бэкенд (routes/forum.js) валидирует
+// эмодзи по своему собственному ALLOWED-списку, держите их в синхроне.
+const EMOJIS = REPLY_EMOJIS
+type Emoji = typeof EMOJIS[number]
 
 const POSTS_PAGE_SIZE = 10 // держим в паре с reshbirga/backend/src/routes/forum.js
 
@@ -108,10 +111,10 @@ function ReactionBar({
             <SmilePlus size={15} />
           </button>
           {pickerOpen && (
-            <div className="absolute bottom-full left-0 mb-2 z-20 flex gap-1 p-1.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl">
+            <div className="absolute bottom-full left-0 mb-2 z-20 w-[220px] p-2.5 rounded-[14px] bg-canvas border border-white/[.14] shadow-xl grid grid-cols-6 gap-1">
               {EMOJIS.map(emoji => (
                 <button key={emoji} type="button" onClick={() => toggle(emoji)}
-                  className={`text-lg leading-none w-9 h-9 rounded-lg grid place-items-center transition-colors ${mine[emoji] ? 'bg-mint/[.16]' : 'hover:bg-white/[.08]'}`}>
+                  className={`text-lg leading-none w-8 h-8 rounded-lg grid place-items-center transition-colors ${mine[emoji] ? 'bg-mint/[.16]' : 'hover:bg-white/[.08]'}`}>
                   {emoji}
                 </button>
               ))}
