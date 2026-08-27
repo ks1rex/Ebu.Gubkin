@@ -6,6 +6,7 @@ import { apiCall } from '../../lib/api'
 interface Teacher {
   id: string
   full_name: string
+  department: string | null
   position: string | null
   photo_url: string | null
   reviews_count: number
@@ -18,6 +19,7 @@ export default function AdminTeachers() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [fullName, setFullName] = useState('')
+  const [department, setDepartment] = useState('')
   const [position, setPosition] = useState('')
   const [photoUrl, setPhotoUrl] = useState('')
   const [posting, setPosting] = useState(false)
@@ -25,6 +27,7 @@ export default function AdminTeachers() {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editFullName, setEditFullName] = useState('')
+  const [editDepartment, setEditDepartment] = useState('')
   const [editPosition, setEditPosition] = useState('')
   const [editPhotoUrl, setEditPhotoUrl] = useState('')
   const [saving, setSaving] = useState(false)
@@ -50,10 +53,11 @@ export default function AdminTeachers() {
     try {
       await apiCall('POST', '/teachers', {
         full_name: fullName.trim(),
+        department: department.trim() || undefined,
         position: position.trim() || undefined,
         photo_url: photoUrl.trim() || undefined,
       })
-      setFullName(''); setPosition(''); setPhotoUrl('')
+      setFullName(''); setDepartment(''); setPosition(''); setPhotoUrl('')
       toast('Преподаватель добавлен', 'success')
       load()
     } catch {
@@ -78,6 +82,7 @@ export default function AdminTeachers() {
   function startEdit(t: Teacher) {
     setEditingId(t.id)
     setEditFullName(t.full_name)
+    setEditDepartment(t.department ?? '')
     setEditPosition(t.position ?? '')
     setEditPhotoUrl(t.photo_url ?? '')
   }
@@ -93,6 +98,7 @@ export default function AdminTeachers() {
     try {
       const updated = await apiCall('PATCH', `/teachers/${editingId}`, {
         full_name: editFullName.trim(),
+        department: editDepartment.trim() || null,
         position: editPosition.trim() || null,
         photo_url: editPhotoUrl.trim() || null,
       })
@@ -117,12 +123,20 @@ export default function AdminTeachers() {
           placeholder="ФИО"
           className={INPUT}
         />
-        <input
-          value={position}
-          onChange={e => setPosition(e.target.value)}
-          placeholder="Должность"
-          className={INPUT}
-        />
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            value={position}
+            onChange={e => setPosition(e.target.value)}
+            placeholder="Должность"
+            className={INPUT}
+          />
+          <input
+            value={department}
+            onChange={e => setDepartment(e.target.value)}
+            placeholder="Кафедра"
+            className={INPUT}
+          />
+        </div>
         <input
           value={photoUrl}
           onChange={e => setPhotoUrl(e.target.value)}
@@ -154,12 +168,20 @@ export default function AdminTeachers() {
                   placeholder="ФИО"
                   className={INPUT}
                 />
-                <input
-                  value={editPosition}
-                  onChange={e => setEditPosition(e.target.value)}
-                  placeholder="Должность"
-                  className={INPUT}
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    value={editPosition}
+                    onChange={e => setEditPosition(e.target.value)}
+                    placeholder="Должность"
+                    className={INPUT}
+                  />
+                  <input
+                    value={editDepartment}
+                    onChange={e => setEditDepartment(e.target.value)}
+                    placeholder="Кафедра"
+                    className={INPUT}
+                  />
+                </div>
                 <input
                   value={editPhotoUrl}
                   onChange={e => setEditPhotoUrl(e.target.value)}
@@ -190,7 +212,7 @@ export default function AdminTeachers() {
                 <div className="min-w-0">
                   <div className="font-medium text-ink truncate">{t.full_name}</div>
                   <div className="text-xs text-subtle mt-0.5 truncate">
-                    {t.position || '—'} · {t.reviews_count} отзывов
+                    {[t.position, t.department].filter(Boolean).join(' · ') || '—'} · {t.reviews_count} отзывов
                   </div>
                 </div>
                 <div className="shrink-0 flex items-center gap-1">

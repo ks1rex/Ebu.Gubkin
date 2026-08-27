@@ -19,6 +19,7 @@ interface Review {
 interface Teacher {
   id: string
   full_name: string
+  department: string | null
   position: string | null
   photo_url: string | null
   avg_rating: number | null
@@ -100,7 +101,7 @@ export default function TeacherDetail() {
         <div className="min-w-0">
           <h1 className="text-lg font-semibold text-ink truncate">{teacher.full_name}</h1>
           <div className="text-sm text-subtle truncate">
-            {teacher.position || '—'}
+            {[teacher.position, teacher.department].filter(Boolean).join(' · ') || '—'}
           </div>
           {teacher.reviews_count > 0 ? (
             <div className="flex items-center gap-2 mt-1.5">

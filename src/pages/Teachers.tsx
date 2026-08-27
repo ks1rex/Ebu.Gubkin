@@ -7,6 +7,7 @@ import { GlassCard, Avatar, Stars } from '../components/glass'
 interface Teacher {
   id: string
   full_name: string
+  department: string | null
   position: string | null
   photo_url: string | null
   avg_rating: number | null
@@ -26,7 +27,8 @@ export default function Teachers() {
   }, [])
 
   const filtered = teachers.filter(t =>
-    t.full_name.toLowerCase().includes(search.toLowerCase())
+    t.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    (t.department ?? '').toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -39,7 +41,7 @@ export default function Teachers() {
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
-        placeholder="Поиск по имени..."
+        placeholder="Поиск по имени или кафедре..."
         className="w-full mb-5 px-4 py-2.5 rounded-[14px] border border-line bg-canvas text-ink text-sm placeholder:text-subtle focus:outline-none focus:border-accent"
       />
 
@@ -58,7 +60,7 @@ export default function Teachers() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-ink truncate">{t.full_name}</div>
                   <div className="text-xs text-subtle mt-0.5 truncate">
-                    {t.position || '—'}
+                    {[t.position, t.department].filter(Boolean).join(' · ') || '—'}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
