@@ -8,6 +8,7 @@ import { apiCall } from '../../lib/api'
 import { formatRatingValue } from '../../lib/format'
 import { stampedName, fetchAllPages } from '../../lib/reportData'
 import { downloadXlsx } from '../../lib/exportXlsx'
+import { IS_STANDALONE } from '../../lib/platform'
 import { printReport } from '../../lib/printReport'
 import { VipBadge } from '../../components/VipBadge'
 
@@ -333,8 +334,7 @@ export default function AdminUsers() {
               <div className="flex gap-2">
                 <Link
                   to={`/users/${user.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...(IS_STANDALONE ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                   className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs rounded-lg bg-panel text-subtle hover:text-accent transition-colors shrink-0"
                 >
                   <ExternalLink size={12} />
@@ -464,11 +464,13 @@ export default function AdminUsers() {
                   <td className="py-2 px-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       {/* Публичный профиль пользователя — в новой вкладке, чтобы
-                          не терять страницу списка с фильтрами. */}
+                          не терять страницу списка с фильтрами. В standalone-PWA
+                          вкладок нет: target="_blank" там просто грузит SPA
+                          заново поверх текущего окна (см. lib/platform.ts) —
+                          там ведём себя как обычная клиентская ссылка. */}
                       <Link
                         to={`/users/${user.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        {...(IS_STANDALONE ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                         title="Открыть профиль"
                         className="p-1.5 rounded-lg text-subtle hover:text-accent hover:bg-panel transition-colors"
                       >

@@ -4,6 +4,7 @@ import { Loader2, Scale, ExternalLink } from 'lucide-react'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
 import { apiCall } from '../../lib/api'
+import { IS_STANDALONE } from '../../lib/platform'
 
 interface Dispute {
   id: string
@@ -103,8 +104,7 @@ export default function AdminDisputes() {
                       {d.orders?.id ? (
                         <Link
                           to={`/market/orders/${d.orders.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          {...(IS_STANDALONE ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                           className="inline-flex items-center gap-1.5 hover:text-accent transition-colors"
                         >
                           {d.orders.title ?? `Заказ #${d.orders.id.slice(0, 8)}`}

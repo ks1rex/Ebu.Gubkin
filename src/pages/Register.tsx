@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CheckCircle, Gift } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { IS_STANDALONE } from '../lib/platform'
 
 const logoV = `${import.meta.env.BASE_URL}logo-horizontal-trimmed.png`
 
@@ -150,11 +151,11 @@ export default function Register() {
                 />
                 <span className="text-[13px] text-subtle leading-snug">
                   Я согласен с{' '}
-                  <Link to="/terms" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                  <Link to="/terms" {...(IS_STANDALONE ? {} : { target: '_blank' })} className="text-accent-muted hover:text-accent underline underline-offset-2">
                     Пользовательским соглашением
                   </Link>{' '}
                   и{' '}
-                  <Link to="/offer" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                  <Link to="/offer" {...(IS_STANDALONE ? {} : { target: '_blank' })} className="text-accent-muted hover:text-accent underline underline-offset-2">
                     Публичной офертой
                   </Link>
                 </span>
@@ -169,11 +170,11 @@ export default function Register() {
                 />
                 <span className="text-[13px] text-subtle leading-snug">
                   Я даю{' '}
-                  <Link to="/pdn-consent" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                  <Link to="/pdn-consent" {...(IS_STANDALONE ? {} : { target: '_blank' })} className="text-accent-muted hover:text-accent underline underline-offset-2">
                     согласие на обработку персональных данных
                   </Link>{' '}
                   на условиях{' '}
-                  <Link to="/privacy" target="_blank" className="text-accent-muted hover:text-accent underline underline-offset-2">
+                  <Link to="/privacy" {...(IS_STANDALONE ? {} : { target: '_blank' })} className="text-accent-muted hover:text-accent underline underline-offset-2">
                     Политики конфиденциальности
                   </Link>
                 </span>
