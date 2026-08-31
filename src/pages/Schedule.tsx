@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, User, MapPin, AlertCircle, ExternalLink } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, User, MapPin, AlertCircle } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { GlassCard, Chip } from '../components/glass'
@@ -28,6 +28,9 @@ interface SavedGroup { groupId: number; facultyId: number; groupCode?: string; f
 
 const STUDY_ID = 62
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+// public/instructions/schedule-ios-install/page-{1..6}.png — рендер PDF в
+// PNG через mutool, см. комментарий у модалки ниже.
+const INSTALL_GUIDE_PAGES = [1, 2, 3, 4, 5, 6]
 const STORAGE_KEY = 'schedule_group'
 
 // ─── Date helpers ───────────────────────────────────────────────────────────
@@ -403,27 +406,28 @@ export default function Schedule() {
         </>
       )}
 
-      {/* ponytail: PDF в <iframe> на мобильных (особенно WebKit/iOS — а это
-          именно та аудитория, которой нужна эта инструкция) часто показывает
-          только первую страницу и не даёт листать дальше внутри рамки
-          ограниченной высоты — известное ограничение встроенного вьюера, а
-          не что-то, что чинится версткой iframe. Обычная ссылка на сам файл
-          (без target="_blank", в той же вкладке) грузит PDF как полноценную
-          страницу — тогда мобильный браузер использует свой настоящий PDF-
-          вьюер со скроллом, а не ограниченный виджет внутри iframe. Через
-          <Link> роутера так не сделать — SPA-навигация не откроет статический
-          файл, поэтому это обычный <a>, не Button/Link.  */}
-      <Modal open={showInstallGuide} onClose={() => setShowInstallGuide(false)} title="Как добавить на экран">
-        <div className="flex flex-col items-center gap-4 py-6 text-center">
-          <p className="text-sm text-subtle max-w-sm">
-            Откройте инструкцию — так её можно нормально пролистать на телефоне.
-          </p>
-          <a
-            href="/instructions/schedule-ios-install.pdf"
-            className="inline-flex items-center gap-2 font-semibold text-sm rounded-[13px] px-5 py-3 whitespace-nowrap text-[#08221c] bg-gradient-to-br from-mint to-[#a7f3d0] shadow-[0_8px_20px_rgba(94,234,212,.3)]"
-          >
-            <ExternalLink size={16} /> Открыть инструкцию (PDF)
-          </a>
+      {/* ponytail: PDF в <iframe> на мобильных (особенно WebKit/iOS) часто
+          показывает только первую страницу без скролла — известное
+          ограничение встроенного вьюера. Ссылка на сам файл (без
+          target="_blank") это чинит, но открытым PDF внутри установленного
+          PWA (standalone-режим) некуда возвращаться — нет системного «назад»,
+          закрыть можно только перезапуском приложения. Поэтому вместо PDF —
+          сами страницы, отрендеренные в PNG (mutool draw) и показанные
+          обычным скроллом внутри модалки: тот же список из шести кадров, но
+          закрывается как любая модалка (крестик/Esc/клик мимо), без
+          навигации куда-либо. Картинки в public/instructions/
+          schedule-ios-install/, пересобрать при обновлении PDF. */}
+      <Modal open={showInstallGuide} onClose={() => setShowInstallGuide(false)} title="Как добавить на экран" maxWidth="max-w-md">
+        <div className="flex flex-col gap-3">
+          {INSTALL_GUIDE_PAGES.map(n => (
+            <img
+              key={n}
+              src={`/instructions/schedule-ios-install/page-${n}.png`}
+              alt={`Шаг установки, страница ${n} из ${INSTALL_GUIDE_PAGES.length}`}
+              loading="lazy"
+              className="w-full rounded-lg border border-line"
+            />
+          ))}
         </div>
       </Modal>
     </div>
