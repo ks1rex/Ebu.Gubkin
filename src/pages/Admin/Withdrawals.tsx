@@ -9,8 +9,8 @@ interface WithdrawalRequest {
   id: string
   user_id: string
   amount: number
-  card_number: string | null
-  withdrawal_method: 'sbp' | 'card'
+  phone_number: string | null
+  bank_name: string | null
   source_balance: 'deposited' | 'earned'
   // считает бэкенд: занесённый баланс — ставка из admin_settings, заработанный — 0%
   commission_pct: number
@@ -24,7 +24,6 @@ interface WithdrawalRequest {
   }
 }
 
-const METHOD_LABEL: Record<string, string> = { sbp: 'СБП', card: 'Карта' }
 const SOURCE_LABEL: Record<string, string> = { deposited: 'занесённый', earned: 'заработанный' }
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
@@ -130,12 +129,12 @@ export default function AdminWithdrawals() {
                     <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${s.cls}`}>{s.label}</span>
                   </div>
                   <div>
-                    <p className="text-subtle text-xs">Реквизиты</p>
-                    <p className="text-ink font-mono text-xs">{w.card_number ?? '—'}</p>
+                    <p className="text-subtle text-xs">Телефон (СБП)</p>
+                    <p className="text-ink font-mono text-xs">{w.phone_number ?? '—'}</p>
                   </div>
                   <div>
-                    <p className="text-subtle text-xs">Способ</p>
-                    <p className="text-ink text-xs">{METHOD_LABEL[w.withdrawal_method] ?? w.withdrawal_method}</p>
+                    <p className="text-subtle text-xs">Банк</p>
+                    <p className="text-ink text-xs">{w.bank_name ?? '—'}</p>
                   </div>
                   <div>
                     <p className="text-subtle text-xs">Баланс</p>
@@ -181,8 +180,8 @@ export default function AdminWithdrawals() {
                 <th className="py-2 px-3 text-left text-subtle font-medium">Пользователь</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">Сумма</th>
                 <th className="py-2 px-3 text-right text-subtle font-medium">К выплате</th>
-                <th className="py-2 px-3 text-left text-subtle font-medium">Способ / баланс</th>
-                <th className="py-2 px-3 text-left text-subtle font-medium">Реквизиты</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Баланс</th>
+                <th className="py-2 px-3 text-left text-subtle font-medium">Телефон (СБП)</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Дата</th>
                 <th className="py-2 px-3 text-center text-subtle font-medium">Статус</th>
                 <th className="py-2 px-3 text-left text-subtle font-medium">Комментарий</th>
@@ -207,11 +206,10 @@ export default function AdminWithdrawals() {
                       {w.commission_pct === 0 && <span className="block text-[11px] font-normal text-subtle">без комиссии</span>}
                     </td>
                     <td className="py-2 px-3 text-ink text-xs">
-                      {METHOD_LABEL[w.withdrawal_method] ?? w.withdrawal_method}
-                      <span className="block text-subtle">{SOURCE_LABEL[w.source_balance] ?? w.source_balance}</span>
+                      {SOURCE_LABEL[w.source_balance] ?? w.source_balance}
                     </td>
                     <td className="py-2 px-3 text-ink font-mono text-xs">
-                      {w.card_number ?? '—'}
+                      {w.phone_number ?? '—'}
                     </td>
                     <td className="py-2 px-3 text-subtle">{timeAgo(w.created_at)}</td>
                     <td className="py-2 px-3 text-center">

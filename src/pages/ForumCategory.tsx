@@ -8,6 +8,49 @@ import { useToast } from '../contexts/ToastContext'
 import { timeAgo } from '../lib/timeAgo'
 import CreateThreadModal from '../components/Forum/CreateThreadModal'
 import VipName from '../components/VipBadge'
+import { GlassCard } from '../components/glass'
+import { ICONS as CATEGORY_ICONS } from './Forum'
+
+// pink, mint, lav, accent, gold — same palette/hash as Forum.tsx's catColor,
+// kept local so this page doesn't depend on Forum.tsx's internal export.
+const CAT_COLORS = ['#f5a3e8', '#5eead4', '#c4b5fd', '#7c3aed', '#ffd27a']
+function catColor(seed: string) {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  return CAT_COLORS[h % CAT_COLORS.length]
+}
+
+interface Subcategory {
+  id: string
+  name: string
+  description: string | null
+  icon_name: string
+  icon_url: string | null
+  threads_count: number
+}
+
+function SubcategoryCard({ cat }: { cat: Subcategory }) {
+  const color = catColor(cat.name)
+  const Icon = CATEGORY_ICONS[cat.icon_name] ?? CATEGORY_ICONS.MessagesSquare
+  return (
+    <Link to={`/forum/category/${cat.id}`}>
+      <GlassCard hover className="rounded-[20px] p-5 h-full">
+        <div className="flex items-start gap-3">
+          <div className="w-11 h-11 rounded-[13px] shrink-0 flex items-center justify-center overflow-hidden" style={{ background: `${color}26` }}>
+            {cat.icon_url ? <img src={cat.icon_url} alt="" className="w-full h-full object-cover rounded-[13px]" /> : <Icon size={20} style={{ color }} />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-ink">{cat.name}</span>
+              <span className="text-xs text-subtle bg-white/[.08] px-2 py-0.5 rounded-full">{cat.threads_count} тем</span>
+            </div>
+            {cat.description && <p className="text-sm text-subtle mt-0.5 leading-snug">{cat.description}</p>}
+          </div>
+        </div>
+      </GlassCard>
+    </Link>
+  )
+}
 
 const API = import.meta.env.VITE_BACKEND_URL as string
 
@@ -87,6 +130,18 @@ export default function ForumCategory() {
   const [loading,    setLoading]    = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  const [subcategories, setSubcategories] = useState<Subcategory[] | null>(null) // null = not checked yet
+
+  // Подкатегории (сейчас только "Учёба" → факультеты, разово под импорт
+  // материалов с VK, см. reshbirga/CLAUDE.md) — если у категории есть дети,
+  // показываем их вместо списка тем: категория-контейнер сама тем не носит.
+  useEffect(() => {
+    if (!id) return
+    fetch(`${API}/forum/categories?parent_id=${id}`)
+      .then(r => r.json())
+      .then(setSubcategories)
+      .catch(() => setSubcategories([]))
+  }, [id])
 
   async function loadThreads(p: number, s: Sort, reset = false) {
     const setter = reset ? setLoading : setLoadingMore
@@ -105,6 +160,7 @@ export default function ForumCategory() {
     }
   }
 
+  const isContainer = (subcategories?.length ?? 0) > 0
   useEffect(() => { if (id) loadThreads(1, sort, true) }, [id, sort])
 
   function changeSort(s: Sort) { setSort(s); setPage(1) }
@@ -127,49 +183,60 @@ export default function ForumCategory() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-ink">{category?.name ?? '…'}</h1>
-        <div className="flex items-center gap-2">
-          {/* Sort */}
-          <div className="relative">
-            <select value={sort} onChange={e => changeSort(e.target.value as Sort)}
-              className="appearance-none px-3 py-1.5 pr-7 text-sm border border-line rounded-lg bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-accent/30">
-              <option value="activity">По активности</option>
-              <option value="date">По дате</option>
-              <option value="popular">По популярности</option>
-            </select>
-            <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle pointer-events-none" />
+        {!isContainer && (
+          <div className="flex items-center gap-2">
+            {/* Sort */}
+            <div className="relative">
+              <select value={sort} onChange={e => changeSort(e.target.value as Sort)}
+                className="appearance-none px-3 py-1.5 pr-7 text-sm border border-line rounded-lg bg-surface text-ink focus:outline-none focus:ring-2 focus:ring-accent/30">
+                <option value="activity">По активности</option>
+                <option value="date">По дате</option>
+                <option value="popular">По популярности</option>
+              </select>
+              <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-subtle pointer-events-none" />
+            </div>
+
+            {user && (
+              <button onClick={() => setShowCreate(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors">
+                <PenLine size={14} />
+                Новая тема
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Subcategories (контейнер — темы живут внутри них, не здесь) */}
+      {isContainer ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {subcategories!.map(sc => <SubcategoryCard key={sc.id} cat={sc} />)}
+        </div>
+      ) : (
+        <>
+          {/* Threads */}
+          <div className="space-y-2">
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bg-surface border border-line rounded-xl p-4 animate-pulse h-20" />
+                ))
+              : threads.map(t => <ThreadCard key={t.id} t={t} />)
+            }
           </div>
 
-          {user && (
-            <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-hover transition-colors">
-              <PenLine size={14} />
-              Новая тема
-            </button>
+          {!loading && threads.length === 0 && (
+            <div className="text-center py-16 text-subtle">В этой категории пока нет тем</div>
           )}
-        </div>
-      </div>
 
-      {/* Threads */}
-      <div className="space-y-2">
-        {loading
-          ? Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-surface border border-line rounded-xl p-4 animate-pulse h-20" />
-            ))
-          : threads.map(t => <ThreadCard key={t.id} t={t} />)
-        }
-      </div>
-
-      {!loading && threads.length === 0 && (
-        <div className="text-center py-16 text-subtle">В этой категории пока нет тем</div>
-      )}
-
-      {hasMore && (
-        <div className="mt-4 text-center">
-          <button onClick={() => loadThreads(page + 1, sort)} disabled={loadingMore}
-            className="px-6 py-2 text-sm border border-line rounded-lg text-ink hover:bg-panel transition-colors disabled:opacity-50">
-            {loadingMore ? 'Загрузка…' : 'Загрузить ещё'}
-          </button>
-        </div>
+          {hasMore && (
+            <div className="mt-4 text-center">
+              <button onClick={() => loadThreads(page + 1, sort)} disabled={loadingMore}
+                className="px-6 py-2 text-sm border border-line rounded-lg text-ink hover:bg-panel transition-colors disabled:opacity-50">
+                {loadingMore ? 'Загрузка…' : 'Загрузить ещё'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {showCreate && session && category && (

@@ -17,7 +17,7 @@ export const TX_LABELS: Record<string, string> = {
   deposit_forfeit:         'Конфискация',
   referral_bonus:          'Реферальный бонус',
   vip_purchase:            'Покупка VIP',
-  balance_to_token:        'Покупка ГОСТ-токенов',
+  balance_to_token:        'Покупка бот-токенов',
 }
 
 // deposit_referral — это зачисление на баланс (реферальное пополнение), а не

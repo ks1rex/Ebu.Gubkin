@@ -29,6 +29,12 @@ export default function Footer() {
           <Link to="/support" className="text-[13px] text-subtle hover:text-ink transition-colors">
             Поддержка
           </Link>
+          <a href="https://vk.ru/ebugubkin" target="_blank" rel="noopener noreferrer" className="text-[13px] text-subtle hover:text-ink transition-colors">
+            ВКонтакте
+          </a>
+          <a href="https://t.me/ebugubkin" target="_blank" rel="noopener noreferrer" className="text-[13px] text-subtle hover:text-ink transition-colors">
+            Telegram
+          </a>
         </nav>
         <p className="text-[12px] text-subtle/70">
           Ebu.Gubkin — площадка для студенческих заказов и услуг. Сайт не является стороной сделок

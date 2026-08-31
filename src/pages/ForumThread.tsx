@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, FormEvent } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Lock, Pin, Trash2, Flag, Shield, Paperclip, Smile, SmilePlus, AtSign,
 } from 'lucide-react'
@@ -196,6 +196,7 @@ function PostCard({
 
 export default function ForumThread() {
   const { id }            = useParams<{ id: string }>()
+  const navigate          = useNavigate()
   const { user, session, profile, isVip } = useAuth()
   const showToast         = useToast()
 
@@ -208,6 +209,7 @@ export default function ForumThread() {
   const [sending,    setSending]    = useState(false)
   const [reportId,   setReportId]   = useState<string | null>(null)
   const [locking,    setLocking]    = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
   const viewTracked = useRef(false)
   const postsTopRef = useRef<HTMLDivElement>(null)
   const { attachments: replyAttachments, uploading: replyUploading, handleFiles: handleReplyFiles, removeAttachment: removeReplyAttachment, reset: resetReplyAttachments } = useForumAttachments()
@@ -356,6 +358,24 @@ export default function ForumThread() {
     }
   }
 
+  async function deleteThread() {
+    if (!session || !thread) return
+    if (!confirm('Удалить тему безвозвратно, вместе со всеми ответами?')) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`${API}/forum/threads/${id}`, {
+        method:  'DELETE',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (res.ok) navigate(thread.category ? `/forum/category/${thread.category.id}` : '/forum')
+      else showToast('Не удалось удалить тему', 'error')
+    } catch {
+      showToast('Ошибка', 'error')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const totalReactions = posts.reduce((sum, p) => sum + p.reactions.length, 0)
 
   return (
@@ -400,12 +420,19 @@ export default function ForumThread() {
                   <div><b className="block text-lg font-bold text-gold">{totalReactions}</b><span className="text-[11px] text-subtle">реакций</span></div>
                 </div>
               </div>
-              {isAdmin && (
+              {(isAdmin || thread.author?.id === user?.id) && (
                 <div className="mt-4 flex items-center gap-2">
-                  <button onClick={toggleLock} disabled={locking}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs border border-line rounded-lg text-subtle hover:text-ink hover:bg-panel transition-colors disabled:opacity-50">
-                    <Shield size={12} />
-                    {thread.is_locked ? 'Разблокировать тему' : 'Закрыть тему'}
+                  {isAdmin && (
+                    <button onClick={toggleLock} disabled={locking}
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs border border-line rounded-lg text-subtle hover:text-ink hover:bg-panel transition-colors disabled:opacity-50">
+                      <Shield size={12} />
+                      {thread.is_locked ? 'Разблокировать тему' : 'Закрыть тему'}
+                    </button>
+                  )}
+                  <button onClick={deleteThread} disabled={deleting}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs border border-line rounded-lg text-error hover:bg-error/10 transition-colors disabled:opacity-50">
+                    <Trash2 size={12} />
+                    Удалить тему
                   </button>
                 </div>
               )}

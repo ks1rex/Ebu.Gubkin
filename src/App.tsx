@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Construction } from 'lucide-react'
 import { AuthProvider } from './contexts/AuthContext'
@@ -6,6 +7,7 @@ import Layout from './components/Layout'
 import MarketLayout from './components/MarketLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import Spinner from './components/Spinner'
 import Home          from './pages/Home'
 import Forum         from './pages/Forum'
 import ForumCategory from './pages/ForumCategory'
@@ -18,26 +20,28 @@ import VipInfo       from './pages/VipInfo'
 import Profile       from './pages/Profile'
 import Login         from './pages/Login'
 import Register      from './pages/Register'
-import AdminLayout        from './pages/Admin'
-import AdminDashboard     from './pages/Admin/Dashboard'
-import AdminFinance       from './pages/Admin/Finance'
-import AdminDeposits      from './pages/Admin/Deposits'
-import AdminScheduleWarmup from './pages/Admin/ScheduleWarmup'
-import AdminWithdrawals   from './pages/Admin/Withdrawals'
-import AdminDisputes      from './pages/Admin/Disputes'
-import AdminForumMod      from './pages/Admin/ForumMod'
-import AdminUsers         from './pages/Admin/Users'
-import AdminVip           from './pages/Admin/Vip'
-import AdminSettings      from './pages/Admin/Settings'
-import AdminLedger        from './pages/Admin/Ledger'
-import AdminOrders        from './pages/Admin/Orders'
-import AdminConversations from './pages/Admin/Conversations'
-import AdminChatMod       from './pages/Admin/ChatMod'
-import AdminSupport       from './pages/Admin/Support'
-import AdminGostTemplates from './pages/Admin/GostTemplates'
-import AdminNews          from './pages/Admin/News'
-import AdminTeachers      from './pages/Admin/Teachers'
-import AdminHelp          from './pages/Admin/Help'
+// Админка — отдельный бандл-чанк: её код только зря утяжелял бы каждую
+// обычную страницу, хотя открывают её только администраторы.
+const AdminLayout        = lazy(() => import('./pages/Admin'))
+const AdminDashboard     = lazy(() => import('./pages/Admin/Dashboard'))
+const AdminFinance       = lazy(() => import('./pages/Admin/Finance'))
+const AdminDeposits      = lazy(() => import('./pages/Admin/Deposits'))
+const AdminScheduleWarmup = lazy(() => import('./pages/Admin/ScheduleWarmup'))
+const AdminWithdrawals   = lazy(() => import('./pages/Admin/Withdrawals'))
+const AdminDisputes      = lazy(() => import('./pages/Admin/Disputes'))
+const AdminForumMod      = lazy(() => import('./pages/Admin/ForumMod'))
+const AdminUsers         = lazy(() => import('./pages/Admin/Users'))
+const AdminVip           = lazy(() => import('./pages/Admin/Vip'))
+const AdminSettings      = lazy(() => import('./pages/Admin/Settings'))
+const AdminLedger        = lazy(() => import('./pages/Admin/Ledger'))
+const AdminOrders        = lazy(() => import('./pages/Admin/Orders'))
+const AdminConversations = lazy(() => import('./pages/Admin/Conversations'))
+const AdminChatMod       = lazy(() => import('./pages/Admin/ChatMod'))
+const AdminSupport       = lazy(() => import('./pages/Admin/Support'))
+const AdminGostTemplates = lazy(() => import('./pages/Admin/GostTemplates'))
+const AdminNews          = lazy(() => import('./pages/Admin/News'))
+const AdminTeachers      = lazy(() => import('./pages/Admin/Teachers'))
+const AdminHelp          = lazy(() => import('./pages/Admin/Help'))
 import ForgotPassword  from './pages/ForgotPassword'
 import ResetPassword   from './pages/ResetPassword'
 import Support         from './pages/Support'
@@ -139,7 +143,7 @@ export default function App() {
             <Route path="support"         element={<ProtectedRoute><Support /></ProtectedRoute>} />
             <Route path="notifications"   element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="support/:id"     element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
-            <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+            <Route path="admin" element={<Suspense fallback={<Spinner />}><AdminRoute><AdminLayout /></AdminRoute></Suspense>}>
               <Route index                   element={<AdminDashboard />} />
               <Route path="finance"          element={<AdminFinance />} />
               <Route path="deposits"         element={<AdminDeposits />} />

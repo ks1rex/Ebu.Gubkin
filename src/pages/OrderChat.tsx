@@ -1,17 +1,33 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { apiCall } from '../lib/api'
+import { useAuth } from '../contexts/AuthContext'
 import ChatWindow from '../components/ChatWindow'
+import OrderActionsBar from '../components/OrderActionsBar'
 import Spinner from '../components/Spinner'
 
 export default function OrderChat() {
   const { id: orderId } = useParams<{ id: string }>()
+  const { user } = useAuth()
 
   const [order, setOrder] = useState<any>(null)
   const [convId, setConvId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const reloadOrder = useCallback(() => {
+    if (!orderId) return
+    apiCall('GET', `/orders/${orderId}`).then(setOrder).catch(() => {})
+  }, [orderId])
+
+  // Опрос заказа — чтобы вторая сторона увидела предложенную/принятую цену
+  // без перезагрузки страницы, в том же ритме, что и поллинг сообщений чата.
+  useEffect(() => {
+    if (!orderId) return
+    const t = setInterval(reloadOrder, 5000)
+    return () => clearInterval(t)
+  }, [orderId, reloadOrder])
 
   const rootRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number | null>(null)
@@ -68,9 +84,14 @@ export default function OrderChat() {
         </div>
       </div>
 
+      {['in_progress', 'awaiting_confirmation'].includes(order?.status) && (order.customer_id === user?.id || order.executor_id === user?.id) && (
+        <OrderActionsBar order={order} userId={user?.id} onChange={reloadOrder} />
+      )}
+
       <ChatWindow
         conversationId={convId}
         readOnly={orderClosed}
+        orderRole={order?.customer_id === user?.id ? 'customer' : order?.executor_id === user?.id ? 'executor' : undefined}
       />
     </div>
   )

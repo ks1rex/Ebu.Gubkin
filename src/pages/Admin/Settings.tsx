@@ -62,10 +62,17 @@ const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
   {
     title: 'Общее',
     keys: [
-      { key: 'gost_token_price',    label: 'Цена ГОСТ-токена (₽)',          type: 'number' },
+      { key: 'gost_token_price',    label: 'Цена бот-токена (₽)',           type: 'number' },
       { key: 'referral_bonus_pct',  label: 'Реферальный бонус (%)',          type: 'number' },
       { key: 'referral_max_count',  label: 'Макс. реф. бонусов (шт.)',       type: 'number' },
       { key: 'referral_min_amount', label: 'Мин. сумма для реф. бонуса (₽)', type: 'number' },
+      {
+        key: 'homepage_users_count_override',
+        label: 'Число пользователей на главной',
+        type: 'number',
+        placeholder: 'реальное число',
+        hint: 'Показывается на главной странице вместо настоящего количества зарегистрированных. Пусто — показывать реальное число.',
+      },
     ],
   },
   {
@@ -81,7 +88,7 @@ const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
       { key: 'vip_price_year',          label: 'Цена VIP на год (₽)', type: 'number' },
       { key: 'vip_duration_month_days', label: 'Длительность месячного VIP (дней)', type: 'number' },
       { key: 'vip_duration_year_days',  label: 'Длительность годового VIP (дней)', type: 'number' },
-      { key: 'vip_token_discount_pct',  label: 'Скидка VIP на ГОСТ-токены (%)', type: 'number' },
+      { key: 'vip_token_discount_pct',  label: 'Скидка VIP на бот-токены (%)',  type: 'number' },
       {
         key: 'vip_level_discounts',
         label: 'Скидка на подписку по уровню (%)',

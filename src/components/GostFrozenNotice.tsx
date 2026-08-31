@@ -10,7 +10,7 @@ export function useGostFrozenModal() {
   // Портал в body делает сам Modal (backdrop-filter у шапки создаёт containing
   // block для position:fixed) — здесь дублировать не нужно.
   const modal = (
-    <Modal open={open} onClose={() => setOpen(false)} title="ГОСТ-калькулятор">
+    <Modal open={open} onClose={() => setOpen(false)} title="Решбот">
       <p className="text-sm text-subtle leading-relaxed">В разработке</p>
     </Modal>
   )

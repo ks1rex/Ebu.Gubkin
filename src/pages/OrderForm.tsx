@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Upload, X, Eye, Lock, AlertCircle } from 'lucide-react'
-import { apiCall } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { formatCurrency } from '../lib/format'
+import CategorySelect from '../components/CategorySelect'
 
 const CLS = {
   label: 'block text-slate-400 text-[0.82rem] mb-1.5',
@@ -50,13 +50,6 @@ export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles
   const [description, setDescription] = useState(initial.description ?? '')
   const [subject, setSubject]   = useState(initial.subject ?? '')
   const [category, setCategory] = useState(initial.category ?? '')
-  const [categories, setCategories] = useState<string[]>([])
-
-  useEffect(() => {
-    apiCall('GET', '/listings/categories')
-      .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
-      .catch(() => {})
-  }, [])
   const [baseAmount, setBaseAmount] = useState(initial.reserved_amount != null ? String(initial.reserved_amount) : '')
   const [files, setFiles]       = useState<FileItem[]>([])
   const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>(initial.attachments ?? [])
@@ -166,15 +159,7 @@ export default function OrderForm({ initial = {}, alreadyReserved = 0, showFiles
           </div>
         </div>
 
-        {categories.length > 0 && (
-          <div className="mb-6">
-            <label className={CLS.label}>Категория</label>
-            <select className={CLS.input} value={category} onChange={e => setCategory(e.target.value)}>
-              <option value="">Не выбрана</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        )}
+        <CategorySelect value={category} onChange={setCategory} className="mb-6" />
 
         {amount > 0 && (
           <div className={`rounded-lg py-[14px] px-4 mb-6 border ${insufficient ? 'bg-[#1f0808] border-[#ef4444]' : 'bg-[#0d2620] border-teal-legacy-hover'}`}>

@@ -16,7 +16,7 @@ export default function AttachmentList({ attachments, onRemove }: { attachments:
           {images.map(a => (
             <div key={a.url} className="relative">
               <button type="button" onClick={() => setPreview(a.url)}>
-                <img src={a.url} alt={a.name} className="w-[92px] h-[92px] object-cover rounded-[12px] border border-white/[.12]" />
+                <img src={a.url} alt={a.name} loading="lazy" decoding="async" className="w-[92px] h-[92px] object-cover rounded-[12px] border border-white/[.12]" />
               </button>
               {onRemove && (
                 <button type="button" onClick={() => onRemove(a.url)}

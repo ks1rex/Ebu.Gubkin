@@ -69,7 +69,7 @@ export default function GostChat() {
       const data: ChatResp = await res.json()
       if (!res.ok) {
         const msg = (data as any).detail?.error ?? (data as any).error ?? `HTTP ${res.status}`
-        if (res.status === 402) toast('Недостаточно ГОСТ-токенов', 'error')
+        if (res.status === 402) toast('Недостаточно бот-токенов', 'error')
         else toast(msg, 'error')
         setMessages(prev => prev.filter(m => m.id !== optimistic.id))
         setInput(text)
@@ -100,7 +100,7 @@ export default function GostChat() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <Link to="/gost" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#64748b', textDecoration: 'none', fontSize: '0.85rem' }}>
-          <ArrowLeft size={14} /> Назад к ГОСТ
+          <ArrowLeft size={14} /> Назад к Решботу
         </Link>
         <div style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1.1rem' }}>Редактирование через чат</div>
         <div style={{ display: 'flex', gap: 8 }}>

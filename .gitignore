@@ -7,6 +7,12 @@ node_modules/
 .env*.local
 .env.production
 
+# One-off scripts with hardcoded secrets
+scripts/fix-week-31-aug.js
+scripts/migrate-schedule-cache.js
+checkpoint-fix-week-31-aug.json
+captcha.jpg
+
 # Build output
 dist/
 dist.zip
@@ -21,3 +27,4 @@ ds-bundle/
 .design-sync/.cache/
 .design-sync/learnings/
 .design-sync/node_modules
+.deploy-manifest.txt

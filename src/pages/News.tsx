@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Newspaper } from 'lucide-react'
 import { apiCall } from '../lib/api'
-import { timeAgo } from '../lib/timeAgo'
 import { GlassCard } from '../components/glass'
 
 interface NewsItem {
   id: string
   title: string
   content: string
-  created_at: string
-  author?: { nickname: string | null } | null
 }
 
 export default function News() {
@@ -37,10 +34,7 @@ export default function News() {
         <div className="flex flex-col gap-4">
           {items.map(item => (
             <GlassCard key={item.id} className="rounded-2xl p-5">
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <h2 className="font-semibold text-ink">{item.title}</h2>
-                <span className="text-xs text-subtle shrink-0">{timeAgo(item.created_at)}</span>
-              </div>
+              <h2 className="font-semibold text-ink mb-2">{item.title}</h2>
               <p className="text-sm text-subtle leading-relaxed whitespace-pre-wrap">{item.content}</p>
             </GlassCard>
           ))}

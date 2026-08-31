@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, CheckCircle2, ShieldAlert, UserX, MessageSquareWarning } from 'lucide-react'
+import { Loader2, CheckCircle2, ShieldAlert, UserX, MessageSquareWarning, Tag, Check, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
 import { timeAgo } from '../../lib/timeAgo'
@@ -23,6 +23,131 @@ interface FlaggedMessage {
 }
 
 const DEFAULT_WARNING = '⚠️ Сообщение от администрации: пожалуйста, ведите все переговоры и передачу данных по сделке через платформу — так сделка защищена и при споре есть история переписки.'
+
+interface CategoryRequest {
+  id: string
+  name: string
+  status: 'pending' | 'approved' | 'rejected'
+  reject_reason: string | null
+  created_at: string
+  requester: { id: string; nickname: string | null; profile_slug: string | null } | null
+  order: { id: string; title: string } | null
+  listing: { id: string; title: string } | null
+}
+
+interface MarketCategory { id: string; name: string }
+
+function CategoryRequestsSection() {
+  const toast = useToast()
+  const [requests, setRequests] = useState<CategoryRequest[]>([])
+  const [categories, setCategories] = useState<MarketCategory[]>([])
+  const [loading, setLoading] = useState(true)
+  const [acting, setActing] = useState<Record<string, boolean>>({})
+  const [reassignTo, setReassignTo] = useState<Record<string, string>>({})
+
+  async function load() {
+    setLoading(true)
+    try {
+      const [reqs, cats] = await Promise.all([
+        apiCall('GET', '/admin/market-categories/requests?status=pending'),
+        apiCall('GET', '/admin/market-categories'),
+      ])
+      setRequests(reqs ?? [])
+      setCategories(cats ?? [])
+    } catch {
+      toast('Не удалось загрузить заявки на категории', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { load() }, [])
+
+  async function approve(id: string) {
+    setActing(a => ({ ...a, [id]: true }))
+    try {
+      await apiCall('POST', `/admin/market-categories/requests/${id}/approve`)
+      toast('Категория принята', 'success')
+      setRequests(rs => rs.filter(r => r.id !== id))
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось принять', 'error')
+    } finally {
+      setActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
+  async function reject(id: string) {
+    const reassign_to_id = reassignTo[id]
+    if (!reassign_to_id) { toast('Выберите категорию, на которую перенести заказ/услугу', 'error'); return }
+    setActing(a => ({ ...a, [id]: true }))
+    try {
+      await apiCall('POST', `/admin/market-categories/requests/${id}/reject`, { reassign_to_id })
+      toast('Категория отклонена', 'success')
+      setRequests(rs => rs.filter(r => r.id !== id))
+    } catch (e: any) {
+      toast(e?.data?.error ?? 'Не удалось отклонить', 'error')
+    } finally {
+      setActing(a => ({ ...a, [id]: false }))
+    }
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-12"><Loader2 className="animate-spin text-subtle" /></div>
+  }
+
+  return (
+    <div className="space-y-3">
+      <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
+        <Tag size={18} /> Заявки на новые категории
+        {requests.length > 0 && <span className="text-sm font-normal text-error">({requests.length})</span>}
+      </h2>
+      {requests.length === 0 ? (
+        <div className="bg-surface border border-line rounded-xl p-8 text-center">
+          <p className="text-sm text-subtle">Заявок нет</p>
+        </div>
+      ) : (
+        <div className="bg-surface rounded-xl border border-line divide-y divide-line overflow-hidden">
+          {requests.map(r => (
+            <div key={r.id} className="p-4 flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <div className="font-medium text-ink">«{r.name}»</div>
+                <div className="text-xs text-subtle mt-0.5">
+                  {r.requester?.nickname ?? 'Пользователь'} · {r.order ? `заказ «${r.order.title}»` : r.listing ? `услуга «${r.listing.title}»` : ''} · {timeAgo(r.created_at)}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <button
+                  onClick={() => approve(r.id)}
+                  disabled={acting[r.id]}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-success text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {acting[r.id] ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                  Принять
+                </button>
+                <select
+                  value={reassignTo[r.id] ?? ''}
+                  onChange={e => setReassignTo(v => ({ ...v, [r.id]: e.target.value }))}
+                  className="text-xs border border-line rounded-lg px-2 py-1.5 bg-canvas text-ink"
+                >
+                  <option value="">Перенести на...</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <button
+                  onClick={() => reject(r.id)}
+                  disabled={acting[r.id] || !reassignTo[r.id]}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-error/10 text-error rounded-lg hover:bg-error/20 transition-colors disabled:opacity-50"
+                >
+                  {acting[r.id] ? <Loader2 size={12} className="animate-spin" /> : <X size={12} />}
+                  Отклонить
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function AdminChatMod() {
   const { session } = useAuth()
@@ -92,7 +217,9 @@ export default function AdminChatMod() {
   const pending = messages.filter(m => !m.moderation_reviewed).length
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
+      <CategoryRequestsSection />
+
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-xl font-semibold text-ink">Модерация чатов</h1>

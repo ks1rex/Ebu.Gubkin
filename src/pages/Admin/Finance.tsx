@@ -91,7 +91,7 @@ export default function AdminFinance() {
       ['Комиссия биржи (заказы и услуги)', d.commission_marketplace ?? 0],
       ['Комиссия реферальных пополнений', d.commission_referral],
       ['Выплачено рефереру', -d.referral_bonuses_paid],
-      ['Выручка ГОСТ-токенов', d.gost_tokens_revenue],
+      ['Выручка бот-токенов', d.gost_tokens_revenue],
       ['Выручка VIP', d.vip_revenue ?? 0],
       ['Баланс кошельков пользователей', d.total_user_balances],
       ['Расходы платформы', d.platform_expenses],
@@ -176,7 +176,7 @@ export default function AdminFinance() {
                 <td className="py-2 text-right text-error font-medium">−{fmt(data.referral_bonuses_paid)} ₽</td>
               </tr>
               <tr>
-                <td className="py-2 text-subtle">Выручка ГОСТ-токенов</td>
+                <td className="py-2 text-subtle">Выручка бот-токенов</td>
                 <td className="py-2 text-right text-ink font-medium">{fmt(data.gost_tokens_revenue)} ₽</td>
               </tr>
               {/* VIP-покупки списываются с баланса безвозвратно, то есть это

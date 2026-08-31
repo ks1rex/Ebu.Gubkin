@@ -56,7 +56,7 @@ export default function BuyTokensModal({ walletBalance, tokenPrice, token, onClo
         <div className="flex items-center justify-between pl-5 pr-3 py-3 border-b border-line">
           <div className="flex items-center gap-2 min-w-0">
             <Coins size={18} className="text-accent shrink-0" />
-            <h2 className="font-semibold text-ink">Купить ГОСТ-токены</h2>
+            <h2 className="font-semibold text-ink">Купить бот-токены</h2>
           </div>
           <button onClick={onClose} aria-label="Закрыть" className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-subtle hover:text-ink hover:bg-panel transition-colors">
             <X size={16} />

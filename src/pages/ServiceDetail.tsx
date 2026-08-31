@@ -64,7 +64,13 @@ export default function ServiceDetail() {
     <div className="max-w-[720px] mx-auto">
       <div className="bg-[#0f1923] border border-[#1e3a4a] rounded-xl p-6 mb-4">
         {listing.cover_url && (
-          <img src={listing.cover_url} alt="" className="w-full h-[180px] object-cover rounded-[10px] border border-[#1e3a4a] mb-4" />
+          // aspect-[2/1] — то же соотношение сторон, в котором обложку кадрировали
+          // при загрузке (ImageCropper, aspect={2} в ServiceForm.tsx). Раньше тут
+          // была фиксированная высота 180px при w-full — на любой ширине шире 360px
+          // это давало ДРУГОЕ соотношение сторон и обложку обрезало ещё раз, вдобавок
+          // к уже выбранной области, то есть на карточке в каталоге и на странице
+          // услуги показывались разные куски одной картинки.
+          <img src={listing.cover_url} alt="" loading="lazy" decoding="async" className="w-full aspect-[2/1] object-cover rounded-[10px] border border-[#1e3a4a] mb-4" />
         )}
         <div className="text-slate-200 text-[1.3rem] font-bold mb-3">{listing.title}</div>
         <div className="flex items-center gap-2 mb-4">

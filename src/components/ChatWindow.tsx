@@ -71,6 +71,8 @@ const S: Record<string, any> = {
   lockedBanner: { textAlign: 'center', padding: '10px', color: '#f59e0b', fontSize: '0.82rem', borderTop: '1px solid #1e3a4a' },
   adminBubble: { background: '#2a2010', border: '1px solid #f5c451' },
   adminBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, color: '#f5c451', fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 },
+  systemRow: { alignSelf: 'center', maxWidth: '85%', textAlign: 'center' },
+  systemBubble: { display: 'inline-block', background: 'rgba(14,138,125,0.1)', border: '1px dashed #0e8a7d', borderRadius: 12, padding: '7px 14px', color: '#5eead4', fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
 }
 
 const CHAT_VIP_LOCK_CODE = 'VIP_EXPIRED_CHAT_LOCKED'
@@ -92,15 +94,49 @@ function UploadRing({ progress }: { progress: number }) {
   )
 }
 
+// Системные сообщения об изменении цены (см. orders.js priceEventMessage)
+// кодируют обе цифры — рендерим ту, что относится к роли текущего зрителя,
+// вместо одного зашитого текста на всех.
+const PRICE_EVENT_PREFIX = 'SYS_PRICE::'
+
+function renderPriceEvent(content: string, role?: 'customer' | 'executor'): string | null {
+  if (!content.startsWith(PRICE_EVENT_PREFIX)) return null
+  let ev: any
+  try { ev = JSON.parse(content.slice(PRICE_EVENT_PREFIX.length)) } catch { return null }
+  const byLabel = ev.by === 'customer' ? 'Заказчик' : 'Исполнитель'
+  switch (ev.event) {
+    case 'proposed':
+      return role === 'customer'
+        ? `💰 ${byLabel} предложил новую цену — вы заплатите ${ev.charge} ₽. Ждём подтверждения второй стороны.`
+        : role === 'executor'
+          ? `💰 ${byLabel} предложил новую цену — вы получите ${ev.payout} ₽. Ждём подтверждения второй стороны.`
+          : `💰 ${byLabel} предложил новую цену: заказчик платит ${ev.charge} ₽, исполнитель получает ${ev.payout} ₽.`
+    case 'accepted':
+      return role === 'customer'
+        ? `✅ Новая цена согласована: вы платите ${ev.charge} ₽.`
+        : role === 'executor'
+          ? `✅ Новая цена согласована: вы получите ${ev.payout} ₽.`
+          : `✅ Новая цена согласована: заказчик платит ${ev.charge} ₽, исполнитель получает ${ev.payout} ₽.`
+    case 'declined':
+      return `❌ ${byLabel} отклонил предложенную цену.`
+    case 'cancelled':
+      return '❌ Предложение новой цены отменено автором.'
+    default:
+      return null
+  }
+}
+
 interface Props {
   conversationId: string
   readOnly?: boolean
   pollInterval?: number
   /** Admin panel mode: reads/sends via /admin/conversations/:id/messages (no file uploads there). */
   adminMode?: boolean
+  /** Order chat only: who's viewing, so price-change system messages show the right number to each side. */
+  orderRole?: 'customer' | 'executor'
 }
 
-export default function ChatWindow({ conversationId, readOnly = false, pollInterval = 5000, adminMode = false }: Props) {
+export default function ChatWindow({ conversationId, readOnly = false, pollInterval = 5000, adminMode = false, orderRole }: Props) {
   const { user } = useAuth()
   const toast = useToast()
   const [messages, setMessages] = useState<any[]>([])
@@ -228,6 +264,18 @@ export default function ChatWindow({ conversationId, readOnly = false, pollInter
           <div style={{ textAlign: 'center', color: '#64748b', padding: '2rem', fontSize: '0.9rem' }}>Сообщений пока нет</div>
         )}
         {messages.map(msg => {
+          // Системные сообщения (обмен контактами, изменение цены и т.п.)
+          // отправляются с sender_id: null — join на profiles тогда пустой.
+          // Без этой ветки они рисовались как обычная реплика "чужого"
+          // пользователя (с краю, подписью "Пользователь").
+          if (!msg.sender && !msg.is_admin_message) {
+            return (
+              <div key={msg.id} className="chat-msg-in" style={S.systemRow}>
+                <div style={S.systemBubble}>{renderPriceEvent(msg.content, orderRole) ?? msg.content}</div>
+              </div>
+            )
+          }
+
           // Бэкенд отдаёт sender как вложенный объект (sender:profiles!...),
           // плоского msg.sender_id в ответе нет — сравнение с ним всегда
           // давало false, и свои сообщения всегда рисовались как чужие.

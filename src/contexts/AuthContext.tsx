@@ -15,7 +15,7 @@ export interface Profile {
   university_group: string | null
   balance: number
   // balance = deposited_balance + earned_balance (инвариант держит CHECK в БД).
-  // Занесённый — из пополнений, комиссия 10% при выводе; заработанный — с биржи
+  // Занесённый — из пополнений, комиссия 15% при выводе; заработанный — с биржи
   // и рефералки, вывод без комиссии.
   deposited_balance: number
   earned_balance: number

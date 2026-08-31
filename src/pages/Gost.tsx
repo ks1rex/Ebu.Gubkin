@@ -109,7 +109,7 @@ function TokenPanel({
             ) : (
               <span className="text-lg font-bold text-ink">{tokenBalance} токенов</span>
             )}
-            <p className="text-xs text-subtle mt-0.5">ГОСТ-баланс · {tokenPrice} ₽/токен</p>
+            <p className="text-xs text-subtle mt-0.5">Бот-токены · {tokenPrice} ₽/токен</p>
           </div>
         </div>
 
@@ -228,7 +228,7 @@ function UploadForm({ token, onStart, onError }: {
       if (subMode !== 'chat' && !tplFile) { showToast('Загрузите файл шаблона (.docx)', 'error'); return }
       if (subMode === 'minimal_edit' && !taskFile) { showToast('Для этого режима нужен файл задания', 'error'); return }
     }
-    if (!GOST) { showToast('ГОСТ-сервис не настроен (VITE_GOST_URL)', 'error'); return }
+    if (!GOST) { showToast('Решбот не настроен (VITE_GOST_URL)', 'error'); return }
 
     onStart('uploading')
 
@@ -260,7 +260,7 @@ function UploadForm({ token, onStart, onError }: {
         const exRes  = await fetch(`${GOST}/extract?project_id=${projectId}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
         const exData = await exRes.json()
         if (!exRes.ok) {
-          onError(exRes.status === 402 ? 'Недостаточно ГОСТ-токенов' : errMsg(exData, 'Ошибка обработки'), projectId)
+          onError(exRes.status === 402 ? 'Недостаточно бот-токенов' : errMsg(exData, 'Ошибка обработки'), projectId)
           return
         }
         onStart('done', projectId, { docxUrl: exData.docx_url, pdfUrl: exData.pdf_url ?? undefined }, mode)
@@ -272,7 +272,7 @@ function UploadForm({ token, onStart, onError }: {
       const exRes  = await fetch(`${GOST}/extract?project_id=${projectId}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
       const exData = await exRes.json()
       if (!exRes.ok) {
-        onError(exRes.status === 402 ? 'Недостаточно ГОСТ-токенов' : errMsg(exData, 'Ошибка извлечения'), projectId)
+        onError(exRes.status === 402 ? 'Недостаточно бот-токенов' : errMsg(exData, 'Ошибка извлечения'), projectId)
         return
       }
 
@@ -640,14 +640,14 @@ export default function Gost() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-ink">ГОСТ-калькулятор</h1>
+        <h1 className="text-2xl font-bold text-ink">Решбот</h1>
         <p className="text-sm text-subtle mt-0.5">Автоматическая генерация расчётных работ по ГОСТ</p>
       </div>
 
       {!token && (
         <div className="bg-panel border border-line rounded-2xl px-5 py-4 mb-6 flex items-center gap-3 text-sm text-subtle">
           <AlertCircle size={16} className="shrink-0 text-accent" />
-          <span>Войдите, чтобы использовать ГОСТ-калькулятор и видеть баланс токенов</span>
+          <span>Войдите, чтобы использовать Решбот и видеть баланс токенов</span>
         </div>
       )}
 

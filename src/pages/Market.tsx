@@ -238,9 +238,12 @@ export default function Market() {
                 return (
                   <Link key={l.id} to={`/market/services/${l.id}`}>
                     <GlassCard hover className="rounded-[20px] p-5 flex flex-col h-full">
-                      {/* Обложка услуги; без неё остаётся градиент по названию. */}
+                      {/* Обложка услуги; без неё остаётся градиент по названию.
+                          aspect-[2/1] — то же соотношение, в котором обложку
+                          кадрировали при загрузке (см. ServiceDetail.tsx), иначе
+                          на карточке и на странице услуги виден разный кусок фото. */}
                       <div
-                        className="h-24 rounded-[14px] mb-3.5 flex items-end p-3 bg-cover bg-center"
+                        className="aspect-[2/1] rounded-[14px] mb-3.5 flex items-end p-3 bg-cover bg-center"
                         style={l.cover_url
                           ? { backgroundImage: `url(${l.cover_url})` }
                           : { background: gradientFor(l.title) }}

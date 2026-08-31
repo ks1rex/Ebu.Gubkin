@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Attachment, MAX_ATTACHMENTS, MAX_FILE_BYTES, isImage } from '../lib/attachments'
 import { compressImage, SHOWCASE } from '../lib/compressImage'
 import ImageCropper from '../components/ImageCropper'
+import CategorySelect from '../components/CategorySelect'
 
 const CLS = {
   input: 'w-full bg-[#0f1923] border border-[#1e3a4a] rounded-lg py-[10px] px-3 text-slate-200 text-[0.93rem] box-border',
@@ -47,14 +48,10 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
   const [hasDeposit, setHasDeposit] = useState(parseFloat(initial.deposit_amount ?? 0) > 0)
   const [depositAmt, setDepositAmt] = useState(initial.deposit_amount ?? '')
   const [category, setCategory] = useState(initial.category ?? '')
-  const [categories, setCategories] = useState<string[]>([])
   const [commissionPct, setCommissionPct] = useState(10)
   const [coverToCrop, setCoverToCrop] = useState<File | null>(null)
 
   useEffect(() => {
-    apiCall('GET', '/listings/categories')
-      .then(data => setCategories(Array.isArray(data?.categories) ? data.categories.map((c: any) => typeof c === 'string' ? c : c.name) : []))
-      .catch(() => {})
     apiCall('GET', '/settings/public/commissions')
       .then((r: { marketplace_commission_pct: number }) => setCommissionPct(r.marketplace_commission_pct))
       .catch(() => {})
@@ -182,6 +179,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleCover} disabled={uploading} />
             </label>
           )}
+          <div className="text-slate-500 text-[0.72rem] mt-1.5">Принимается формат 2:1, лучше всего 1200×600 — тогда область кадрирования сразу заполнена целиком</div>
         </div>
 
         <div className="mb-5">
@@ -249,15 +247,7 @@ export default function ServiceForm({ initial = {}, onSubmit, loading, error, er
           </div>
         </div>
 
-        {categories.length > 0 && (
-          <div className="mb-5">
-            <label className={CLS.label}>Категория</label>
-            <select className={CLS.input} value={category} onChange={e => setCategory(e.target.value)}>
-              <option value="">Не выбрана</option>
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        )}
+        <CategorySelect value={category} onChange={setCategory} className="mb-5" />
 
         <div className="mb-5">
           <div className="flex items-start gap-2.5 mb-2">

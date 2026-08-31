@@ -182,15 +182,20 @@ function TxRow({ tx }: { tx: Transaction }) {
 }
 
 // ─── Deposit modal ────────────────────────────────────────────────────────────
+//
+// Пополнение через платёжный шлюз Cashera (2026-08-31): пользователь вводит
+// только сумму, бэкенд создаёт платёж и отдаёт payment_url, куда браузер и
+// перекидывает. Сейчас на форме будет только криптовалюта — СБП/карта пойдут
+// через отдельный, ещё не согласованный шлюз, это не баг и не временная
+// заглушка конкретно в этом компоненте. Зачисление баланса подтверждает
+// исключительно вебхук на бэкенде, эта форма баланс не трогает.
 
 interface DepositModalProps {
   open: boolean
   onClose: () => void
-  instructions: string | null
 }
 
-function DepositModal({ open, onClose, instructions }: DepositModalProps) {
-  const { session } = useAuth()
+function DepositModal({ open, onClose }: DepositModalProps) {
   const toast = useToast()
   const [amount, setAmount]       = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -200,29 +205,12 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
     const num = parseFloat(amount)
     if (!num || num < 1) { toast('Минимальная сумма — 1 ₽', 'error'); return }
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
-    if (!backendUrl) { toast('VITE_BACKEND_URL не задан в .env.local', 'error'); return }
-
     setSubmitting(true)
     try {
-      const res = await fetch(`${backendUrl}/wallet/deposits`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ claimed_amount: num }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string }
-        throw new Error(body.error ?? `Ошибка сервера (${res.status})`)
-      }
-      toast('Заявка отправлена — ожидайте подтверждения администратора', 'success')
-      setAmount('')
-      onClose()
+      const { payment_url } = await apiCall('POST', '/wallet/cashera/deposits', { amount: num }) as { payment_url: string }
+      window.location.href = payment_url
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Ошибка', 'error')
-    } finally {
       setSubmitting(false)
     }
   }
@@ -230,9 +218,10 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
   return (
     <Modal open={open} onClose={onClose} title="Пополнение баланса">
       <div className="space-y-4">
-        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed whitespace-pre-line">
-          {instructions ??
-            'Переведите нужную сумму по реквизитам администратора, затем заполните форму ниже. Пополнение подтверждается вручную в течение рабочего дня.'}
+        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed">
+          Сейчас пополнение доступно только криптовалютой. Укажите сумму в рублях —
+          вас перекинет на страницу оплаты, эквивалент в крипте посчитается там.
+          Баланс пополнится сразу после успешной оплаты.
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -253,7 +242,7 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
             )}
           </div>
           <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
-            {submitting ? 'Отправляем...' : 'Отправить заявку'}
+            {submitting ? 'Переходим к оплате...' : 'Перейти к оплате'}
           </Button>
         </form>
       </div>
@@ -262,6 +251,9 @@ function DepositModal({ open, onClose, instructions }: DepositModalProps) {
 }
 
 // ─── Withdraw modal ───────────────────────────────────────────────────────────
+//
+// Вывод — только на номер телефона (СБП), без выбора способа: карта убрана
+// вместе со своим отдельным минимумом (2026-08-31).
 
 interface WithdrawModalProps {
   open: boolean
@@ -270,20 +262,25 @@ interface WithdrawModalProps {
   earnedBalance: number
 }
 
-// Минимумы дублируют бэкенд (routes/wallet.js WITHDRAWAL_MIN) — здесь только
-// ради мгновенной подсказки; отказ всё равно за сервером.
-type WithdrawMethod = 'sbp' | 'card'
-type BalanceSource  = 'deposited' | 'earned'
-const WITHDRAWAL_MIN: Record<WithdrawMethod, number> = { sbp: 500, card: 4000 }
-const METHOD_LABEL:   Record<WithdrawMethod, string> = { sbp: 'СБП', card: 'Карта' }
+// Дублирует бэкенд (routes/wallet.js WITHDRAWAL_MIN) — здесь только ради
+// мгновенной подсказки; отказ всё равно за сервером.
+type BalanceSource = 'deposited' | 'earned'
+const WITHDRAWAL_MIN = 500
+// Российский номер: опциональный +, 10 или 11 цифр (с кодом страны или без),
+// пробелы/дефисы/скобки разрешены — но никаких других символов.
+const PHONE_RE = /^\+?[\d\s\-()]{10,20}$/
+function isValidPhone(raw: string) {
+  if (!PHONE_RE.test(raw)) return false
+  const digits = raw.replace(/\D/g, '')
+  return digits.length === 10 || digits.length === 11
+}
 
 function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: WithdrawModalProps) {
-  const { session } = useAuth()
   const toast = useToast()
   const [amount, setAmount]         = useState('')
-  const [cardNumber, setCardNumber] = useState('')
+  const [phone, setPhone]           = useState('')
+  const [bankName, setBankName]     = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [method, setMethod]         = useState<WithdrawMethod>('sbp')
   const [source, setSource]         = useState<BalanceSource>('deposited')
   const [commissionPct, setCommissionPct] = useState<number | null>(null)
 
@@ -297,7 +294,6 @@ function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: Withd
   // Заработанное выводится без комиссии, занесённое — по ставке платформы.
   const pct = source === 'earned' ? 0 : commissionPct
   const maxAmount  = source === 'earned' ? earnedBalance : depositedBalance
-  const minAmount  = WITHDRAWAL_MIN[method]
   const parsedAmount = parseFloat(amount)
   const willReceive = pct != null && parsedAmount > 0
     ? Math.round(parsedAmount * (1 - pct / 100) * 100) / 100
@@ -306,35 +302,23 @@ function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: Withd
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const num = parseFloat(amount)
-    if (!num || num < minAmount) { toast(`Минимальная сумма для «${METHOD_LABEL[method]}» — ${minAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
-    if (num > maxAmount)         { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
-    if (!cardNumber.trim())      { toast('Введите реквизиты для вывода', 'error'); return }
-
-    const backendUrl = import.meta.env.VITE_BACKEND_URL
-    if (!backendUrl) { toast('VITE_BACKEND_URL не задан в .env.local', 'error'); return }
+    if (!num || num < WITHDRAWAL_MIN) { toast(`Минимальная сумма — ${WITHDRAWAL_MIN.toLocaleString('ru-RU')} ₽`, 'error'); return }
+    if (num > maxAmount)              { toast(`Недостаточно средств. Доступно: ${maxAmount.toLocaleString('ru-RU')} ₽`, 'error'); return }
+    if (!isValidPhone(phone.trim()))  { toast('Введите номер телефона в формате +7 900 123-45-67', 'error'); return }
+    if (!bankName.trim())             { toast('Укажите банк для перевода', 'error'); return }
 
     setSubmitting(true)
     try {
-      const res = await fetch(`${backendUrl}/wallet/withdrawals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({
-          amount: num,
-          card_number: cardNumber.trim(),
-          withdrawal_method: method,
-          source_balance: source,
-        }),
+      await apiCall('POST', '/wallet/withdrawals', {
+        amount: num,
+        phone_number: phone.trim(),
+        bank_name: bankName.trim(),
+        source_balance: source,
       })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string }
-        throw new Error(body.error ?? `Ошибка сервера (${res.status})`)
-      }
       toast('Заявка на вывод отправлена — средства будут переведены в течение рабочего дня', 'success')
       setAmount('')
-      setCardNumber('')
+      setPhone('')
+      setBankName('')
       onClose()
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Ошибка', 'error')
@@ -362,34 +346,23 @@ function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: Withd
             </button>
           </div>
           <p className="text-xs text-subtle mt-1">
-            Одна заявка — один баланс. Комиссия: занесённый {commissionPct ?? 10}%, заработанный 0%.
+            Одна заявка — один баланс. Комиссия: занесённый {commissionPct ?? 15}%, заработанный 0%.
           </p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-ink mb-1">Способ вывода</label>
-          <div className="flex gap-2">
-            {(['sbp', 'card'] as WithdrawMethod[]).map(m => (
-              <button key={m} type="button" className={tab(method === m)} onClick={() => setMethod(m)}>
-                {METHOD_LABEL[m]} · от {WITHDRAWAL_MIN[m].toLocaleString('ru-RU')} ₽
-              </button>
-            ))}
-          </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-ink mb-1">Сумма вывода (₽)</label>
           <input
             type="number"
-            min={minAmount}
+            min={WITHDRAWAL_MIN}
             max={maxAmount}
             value={amount}
             onChange={e => setAmount(e.target.value)}
-            placeholder={String(minAmount)}
+            placeholder={String(WITHDRAWAL_MIN)}
             className={INPUT}
           />
           <p className="text-xs text-subtle mt-1">
-            Доступно: {maxAmount.toLocaleString('ru-RU')} ₽ · минимум {minAmount.toLocaleString('ru-RU')} ₽
+            Доступно: {maxAmount.toLocaleString('ru-RU')} ₽ · минимум {WITHDRAWAL_MIN.toLocaleString('ru-RU')} ₽
           </p>
           {willReceive != null && (
             <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
@@ -400,16 +373,34 @@ function WithdrawModal({ open, onClose, depositedBalance, earnedBalance }: Withd
             </div>
           )}
         </div>
-        <div>
-          <label className="block text-sm font-medium text-ink mb-1">Реквизиты (номер карты или телефон)</label>
-          <input
-            type="text"
-            value={cardNumber}
-            onChange={e => setCardNumber(e.target.value)}
-            placeholder={method === 'sbp' ? '+7 900 123-45-67' : '2200 1234 5678 9012'}
-            className={INPUT}
-          />
+        <div className="grid grid-cols-[1fr_auto] gap-3">
+          <div>
+            <label className="block text-sm font-medium text-ink mb-1">Номер телефона (СБП)</label>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
+              placeholder="+7 900 123-45-67"
+              className={INPUT}
+            />
+          </div>
+          <div className="w-32">
+            <label className="block text-sm font-medium text-ink mb-1">Банк</label>
+            <input
+              type="text"
+              value={bankName}
+              onChange={e => setBankName(e.target.value)}
+              placeholder="Т-Банк"
+              maxLength={100}
+              className={INPUT}
+            />
+          </div>
         </div>
+        <p className="text-xs text-subtle -mt-2">
+          Номер телефона, привязанный к СБП, и банк, в котором его искать при
+          переводе — например, «Т-Банк» или «Сбербанк».
+        </p>
         <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
           {submitting ? 'Отправляем...' : 'Отправить заявку'}
         </Button>
@@ -440,7 +431,6 @@ export default function Wallet() {
   const [loadingMore, setLoadingMore]   = useState(false)
   const [txFilter, setTxFilter]         = useState<TxFilter>('all')
 
-  const [instructions, setInstructions] = useState<string | null>(null)
   const [depositOpen, setDepositOpen]   = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
 
@@ -451,7 +441,6 @@ export default function Wallet() {
     if (!user) return
     fetchBalance()
     fetchTransactions(0, true)
-    fetchInstructions()
     apiCall('GET', '/wallet/chart').then(d => setChart(Array.isArray(d) ? d : [])).catch(() => setChart([]))
     apiCall('GET', '/wallet/referrals').then(d => setReferrals(Array.isArray(d) ? d : [])).catch(() => setReferrals([]))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -493,18 +482,6 @@ export default function Wallet() {
 
     if (reset) setTxLoading(false)
     else       setLoadingMore(false)
-  }
-
-  async function fetchInstructions() {
-    // ponytail: админка сохраняет реквизиты под ключом deposit_instructions,
-    // а миграция 0013 засеяла пустой payment_requisites — читаем оба, приоритет у нового.
-    const { data } = await supabase
-      .from('site_settings')
-      .select('key, value')
-      .in('key', ['deposit_instructions', 'payment_requisites'])
-    const byKey = Object.fromEntries((data ?? []).map(r => [r.key, r.value]))
-    const value = byKey.deposit_instructions || byKey.payment_requisites
-    setInstructions(value?.trim() ? value : null)
   }
 
   async function copyReferralLink() {
@@ -578,7 +555,7 @@ export default function Wallet() {
                 </b>
               )}
               <p className="text-[11.5px] text-subtle mt-1.5 leading-snug">
-                Деньги из пополнений. При выводе удерживается комиссия 10%.
+                Деньги из пополнений. При выводе удерживается комиссия 15%.
               </p>
             </GlassCard>
             <GlassCard className="rounded-[18px] p-4 sm:p-5 min-w-0">
@@ -802,7 +779,7 @@ export default function Wallet() {
       </div>
 
       {vipPurchaseModal}
-      <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)}  instructions={instructions} />
+      <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)} />
       <WithdrawModal
         open={withdrawOpen}
         onClose={() => { setWithdrawOpen(false); fetchBalance() }}

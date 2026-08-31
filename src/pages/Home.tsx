@@ -79,7 +79,7 @@ export default function Home() {
           <img src={logoMark} alt="Ebu.Gubkin" className="w-28 h-28 sm:w-20 sm:h-20 shrink-0 object-contain" />
           <div className="text-center sm:text-left">
             <div className="text-xs tracking-[2px] text-subtle font-semibold uppercase mb-2">
-              Студенческая платформа Губкинского университета
+              Единая биржа учащихся<br />Губкинского университета
             </div>
             <h1 className="text-[34px] sm:text-[40px] leading-[1.1] font-bold tracking-[-1px]">
               <span className="text-ink">Вся студжизнь Губки -</span><br />

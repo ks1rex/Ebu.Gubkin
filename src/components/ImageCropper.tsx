@@ -9,9 +9,11 @@ interface Props {
   onConfirm: (file: File) => void
 }
 
-// Перетаскивание картинки внутри рамки фиксированного соотношения сторон —
-// object-cover сам решает, что обрезать, а тут решает пользователь. Только
-// пан (без зума): решает жалобу "обрезает как хочет" минимальным способом.
+// Рамка = вся видимая область целиком, без увеличенного фона вокруг — если
+// фото уже в нужных пропорциях (aspect), оно заполняет рамку без остатка,
+// без полей и без обрезки. Перетаскивание — только пан (без зума),
+// object-cover сам решает, что обрезать при несовпадающих пропорциях,
+// а тут решает пользователь.
 export default function ImageCropper({ file, aspect, outputWidth = 1200, onCancel, onConfirm }: Props) {
   const [imgUrl, setImgUrl] = useState('')
   const [img,    setImg]    = useState<HTMLImageElement | null>(null)
@@ -84,7 +86,7 @@ export default function ImageCropper({ file, aspect, outputWidth = 1200, onCance
         <h3 className="text-sm font-semibold text-ink mb-3">Выберите видимую область</h3>
         <div
           ref={frameRef}
-          className="relative w-full overflow-hidden rounded-[12px] bg-black/40 touch-none cursor-grab active:cursor-grabbing select-none"
+          className="relative w-full overflow-hidden rounded-[12px] bg-black/40 touch-none cursor-grab active:cursor-grabbing select-none ring-1 ring-white/25"
           style={{ aspectRatio: String(aspect) }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -101,7 +103,8 @@ export default function ImageCropper({ file, aspect, outputWidth = 1200, onCance
             />
           )}
         </div>
-        <p className="text-xs text-subtle mt-2">Перетащите картинку, чтобы выбрать видимую область</p>
+        <p className="text-xs text-subtle mt-2">Перетащите картинку, чтобы выбрать видимую область — это ровно то, что будет видно на сайте</p>
+        <p className="text-xs text-subtle mt-1">Фото {outputWidth}×{Math.round(outputWidth / aspect)} (или в этих пропорциях) заполнит рамку целиком, без обрезки</p>
         <div className="flex gap-2 justify-end mt-4">
           <button onClick={onCancel} className="px-4 py-1.5 text-sm border border-line rounded-md text-ink hover:bg-panel transition-colors">Отмена</button>
           <button onClick={handleConfirm} className="px-4 py-1.5 text-sm bg-accent text-white rounded-md hover:bg-accent-hover transition-colors">Готово</button>

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, User, MapPin, AlertCircle } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, User, MapPin, AlertCircle, ExternalLink } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { apiCall } from '../lib/api'
 import { GlassCard, Chip } from '../components/glass'
+import Modal from '../components/Modal'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,7 @@ export default function Schedule() {
   const [facultyId, setFacultyId] = useState<number | ''>('')
   const [groupId, setGroupId] = useState<number | ''>('')
   const [restored, setRestored] = useState(false)
+  const [showInstallGuide, setShowInstallGuide] = useState(false)
 
   const [monday, setMonday] = useState(() => mondayOf(new Date()))
   const [data, setData] = useState<LessonsResponse | null>(null)
@@ -257,9 +259,17 @@ export default function Schedule() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ink mb-4 flex items-center gap-2.5">
-        <CalendarDays size={22} className="text-lav" /> Расписание
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h1 className="text-2xl font-bold text-ink flex items-center gap-2.5">
+          <CalendarDays size={22} className="text-lav" /> Расписание
+        </h1>
+        <button
+          onClick={() => setShowInstallGuide(true)}
+          className="inline-flex items-center gap-2 font-semibold text-sm rounded-[13px] px-5 py-3 whitespace-nowrap text-ink bg-white/[.08] border border-white/[.16]"
+        >
+          Как добавить на экран
+        </button>
+      </div>
 
       {/* Faculty / group pickers */}
       <GlassCard className="rounded-[18px] px-4 py-4 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -392,6 +402,30 @@ export default function Schedule() {
           )}
         </>
       )}
+
+      {/* ponytail: PDF в <iframe> на мобильных (особенно WebKit/iOS — а это
+          именно та аудитория, которой нужна эта инструкция) часто показывает
+          только первую страницу и не даёт листать дальше внутри рамки
+          ограниченной высоты — известное ограничение встроенного вьюера, а
+          не что-то, что чинится версткой iframe. Обычная ссылка на сам файл
+          (без target="_blank", в той же вкладке) грузит PDF как полноценную
+          страницу — тогда мобильный браузер использует свой настоящий PDF-
+          вьюер со скроллом, а не ограниченный виджет внутри iframe. Через
+          <Link> роутера так не сделать — SPA-навигация не откроет статический
+          файл, поэтому это обычный <a>, не Button/Link.  */}
+      <Modal open={showInstallGuide} onClose={() => setShowInstallGuide(false)} title="Как добавить на экран">
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          <p className="text-sm text-subtle max-w-sm">
+            Откройте инструкцию — так её можно нормально пролистать на телефоне.
+          </p>
+          <a
+            href="/instructions/schedule-ios-install.pdf"
+            className="inline-flex items-center gap-2 font-semibold text-sm rounded-[13px] px-5 py-3 whitespace-nowrap text-[#08221c] bg-gradient-to-br from-mint to-[#a7f3d0] shadow-[0_8px_20px_rgba(94,234,212,.3)]"
+          >
+            <ExternalLink size={16} /> Открыть инструкцию (PDF)
+          </a>
+        </div>
+      </Modal>
     </div>
   )
 }

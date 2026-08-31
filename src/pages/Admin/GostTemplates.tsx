@@ -560,7 +560,7 @@ export default function AdminGostTemplates() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-ink">ГОСТ-шаблоны</h1>
+      <h1 className="text-xl font-semibold text-ink">Решбот-шаблоны</h1>
 
       {!GOST ? (
         <div className="text-sm text-subtle">VITE_GOST_URL не настроен</div>

@@ -41,7 +41,7 @@ export const NAV_ITEMS = [
   { to: '/admin/news',           icon: Newspaper,       label: 'Новости',                ownerOnly: true },
   { to: '/admin/teachers',       icon: GraduationCap,   label: 'Преподаватели',          ownerOnly: true },
   { to: '/admin/forum',          icon: MessageSquare,   label: 'Форум' },
-  { to: '/admin/gost',           icon: FileText,        label: 'ГОСТ-шаблоны',           ownerOnly: true },
+  { to: '/admin/gost',           icon: FileText,        label: 'Решбот-шаблоны',         ownerOnly: true },
   { to: '/admin/schedule-warmup', icon: CalendarClock,  label: 'Прогрев расписания',     ownerOnly: true },
   { to: '/admin/orders',         icon: BookOpen,        label: 'Заказы' },
   { to: '/admin/conversations',  icon: MessageCircle,   label: 'Чаты',                   ownerOnly: true },
