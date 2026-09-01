@@ -252,7 +252,7 @@ export default function AdminUsers() {
           className="px-3 py-2 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors shrink-0">
           Найти
         </button>
-        <div className="flex gap-1 bg-panel p-1 rounded-xl">
+        <div className="flex flex-wrap gap-1 bg-panel p-1 rounded-xl">
           {FILTERS.map(f => (
             <button
               key={f.id}
