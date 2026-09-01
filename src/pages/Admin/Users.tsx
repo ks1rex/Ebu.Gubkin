@@ -331,7 +331,10 @@ export default function AdminUsers() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              {/* flex-wrap: у владельца на карточке админа тут до 4 кнопок
+                  (Профиль/Заблокировать/Сделать админом/Сделать владельцем) —
+                  на узких экранах не помещаются в один ряд без переноса. */}
+              <div className="flex flex-wrap gap-2">
                 <Link
                   to={`/users/${user.id}`}
                   {...(IS_STANDALONE ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
