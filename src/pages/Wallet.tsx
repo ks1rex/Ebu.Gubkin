@@ -183,12 +183,17 @@ function TxRow({ tx }: { tx: Transaction }) {
 
 // ─── Deposit modal ────────────────────────────────────────────────────────────
 //
-// Пополнение через платёжный шлюз Cashera (2026-08-31): пользователь вводит
-// только сумму, бэкенд создаёт платёж и отдаёт payment_url, куда браузер и
-// перекидывает. Сейчас на форме будет только криптовалюта — СБП/карта пойдут
-// через отдельный, ещё не согласованный шлюз, это не баг и не временная
-// заглушка конкретно в этом компоненте. Зачисление баланса подтверждает
-// исключительно вебхук на бэкенде, эта форма баланс не трогает.
+// Два независимых способа пополнения, оба через один и тот же паттерн:
+// пользователь вводит сумму, бэкенд создаёт платёж и отдаёт payment_url, куда
+// браузер и перекидывает; баланс подтверждает исключительно вебхук на
+// бэкенде, эта форма баланс не трогает.
+// - Cashera (2026-08-31) — только криптовалюта, без комиссии клиенту.
+// - ParityPay (2026-09-01) — только СБП, с комиссией (admin_settings.
+//   paritypay_commission_pct, по умолчанию 1.8%): на баланс зачисляется
+//   меньше уплаченного, это НЕ ошибка формы — так и задумано (5% берёт на
+//   себя платформа, 1.8% — клиент, см. reshbirga wallet.js).
+
+type DepositMethod = 'crypto' | 'sbp'
 
 interface DepositModalProps {
   open: boolean
@@ -197,8 +202,21 @@ interface DepositModalProps {
 
 function DepositModal({ open, onClose }: DepositModalProps) {
   const toast = useToast()
-  const [amount, setAmount]       = useState('')
+  const [method, setMethod]         = useState<DepositMethod>('crypto')
+  const [amount, setAmount]         = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [paritypayPct, setParitypayPct] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    apiCall('GET', '/settings/public/commissions')
+      .then((r: { paritypay_commission_pct: number }) => setParitypayPct(r.paritypay_commission_pct))
+      .catch(() => setParitypayPct(null))
+  }, [open])
+
+  const parsedAmount = parseFloat(amount)
+  const pct = method === 'sbp' ? (paritypayPct ?? 1.8) : 0
+  const willCredit = parsedAmount > 0 ? Math.round(parsedAmount * (1 - pct / 100) * 100) / 100 : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -207,7 +225,8 @@ function DepositModal({ open, onClose }: DepositModalProps) {
 
     setSubmitting(true)
     try {
-      const { payment_url } = await apiCall('POST', '/wallet/cashera/deposits', { amount: num }) as { payment_url: string }
+      const path = method === 'sbp' ? '/wallet/paritypay/deposits' : '/wallet/cashera/deposits'
+      const { payment_url } = await apiCall('POST', path, { amount: num }) as { payment_url: string }
       window.location.href = payment_url
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Ошибка', 'error')
@@ -215,17 +234,34 @@ function DepositModal({ open, onClose }: DepositModalProps) {
     }
   }
 
+  const tab = (active: boolean) =>
+    `flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+      active ? 'border-accent bg-accent/15 text-ink' : 'border-line text-subtle hover:text-ink'
+    }`
+
   return (
     <Modal open={open} onClose={onClose} title="Пополнение баланса">
       <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-ink mb-1">Способ оплаты</label>
+          <div className="flex gap-2">
+            <button type="button" className={tab(method === 'crypto')} onClick={() => setMethod('crypto')}>
+              Криптовалюта
+            </button>
+            <button type="button" className={tab(method === 'sbp')} onClick={() => setMethod('sbp')}>
+              СБП
+            </button>
+          </div>
+        </div>
+
         <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed">
-          Сейчас пополнение доступно только криптовалютой. Укажите сумму в рублях —
-          вас перекинет на страницу оплаты, эквивалент в крипте посчитается там.
-          Баланс пополнится сразу после успешной оплаты.
+          {method === 'crypto'
+            ? 'Укажите сумму в рублях — вас перекинет на страницу оплаты, эквивалент в крипте посчитается там. Баланс пополнится сразу после успешной оплаты, без комиссии.'
+            : `Оплата через СБП. Комиссия ${pct}% удерживается с зачисления — на баланс поступит немного меньше уплаченной суммы.`}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-ink mb-1">Сумма пополнения (₽)</label>
+            <label className="block text-sm font-medium text-ink mb-1">Сумма к оплате (₽)</label>
             <input
               type="number"
               min="1"
@@ -234,10 +270,12 @@ function DepositModal({ open, onClose }: DepositModalProps) {
               placeholder="1 000"
               className={INPUT}
             />
-            {parseFloat(amount) > 0 && (
+            {willCredit != null && (
               <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
-                <div className="text-xs text-subtle mb-0.5">На баланс поступит (без комиссии)</div>
-                <div className="text-lg font-bold text-success">{parseFloat(amount).toLocaleString('ru-RU')} ₽</div>
+                <div className="text-xs text-subtle mb-0.5">
+                  {pct ? `На баланс поступит (комиссия ${pct}%)` : 'На баланс поступит (без комиссии)'}
+                </div>
+                <div className="text-lg font-bold text-success">{willCredit.toLocaleString('ru-RU')} ₽</div>
               </div>
             )}
           </div>

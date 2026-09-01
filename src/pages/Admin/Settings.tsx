@@ -82,6 +82,17 @@ const ADMIN_SETTING_GROUPS: { title: string; keys: AdminSettingKey[] }[] = [
     ],
   },
   {
+    title: 'Пополнение через СБП (ParityPay)',
+    keys: [
+      {
+        key: 'paritypay_commission_pct',
+        label: 'Комиссия клиенту (%)',
+        type: 'number',
+        hint: 'Сколько теряет пользователь при пополнении через СБП — платформа берёт на себя остальную часть комиссии ParityPay.',
+      },
+    ],
+  },
+  {
     title: 'VIP',
     keys: [
       { key: 'vip_price_month',         label: 'Цена VIP на месяц (₽)', type: 'number' },
