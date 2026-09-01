@@ -103,6 +103,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Профиль в контексте — снимок на момент входа/последнего refreshProfile(),
+  // а не живой запрос. Если что-то изменило профиль в другой сессии/на
+  // другом устройстве (например, поменяли аватар не в этой вкладке), эта
+  // вкладка узнаёт об этом только когда пользователь в неё вернётся —
+  // тогда и подтягиваем актуальные данные, а не ждём следующего logout/login.
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === 'visible' && user) {
+        loadProfile(user.id).then(setProfile)
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [user])
+
   async function signUp(email: string, password: string, nickname: string, refCode?: string | null) {
     const { error } = await supabase.auth.signUp({
       email,
