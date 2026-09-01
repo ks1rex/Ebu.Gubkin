@@ -8,7 +8,7 @@ import { printReport } from '../../lib/printReport'
 
 interface FinanceSummary {
   commission_regular: number
-  // наценка к цене на бирже (admin_settings.marketplace_commission_pct, сейчас 11%), признаётся при завершении сделки
+  // наценка +10% к цене на бирже, признаётся при завершении сделки
   commission_marketplace: number
   commission_referral: number
   referral_bonuses_paid: number

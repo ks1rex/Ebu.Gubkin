@@ -28,7 +28,7 @@ const S: Record<string, any> = {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
-const DEFAULT_PCT = 11
+const DEFAULT_PCT = 10
 
 interface Props {
   order: any

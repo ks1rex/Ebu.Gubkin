@@ -183,85 +183,72 @@ function TxRow({ tx }: { tx: Transaction }) {
 
 // ─── Deposit modal ────────────────────────────────────────────────────────────
 //
-// Два независимых способа пополнения, оба через один и тот же паттерн:
-// пользователь вводит сумму, бэкенд создаёт платёж и отдаёт payment_url, куда
-// браузер и перекидывает; баланс подтверждает исключительно вебхук на
-// бэкенде, эта форма баланс не трогает.
-// - Cashera (2026-08-31) — только криптовалюта, без комиссии клиенту.
-// - ParityPay (2026-09-01) — только СБП, с комиссией (admin_settings.
-//   paritypay_commission_pct, по умолчанию 1.8%): на баланс зачисляется
-//   меньше уплаченного, это НЕ ошибка формы — так и задумано (5% берёт на
-//   себя платформа, 1.8% — клиент, см. reshbirga wallet.js).
-
-type DepositMethod = 'crypto' | 'sbp'
+// Онлайн-оплата (Cashera/ParityPay) временно снята с формы — 2026-09-02,
+// решение владельца, пока не убирать сам код интеграций (может понадобиться
+// снова). Пополнение опять ручное: пользователь переводит деньги по
+// реквизитам администратора (site_settings.deposit_instructions /
+// payment_requisites, см. fetchInstructions в основном компоненте) и подаёт
+// заявку через POST /wallet/deposits — обычный deposit_requests-флоу,
+// который никуда не девался всё это время, просто был скрыт за модалками
+// платёжек.
 
 interface DepositModalProps {
   open: boolean
   onClose: () => void
+  instructions: string | null
 }
 
-function DepositModal({ open, onClose }: DepositModalProps) {
+function DepositModal({ open, onClose, instructions }: DepositModalProps) {
+  const { session } = useAuth()
   const toast = useToast()
-  const [method, setMethod]         = useState<DepositMethod>('crypto')
   const [amount, setAmount]         = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [paritypayPct, setParitypayPct] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-    apiCall('GET', '/settings/public/commissions')
-      .then((r: { paritypay_commission_pct: number }) => setParitypayPct(r.paritypay_commission_pct))
-      .catch(() => setParitypayPct(null))
-  }, [open])
-
-  const parsedAmount = parseFloat(amount)
-  const pct = method === 'sbp' ? (paritypayPct ?? 1.8) : 0
-  const willCredit = parsedAmount > 0 ? Math.round(parsedAmount * (1 - pct / 100) * 100) / 100 : null
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const num = parseFloat(amount)
     if (!num || num < 1) { toast('Минимальная сумма — 1 ₽', 'error'); return }
 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL
+    if (!backendUrl) { toast('VITE_BACKEND_URL не задан в .env.local', 'error'); return }
+
     setSubmitting(true)
     try {
-      const path = method === 'sbp' ? '/wallet/paritypay/deposits' : '/wallet/cashera/deposits'
-      const { payment_url } = await apiCall('POST', path, { amount: num }) as { payment_url: string }
-      window.location.href = payment_url
+      const res = await fetch(`${backendUrl}/wallet/deposits`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ claimed_amount: num }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(body.error ?? `Ошибка сервера (${res.status})`)
+      }
+      toast('Заявка отправлена — ожидайте подтверждения администратора', 'success')
+      setAmount('')
+      onClose()
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Ошибка', 'error')
+    } finally {
       setSubmitting(false)
     }
   }
 
-  const tab = (active: boolean) =>
-    `flex-1 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-      active ? 'border-accent bg-accent/15 text-ink' : 'border-line text-subtle hover:text-ink'
-    }`
-
   return (
     <Modal open={open} onClose={onClose} title="Пополнение баланса">
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-ink mb-1">Способ оплаты</label>
-          <div className="flex gap-2">
-            <button type="button" className={tab(method === 'crypto')} onClick={() => setMethod('crypto')}>
-              Криптовалюта
-            </button>
-            <button type="button" className={tab(method === 'sbp')} onClick={() => setMethod('sbp')}>
-              СБП
-            </button>
-          </div>
+        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed whitespace-pre-line">
+          {instructions ??
+            'Переведите нужную сумму по реквизитам администратора, затем заполните форму ниже. Пополнение подтверждается вручную в течение рабочего дня.'}
         </div>
-
-        <div className="p-3 bg-accent-subtle rounded-lg text-sm text-ink leading-relaxed">
-          {method === 'crypto'
-            ? 'Укажите сумму в рублях — вас перекинет на страницу оплаты, эквивалент в крипте посчитается там. Баланс пополнится сразу после успешной оплаты, без комиссии.'
-            : `Оплата через СБП. Комиссия ${pct}% удерживается с зачисления — на баланс поступит немного меньше уплаченной суммы.`}
-        </div>
+        <p className="text-xs text-subtle">
+          Онлайн-оплата картой/СБП/криптой скоро появится — пока пополнение только вручную.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-ink mb-1">Сумма к оплате (₽)</label>
+            <label className="block text-sm font-medium text-ink mb-1">Сумма пополнения (₽)</label>
             <input
               type="number"
               min="1"
@@ -270,17 +257,15 @@ function DepositModal({ open, onClose }: DepositModalProps) {
               placeholder="1 000"
               className={INPUT}
             />
-            {willCredit != null && (
+            {parseFloat(amount) > 0 && (
               <div className="mt-2 p-3 bg-success/10 border border-success/30 rounded-lg">
-                <div className="text-xs text-subtle mb-0.5">
-                  {pct ? `На баланс поступит (комиссия ${pct}%)` : 'На баланс поступит (без комиссии)'}
-                </div>
-                <div className="text-lg font-bold text-success">{willCredit.toLocaleString('ru-RU')} ₽</div>
+                <div className="text-xs text-subtle mb-0.5">На баланс поступит (без комиссии)</div>
+                <div className="text-lg font-bold text-success">{parseFloat(amount).toLocaleString('ru-RU')} ₽</div>
               </div>
             )}
           </div>
           <Button type="submit" variant="mint" disabled={submitting} className="w-full justify-center">
-            {submitting ? 'Переходим к оплате...' : 'Перейти к оплате'}
+            {submitting ? 'Отправляем...' : 'Отправить заявку'}
           </Button>
         </form>
       </div>
@@ -469,6 +454,7 @@ export default function Wallet() {
   const [loadingMore, setLoadingMore]   = useState(false)
   const [txFilter, setTxFilter]         = useState<TxFilter>('all')
 
+  const [instructions, setInstructions] = useState<string | null>(null)
   const [depositOpen, setDepositOpen]   = useState(false)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
 
@@ -479,6 +465,7 @@ export default function Wallet() {
     if (!user) return
     fetchBalance()
     fetchTransactions(0, true)
+    fetchInstructions()
     apiCall('GET', '/wallet/chart').then(d => setChart(Array.isArray(d) ? d : [])).catch(() => setChart([]))
     apiCall('GET', '/wallet/referrals').then(d => setReferrals(Array.isArray(d) ? d : [])).catch(() => setReferrals([]))
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -520,6 +507,18 @@ export default function Wallet() {
 
     if (reset) setTxLoading(false)
     else       setLoadingMore(false)
+  }
+
+  async function fetchInstructions() {
+    // ponytail: админка сохраняет реквизиты под ключом deposit_instructions,
+    // а миграция 0013 засеяла пустой payment_requisites — читаем оба, приоритет у нового.
+    const { data } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', ['deposit_instructions', 'payment_requisites'])
+    const byKey = Object.fromEntries((data ?? []).map(r => [r.key, r.value]))
+    const value = byKey.deposit_instructions || byKey.payment_requisites
+    setInstructions(value?.trim() ? value : null)
   }
 
   async function copyReferralLink() {
@@ -817,7 +816,7 @@ export default function Wallet() {
       </div>
 
       {vipPurchaseModal}
-      <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)} />
+      <DepositModal  open={depositOpen}  onClose={() => setDepositOpen(false)}  instructions={instructions} />
       <WithdrawModal
         open={withdrawOpen}
         onClose={() => { setWithdrawOpen(false); fetchBalance() }}
