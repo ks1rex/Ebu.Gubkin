@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const GRADIENTS = [
   'linear-gradient(135deg,#a78bfa,#7c3aed)',
@@ -29,14 +29,21 @@ export function initialsFor(name: string | null | undefined): string {
 // запрос уходит только когда карточка реально почти на экране — например,
 // единственный результат поиска получает src сразу, а не после того как
 // раньше поставленные в очередь фото выше по списку долистают до конца.
-function useInView<T extends Element>(rootMargin = '80px') {
-  const ref = useRef<T>(null)
+//
+// Callback-ref, а не useRef: элемент под этим рефом появляется не всегда
+// сразу — например в навбаре Avatar сначала рендерится без src (профиль ещё
+// грузится асинхронно) и заглушка ничего не наблюдает, а как только src
+// появляется, JSX впервые монтирует контейнер картинки. С useRef эффект
+// зависел бы только от [inView, rootMargin] и не перезапустился бы на этот
+// новый узел — обсервер так и не создался бы, картинка осталась бы навсегда
+// невидимой. Callback-ref обновляет state при каждом attach/detach узла,
+// поэтому эффект видит смену цели и переподписывается.
+function useInView(rootMargin = '80px') {
+  const [el, setEl] = useState<Element | null>(null)
   const [inView, setInView] = useState(false)
 
   useEffect(() => {
-    if (inView) return
-    const el = ref.current
-    if (!el) return
+    if (inView || !el) return
     if (typeof IntersectionObserver === 'undefined') { setInView(true); return }
     const observer = new IntersectionObserver(
       entries => { if (entries[0]?.isIntersecting) setInView(true) },
@@ -44,9 +51,9 @@ function useInView<T extends Element>(rootMargin = '80px') {
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [inView, rootMargin])
+  }, [el, inView, rootMargin])
 
-  return { ref, inView }
+  return { ref: setEl, inView }
 }
 
 interface Props {
@@ -62,7 +69,7 @@ interface Props {
 
 /** `.av-g` from the glassmorphism handoff — rounded SQUARE (not circle), initials on a gradient. */
 export default function Avatar({ name, src, size = 42, radius = 14, gradient, className = '', isVip = false }: Props) {
-  const { ref, inView } = useInView<HTMLDivElement>()
+  const { ref, inView } = useInView()
 
   const inner = src ? (
     <div ref={ref} className={`shrink-0 ${className}`} style={{ width: size, height: size, borderRadius: radius, overflow: 'hidden' }}>

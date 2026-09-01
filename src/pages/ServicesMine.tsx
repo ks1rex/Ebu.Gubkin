@@ -79,7 +79,7 @@ export default function ServicesMine() {
             <div className="flex-1 min-w-0">
               <Link to={`/market/services/${l.id}`} className="text-slate-200 font-semibold text-[0.95rem] no-underline">{l.title}</Link>
               <div className="text-slate-500 text-[0.78rem] mt-1 flex gap-2.5 flex-wrap">
-                <span title="Столько получите вы; покупатель платит на 10% больше">{formatCurrency(l.price)} вам</span>
+                <span title="Столько получите вы; покупатель платит на 11% больше">{formatCurrency(l.price)} вам</span>
                 {parseFloat(l.deposit_amount ?? 0) > 0 && <span className={CLS.badge}><Shield size={10} />Залог {formatCurrency(l.deposit_amount)}</span>}
                 {!l.is_active && <span className={CLS.badge}>Скрыто</span>}
                 <span>{formatDate(l.created_at)}</span>
