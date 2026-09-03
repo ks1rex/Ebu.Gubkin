@@ -24,15 +24,35 @@ export default function ServiceDetail() {
   const [comment, setComment] = useState('')
   const [ordering, setOrdering] = useState(false)
   const [error, setError] = useState('')
+  const [needsAuth, setNeedsAuth] = useState(false)
 
   useEffect(() => {
     apiCall('GET', `/listings/${id}`)
       .then(setListing)
-      .catch(() => setListing(null))
+      .catch((err: any) => {
+        setListing(null)
+        // GET /listings/:id требует авторизации на бэкенде — незалогиненный
+        // получает 401, а не 404, но раньше оба случая схлопывались в одно
+        // и то же "Услуга не найдена", что вводило в заблуждение: услуга-то
+        // есть, просто нужно сначала войти.
+        setNeedsAuth(err?.status === 401)
+      })
       .finally(() => setLoading(false))
   }, [id])
 
   if (loading) return <Spinner color="#14a89a" /* teal-legacy — see tailwind.config.ts */ />
+  if (needsAuth) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-ink mb-3">Чтобы посмотреть услугу, нужно войти в аккаунт.</p>
+        <p className="text-sm text-subtle">
+          <Link to="/login" className="text-accent hover:underline">Войти</Link>
+          {' '}или{' '}
+          <Link to="/register" className="text-accent hover:underline">зарегистрироваться</Link>
+        </p>
+      </div>
+    )
+  }
   if (!listing) return <div className="text-red-400 p-8">Услуга не найдена</div>
 
   // Покупателю везде показываем цену с комиссией биржи — ровно то, что спишется.

@@ -26,6 +26,7 @@ export async function apiCall(method: string, path: string, body?: unknown): Pro
     const err = await res.json().catch(() => ({}))
     const e: any = new Error(err.error ?? `HTTP ${res.status}`)
     e.data = err
+    e.status = res.status
     throw e
   }
   return res.json()
